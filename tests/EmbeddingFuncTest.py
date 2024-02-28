@@ -139,7 +139,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[1, 0.25, 0.5, 0.5], [0.25, 1, 0.33, 0.7], [0.5, 0.33, 1, 0.5], [0.5, 0.7, 0.5, 1]])
 
         # Call the function with the sample input
-        A = EmbeddingFunctions.get_embeddings_nc(G)
+        A = EmbeddingFunctions.get_embeddings_mikecroucher_nc(G)
         Gprime = np.matmul(A.T, A)
         # Check if the dot product of A transpose and A equals G
         self.assertTrue(np.allclose(Gprime, G))
@@ -150,7 +150,7 @@ class TestEmbeddingFunction(unittest.TestCase):
                       [0, 0, -1, 2]])
 
         # Call the function with the sample input
-        A = EmbeddingFunctions.get_embeddings_nc(G, nDim=3)
+        A = EmbeddingFunctions.get_embeddings_mikecroucher_nc(G, nDim=3)
         Gprime = np.array([[1., -0.8084125, 0.1915875, 0.10677505],
                           [-0.8084125, 1., -0.65623269, 0.1915875],
                           [0.1915875, -0.65623269, 1., -0.8084125],
