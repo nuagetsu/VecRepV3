@@ -237,7 +237,11 @@ The resulting matrix then can be decomposed using the reduced dimension decompos
 # Metrics for embeddings
 Since it is not possible to perfectly solve the problem, we would like to come up with metrics to compare different set of vector embeddings to choose the estimate that best satisfies our requirements.
 
-Since we would like to use the vector embeddings for processes like image clustering, the exact score for dot products with distant images are less important than the dot products between similar images
+
+## K neighbour score
+Ideally, close neighbours of the vector embeddings should correspond to close neighbours the original image. The K neighbour score is the fraction of the K most similar images (i.e. highest image product) in K closest vector embeddings (i.e. highest dot product) for the corresponding vector. In an ideal case, the score would be one.
+
+Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. Their order does not matter.
 
 # Sampling approach
 
