@@ -15,13 +15,17 @@ class NonPositiveSemidefiniteError(Exception):
 def get_embeddings_negatives_zeroed(matrixG):
     """
     :param matrixG: MatrixG to decompose
-    :return: embeddings generated after all negative eigenvalue of the image product matrix are zeroed
+    :return: embeddings generated after all negative eigenvalue of the image product matrix are zeroed.
+    Embeddings are then normalized
     """
     eigenvalues, eigenvectors = get_eig_for_symmetric(matrixG)
     eigenvalues[0 > eigenvalues] = 0
     Droot = np.sqrt(np.diag(eigenvalues))
 
     matrixA = np.matmul(Droot, eigenvectors.T)
+
+    # Normalizing matrix A
+    matrixA = normalize(matrixA, norm='l2', axis=0)
     return matrixA
 
 

@@ -35,8 +35,6 @@ class TestEmbeddingFunction(unittest.TestCase):
         with self.assertRaises(ValueError):
             eig, vec = EmbeddingFunctions.get_eig_for_symmetric(G)
 
-
-
         # Define a sample input matrix
         G = np.array([[1, 0.25, 0.5, 0.5],
                       [0.25, 1, 0.33, 0.7],
@@ -74,7 +72,9 @@ class TestEmbeddingFunction(unittest.TestCase):
 
     def test_neg_zeroed(self):
         # Test positive semidef input
-        G = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]])
+        G = np.array([[1, 0.5, 0],
+                      [0.5, 1, 0.75],
+                      [0, 0.75, 1]])
 
         # Call the function with the sample input
         A = EmbeddingFunctions.get_embeddings_negatives_zeroed(G)
@@ -86,16 +86,18 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
 
         A = EmbeddingFunctions.get_embeddings_negatives_zeroed(G)
-        result = np.array([[1.17437573, 0.86387531, 0.86387531, 0.17437573],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.17437573, 0.86387531, 0.86387531, 1.17437573]])
+        result = np.array([[1., 0.75780223, 0.75780223, 0.14852844],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.14852844, 0.75780223, 0.75780223, 1.]])
         Gprime = np.matmul(A.T, A)
         self.assertTrue(np.allclose(Gprime, result, rtol=1e-2))
 
     def test_nDim_zeroed(self):
         # Test nDim error cases
-        G = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]])
+        G = np.array([[1, 0.5, 0],
+                      [0.5, 1, 0.75],
+                      [0, 0.75, 1]])
 
         with self.assertRaises(ValueError):
             A = EmbeddingFunctions.get_embeddings_mPCA(G, 9)
@@ -104,7 +106,9 @@ class TestEmbeddingFunction(unittest.TestCase):
             A = EmbeddingFunctions.get_embeddings_mPCA(G, 0)
 
         # Test positive semidef input
-        G = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]])
+        G = np.array([[1, 0.5, 0],
+                      [0.5, 1, 0.75],
+                      [0, 0.75, 1]])
 
         # Call the function with the sample input
         A = EmbeddingFunctions.get_embeddings_mPCA(G, 3)
@@ -117,10 +121,10 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
 
         A = EmbeddingFunctions.get_embeddings_mPCA(G, 2)
-        result = np.array([[1.17437573, 0.86387531, 0.86387531, 0.17437573],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.17437573, 0.86387531, 0.86387531, 1.17437573]])
+        result = np.array([[1., 0.75780223, 0.75780223, 0.14852844],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.14852844, 0.75780223, 0.75780223, 1.]])
         Gprime = np.matmul(A.T, A)
         self.assertTrue(np.allclose(Gprime, result, rtol=1e-2))
 
@@ -128,14 +132,14 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
 
         A = EmbeddingFunctions.get_embeddings_mPCA(G, 1)
-        result = np.array([[0.67437573, 0.86387531, 0.86387531, 0.67437573],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.86387531, 1.10662427, 1.10662427, 0.86387531],
-                           [0.67437573, 0.86387531, 0.86387531, 0.67437573]])
+        result = np.array([[1., 1., 1., 1.],
+                           [1., 1., 1., 1.],
+                           [1., 1., 1., 1.],
+                           [1., 1., 1., 1.]])
         Gprime = np.matmul(A.T, A)
         self.assertTrue(np.allclose(Gprime, result, rtol=1e-2))
 
-    def test_matrix_decomposition_NC(self):# Define a sample input matrix
+    def test_matrix_decomposition_NC(self):  # Define a sample input matrix
         G = np.array([[1, 0.25, 0.5, 0.5], [0.25, 1, 0.33, 0.7], [0.5, 0.33, 1, 0.5], [0.5, 0.7, 0.5, 1]])
 
         # Call the function with the sample input
@@ -152,14 +156,13 @@ class TestEmbeddingFunction(unittest.TestCase):
         # Call the function with the sample input
         A = EmbeddingFunctions.get_embeddings_mikecroucher_nc(G, nDim=3)
         Gprime = np.array([[1., -0.8084125, 0.1915875, 0.10677505],
-                          [-0.8084125, 1., -0.65623269, 0.1915875],
-                          [0.1915875, -0.65623269, 1., -0.8084125],
-                          [0.10677505, 0.1915875, -0.8084125, 1.]])
+                           [-0.8084125, 1., -0.65623269, 0.1915875],
+                           [0.1915875, -0.65623269, 1., -0.8084125],
+                           [0.10677505, 0.1915875, -0.8084125, 1.]])
         Ares = np.dot(A.T, A)
         # Check if the mat mul of At and A transpose equals G
         self.assertTrue(np.allclose(Gprime, Ares, atol=1e-4))
         self.assertEqual(A.shape, (3, 4))
-
 
 
 if __name__ == '__main__':
