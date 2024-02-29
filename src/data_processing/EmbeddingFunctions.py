@@ -3,6 +3,7 @@ import re
 
 import numpy as np
 from numpy.typing import NDArray
+from sklearn.preprocessing import normalize
 
 from src.helpers.NearestCorrelation import nearcorr, ExceededMaxIterationsError
 
@@ -44,7 +45,7 @@ def get_embeddings_mikecroucher_nc(matrixG, nDim=None) -> NDArray:
     # Decompose the matrix
     if nDim is None:
         nDim = len(matrixG)
-    matrixA = get_embeddings_zeroed(matrixGprime, nDim)
+    matrixA = get_embeddings_mPCA(matrixGprime, nDim)
     return matrixA
 
 def get_embeddings_matlab_nc(matrixG: NDArray, nDim: int) -> NDArray:
@@ -69,7 +70,7 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
 
     elif re.search('zero_[0-9]?[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_zeroed(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim)
     elif embeddingType == "nc":
         embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix)
     elif re.search('nc_[0-9]?[0-9]$', embeddingType) is not None:
@@ -99,12 +100,13 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
 
 
 
-def get_embeddings_zeroed(matrixG: NDArray, nDim=None):
+def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
     """
     :param matrixG: Matrix to be decomposed
     :param nDim: Number of dimensions of the vector embedding. If none, then carries out a normal decomposition
     :return: An embedding matrix, with each vector having nDim dimensions.
-    Keeps the largest nDim number of eigenvalues and zeros the rest.
+    Keeps the largest nDim number of eigenvalues and zeros the rest. Followed by the normalization of the embedding matrix
+    Effectively applies a modified PCA to the vector embeddings
     """
     maxDim = len(matrixG[0])
     if nDim is None:
@@ -130,6 +132,9 @@ def get_embeddings_zeroed(matrixG: NDArray, nDim=None):
     Drootm = Droot[:nDim, :]
 
     matrixA = np.matmul(Drootm, eigenvectors.T)
+
+    # Normalizing matrix A
+    matrixA = normalize(matrixA, norm='l2', axis=0)
     return matrixA
 
 

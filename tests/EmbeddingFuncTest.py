@@ -59,7 +59,7 @@ class TestEmbeddingFunction(unittest.TestCase):
                       [0.5, 0.7, 0.5, 1]])
 
         # Call the function with the sample input
-        A = EmbeddingFunctions.get_embeddings_zeroed(G)
+        A = EmbeddingFunctions.get_embeddings_mPCA(G)
         Gprime = np.matmul(A.T, A)
         # Check if the dot product of A transpose and A equals G
         self.assertTrue(np.allclose(Gprime, G))
@@ -70,7 +70,7 @@ class TestEmbeddingFunction(unittest.TestCase):
                       [1, 1, 1, 1],
                       [0, 1, 1, 1]])
         with self.assertRaises(EmbeddingFunctions.NonPositiveSemidefiniteError):
-            A = EmbeddingFunctions.get_embeddings_zeroed(G)
+            A = EmbeddingFunctions.get_embeddings_mPCA(G)
 
     def test_neg_zeroed(self):
         # Test positive semidef input
@@ -98,16 +98,16 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]])
 
         with self.assertRaises(ValueError):
-            A = EmbeddingFunctions.get_embeddings_zeroed(G, 9)
+            A = EmbeddingFunctions.get_embeddings_mPCA(G, 9)
 
         with self.assertRaises(ValueError):
-            A = EmbeddingFunctions.get_embeddings_zeroed(G, 0)
+            A = EmbeddingFunctions.get_embeddings_mPCA(G, 0)
 
         # Test positive semidef input
         G = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]])
 
         # Call the function with the sample input
-        A = EmbeddingFunctions.get_embeddings_zeroed(G, 3)
+        A = EmbeddingFunctions.get_embeddings_mPCA(G, 3)
         Gprime = np.matmul(A.T, A)
 
         # Check if the dot product of A transpose and A equals G
@@ -116,7 +116,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         # Test Non pos semidef input, nDim = 2
         G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
 
-        A = EmbeddingFunctions.get_embeddings_zeroed(G, 2)
+        A = EmbeddingFunctions.get_embeddings_mPCA(G, 2)
         result = np.array([[1.17437573, 0.86387531, 0.86387531, 0.17437573],
                            [0.86387531, 1.10662427, 1.10662427, 0.86387531],
                            [0.86387531, 1.10662427, 1.10662427, 0.86387531],
@@ -127,7 +127,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         # Test ndim = 1
         G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
 
-        A = EmbeddingFunctions.get_embeddings_zeroed(G, 1)
+        A = EmbeddingFunctions.get_embeddings_mPCA(G, 1)
         result = np.array([[0.67437573, 0.86387531, 0.86387531, 0.67437573],
                            [0.86387531, 1.10662427, 1.10662427, 0.86387531],
                            [0.86387531, 1.10662427, 1.10662427, 0.86387531],
