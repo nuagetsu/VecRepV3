@@ -11,10 +11,6 @@ class NonPositiveSemidefiniteError(Exception):
     pass
 
 
-class RepeatedEigenvalueError(Exception):
-    pass
-
-
 def get_embeddings_negatives_zeroed(matrixG):
     """
     :param matrixG: MatrixG to decompose
@@ -28,7 +24,13 @@ def get_embeddings_negatives_zeroed(matrixG):
     return matrixA
 
 
-def get_embeddings_nc(matrixG, nDim=None) -> NDArray:
+def get_embeddings_mikecroucher_nc(matrixG, nDim=None) -> NDArray:
+    """
+    :param matrixG: Matrix to be decomposed
+    :param nDim: Number of dimensions of vector embeddings in the embedding matrix
+    :return: An embedding matrix with dimensions: nDim by len(matrix G)
+    Approximates matrix G to a Positive semi-definite matrix using the nearest corrolation algorithm by mike croucher
+    """
     # make the matrix symmetric
     if not check_symmetric(matrixG):
         raise ValueError("Matrix G has to be a symmetric matrix")
@@ -44,6 +46,13 @@ def get_embeddings_nc(matrixG, nDim=None) -> NDArray:
         nDim = len(matrixG)
     matrixA = get_embeddings_zeroed(matrixGprime, nDim)
     return matrixA
+
+def get_embeddings_matlab_nc(matrixG: NDArray, nDim: int) -> NDArray:
+    # make the matrix symmetric
+    if not check_symmetric(matrixG):
+        raise ValueError("Matrix G has to be a symmetric matrix")
+    matrixG = (matrixG + matrixG.T) / 2
+    # Use the NC matrix algo
 
 
 def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=None):
@@ -62,10 +71,10 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
         nDim = int(re.search(r'\d+', embeddingType).group())
         embeddingMatrix = get_embeddings_zeroed(imageProductMatrix, nDim)
     elif embeddingType == "nc":
-        embeddingMatrix = get_embeddings_nc(imageProductMatrix)
+        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix)
     elif re.search('nc_[0-9]?[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_nc(imageProductMatrix, nDim=nDim)
+        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix, nDim=nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix
