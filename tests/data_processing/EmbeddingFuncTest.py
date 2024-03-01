@@ -5,6 +5,7 @@ from src.data_processing.EmbeddingFunctions import is_valid_matrix_g
 
 
 class TestEmbeddingFunction(unittest.TestCase):
+
     def test_valid_matrix_and_nDim(self):
         # Example of a valid symmetric matrix and nDim
         matrixG = np.array([[1, 2, 3], [2, 4, 5], [3, 5, 6]])
@@ -40,8 +41,6 @@ class TestEmbeddingFunction(unittest.TestCase):
         nDim = 3
         with self.assertRaises(ValueError):
             is_valid_matrix_g(matrixG, nDim)
-
-
 
     def test_emb_similarity(self):
         # Test for a basic rotation
@@ -211,6 +210,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         # Check if the mat mul of At and A transpose equals G
         self.assertTrue(np.allclose(Gprime, Ares, atol=1e-4))
         self.assertEqual(A.shape, (3, 4))
+
 
 
 if __name__ == '__main__':
