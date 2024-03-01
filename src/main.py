@@ -26,7 +26,7 @@ in the set
 """
 IMAGE_PRODUCT_TYPES = ["ncc"]
 
-EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D"]
+EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D", "pencorr_D"]
 
 """
 zero_neg: Zero all negative eigenvalues in matrix G, then normalize the output embeddings
@@ -37,11 +37,13 @@ Sample input: zero_10, zero_5
 
 nc: Find the nearest correlation matrix, then decomposes it to find the vector embeddings
 
-nc_M: Find the nearest correlation matrix, then zero all but the D largest eigenvalues in the matrix, 
+nc_D: Find the nearest correlation matrix, then zero all but the D largest eigenvalues in the matrix, 
 then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: nc_10
 
-
+pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
+Then computes embeddings with D dimensions, then normalize the embeddings before output
+Sample input: pencorr_20
 """
 
 # -----Variables-----

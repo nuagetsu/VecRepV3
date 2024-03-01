@@ -8,6 +8,7 @@ To use the code, run the VecRep.py file with your choice of image type, image fi
 
 More detailed explanation of the options can be found under the "Generalised Problems" section. 
 
+Note that an Octave installation is required to run certain functions. 
 # Goals of intern project
 The first goal of the project is to create a **vectorisation function** that maps a 2 by 2 **image** of 1s and 0s to an **N-Dimensional unit vector** (called a **vector embedding**), such that the dot product between any two such vector embeddings is equal to the **NCC score** between the two original 2 by 2 images.
 
