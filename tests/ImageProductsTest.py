@@ -1,9 +1,16 @@
 import unittest
+from typing import Callable
+
 import numpy as np
 import cv2
 from src.data_processing.ImageProducts import ncc, get_image_product
 
 class TestNCC(unittest.TestCase):
+    def test_get_image_product(self):
+        result = get_image_product("ncc")
+        self.assertIsInstance(result, Callable)
+        with self.assertRaises(ValueError):
+            result = get_image_product("bcc")
 
     def test_ncc_with_zero_images(self):
         # Test when both mainImg and tempImg are zero arrays

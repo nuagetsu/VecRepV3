@@ -1,9 +1,48 @@
 import unittest
 import numpy as np
 from src.data_processing import EmbeddingFunctions
+from src.data_processing.EmbeddingFunctions import is_valid_matrix_g
 
 
 class TestEmbeddingFunction(unittest.TestCase):
+    def test_valid_matrix_and_nDim(self):
+        # Example of a valid symmetric matrix and nDim
+        matrixG = np.array([[1, 2, 3], [2, 4, 5], [3, 5, 6]])
+        nDim = 3
+        result_matrix, result_nDim = is_valid_matrix_g(matrixG, nDim)
+        self.assertTrue(np.array_equal(result_matrix, matrixG))
+        self.assertEqual(result_nDim, nDim)
+
+    def test_invalid_symmetric_matrix(self):
+        # Example of a non-symmetric matrix
+        matrixG = np.array([[1, 2, 3], [2, 4, 5], [3, 6, 7]])
+        nDim = 3
+        with self.assertRaises(ValueError):
+            is_valid_matrix_g(matrixG, nDim)
+
+    def test_non_square_matrix(self):
+        # Example of a non-square matrix
+        matrixG = np.array([[1, 2, 3], [2, 4, 5]])
+        nDim = 2
+        with self.assertRaises(ValueError):
+            is_valid_matrix_g(matrixG, nDim)
+
+    def test_invalid_nDim_negative(self):
+        # Example of an invalid negative nDim
+        matrixG = np.array([[1, 2], [2, 4]])
+        nDim = -1
+        with self.assertRaises(ValueError):
+            is_valid_matrix_g(matrixG, nDim)
+
+    def test_nDim_greater_than_matrix_dimension(self):
+        # Example of nDim greater than matrix dimension
+        matrixG = np.array([[1, 2], [2, 4]])
+        nDim = 3
+        with self.assertRaises(ValueError):
+            is_valid_matrix_g(matrixG, nDim)
+
+
+
     def test_emb_similarity(self):
         # Test for a basic rotation
         matrix1 = np.array([[1, 1, 1],
@@ -26,7 +65,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         matrix2 = np.matmul(randomMat, matrix1)
         self.assertFalse(EmbeddingFunctions.check_emb_similarity(matrix1, matrix2))
 
-    def test_eig_for_symmetric(self):
+    def test_get_eig_for_symmetric(self):
         # Test non symmetric matrix
         G = np.array([[1, 1, 1],
                       [1, 0, 0],
@@ -83,7 +122,10 @@ class TestEmbeddingFunction(unittest.TestCase):
         self.assertTrue(np.allclose(np.dot(A.T, A), G))
 
         # Test Non pos semidef input
-        G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
+        G = np.array([[1, 1, 1, 0],
+                      [1, 1, 1, 1],
+                      [1, 1, 1, 1],
+                      [0, 1, 1, 1]])
 
         A = EmbeddingFunctions.get_embeddings_negatives_zeroed(G)
         result = np.array([[1., 0.75780223, 0.75780223, 0.14852844],
@@ -129,7 +171,10 @@ class TestEmbeddingFunction(unittest.TestCase):
         self.assertTrue(np.allclose(Gprime, result, rtol=1e-2))
 
         # Test ndim = 1
-        G = np.array([[1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [0, 1, 1, 1]])
+        G = np.array([[1, 1, 1, 0],
+                      [1, 1, 1, 1],
+                      [1, 1, 1, 1],
+                      [0, 1, 1, 1]])
 
         A = EmbeddingFunctions.get_embeddings_mPCA(G, 1)
         result = np.array([[1., 1., 1., 1.],
@@ -140,7 +185,10 @@ class TestEmbeddingFunction(unittest.TestCase):
         self.assertTrue(np.allclose(Gprime, result, rtol=1e-2))
 
     def test_matrix_decomposition_NC(self):  # Define a sample input matrix
-        G = np.array([[1, 0.25, 0.5, 0.5], [0.25, 1, 0.33, 0.7], [0.5, 0.33, 1, 0.5], [0.5, 0.7, 0.5, 1]])
+        G = np.array([[1, 0.25, 0.5, 0.5],
+                      [0.25, 1, 0.33, 0.7],
+                      [0.5, 0.33, 1, 0.5],
+                      [0.5, 0.7, 0.5, 1]])
 
         # Call the function with the sample input
         A = EmbeddingFunctions.get_embeddings_mikecroucher_nc(G)
