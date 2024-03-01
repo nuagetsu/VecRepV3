@@ -4,6 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
 from oct2py import octave
+from FilepathUtils import get_matlab_dirpath
 
 from src.helpers.NearestCorrelationMikeC import nearcorr, ExceededMaxIterationsError
 
@@ -80,7 +81,8 @@ def penCorr(matrixG: NDArray, nDim: int) -> NDArray:
     files in Rank_CaliMat, which replaces the mexeig.c file with a mexeig.m file with similar functionality
     https://www.polyu.edu.hk/ama/profile/dfsun/Rank_CaliMatHdm.zip
     """
-    _ = octave.addpath("C:/Users/WShihEe/PycharmProjects/VecRepV3/src/matlab_functions")
+    matlabDir = get_matlab_dirpath()
+    _ = octave.addpath(matlabDir)
     octave.push("n", len(matrixG))
     octave.push("r_rank", nDim)
     octave.push("G", matrixG)

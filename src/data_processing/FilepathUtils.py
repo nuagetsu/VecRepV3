@@ -25,6 +25,8 @@ def get_filepath(*, imageType: str, filters=None, imageProductType=None, embeddi
             filepath = os.path.join(filepath, embeddingType)
     return filepath
 
+def get_matlab_dirpath() -> str:
+    return os.path.join(get_project_root(), "src", "matlab_functions")
 
 def get_image_set_filepath(*, imageType: str, filters=None) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters)
