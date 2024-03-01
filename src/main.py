@@ -26,19 +26,19 @@ in the set
 """
 IMAGE_PRODUCT_TYPES = ["ncc"]
 
-EMBEDDING_TYPES = ["zero_neg", "zero_M", "nc", "nc_M"]
+EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D"]
 
 """
 zero_neg: Zero all negative eigenvalues in matrix G, then normalize the output embeddings
 
-zero_M: Zero all but the M largest eigenvalues in matrix G, then computes embeddings with M dimensions,
+zero_D: Zero all but the D largest eigenvalues in matrix G, then computes embeddings with D dimensions,
 then normalize the embeddings before output
 Sample input: zero_10, zero_5
 
 nc: Find the nearest correlation matrix, then decomposes it to find the vector embeddings
 
-nc_M: Find the nearest correlation matrix, then zero all but the M largest eigenvalues in the matrix, 
-then computes embeddings with M dimensions, then normalize the embeddings before output
+nc_M: Find the nearest correlation matrix, then zero all but the D largest eigenvalues in the matrix, 
+then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: nc_10
 
 

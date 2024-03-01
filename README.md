@@ -198,28 +198,30 @@ While vector embeddings of 7 dimensions are needed in general to perfectly solve
 
 As such we would like to have methods which are able to obtain vectors with fewer dimensions, while minimising the impact of the results, especially for the closest neighbours of an image.
 
-We define A<sub>m</sub> as the embedding matrix with reduced dimensions, such that the vector embeddings only have m dimensions. It would be an m by n matrix, where n is the number of vectors and m is the number of dimensions of the vector embedding.
+We define A<sub>d, n</sub> as the embedding matrix with reduced dimensions, such that there are n vector embeddings which only have d dimensions. A<sub>d, n</sub> is a d by n matrix.
+
+For instance, A<sub>d=5, n=7</sub> would be 5 by 7 matrix, where 7 is the number of vectors and 5 is the number of dimensions of the vector embedding.
 
 ### Reduced rank decomposition 
-Given an n by n matrix G<sub>m</sub> which only has M non-zero positive eigenvalues, it is possible to decompose it to a matrix A<sub>m</sub> such that ![equation](https://latex.codecogs.com/svg.image?A_m^tA_m=G_m)
+Given an n by n matrix G which only has d non-zero positive eigenvalues, it is possible to decompose it to a matrix A<sub>d, n</sub> such that ![equation](https://latex.codecogs.com/svg.image?{A_{d,n}}^tA_{d,n}=G)
 
 
 ![equation](https://latex.codecogs.com/svg.image?G=PDP^{-1})  (Diagonalize the matrix, note P<sup>t</sup> = P<sup>-1</sup> as G is symmetric)
 
-Sort the eigenvalues in D and their corresponding eigenvectors in P in descending order, note that all values other than the top M diagonals are zero. D<sub>m</sub> is defined as this sorted D.
+Sort the eigenvalues in D and their corresponding eigenvectors in P in descending order, note that all values other than the top M diagonals are zero.
 
-D<sub>m</sub> can be written as a matrix multiplication of Droot<sub>m</sub><sup>t</sup> and Droot<sub>m</sub>, where Droot<sub>m</sub> is an M by N matrix with the diagonal entries being the square root of the eigenvalues
+D can be written as a matrix multiplication of D<sub>root</sub><sup>t</sup> and D<sub>root</sub>, where D<sub>root</sub> is an M by N matrix with the diagonal entries being the square root of the eigenvalues
 
 
-![equation](https://latex.codecogs.com/svg.image?&space;D={Droot_{m}}^tDroot_{m})
+![equation](https://latex.codecogs.com/svg.image?&space;D={D_{root}}^tD_{root})
 
-![equation](https://latex.codecogs.com/svg.image?&space;G'=P{Droot_{m}}^tDroot_{m}P^{-1})
+![equation](https://latex.codecogs.com/svg.image?&space;G'=P{D_{root}}^tD_{root}P^{-1})
 
-![equation](https://latex.codecogs.com/svg.image?&space;G'=(Droot_{m}P^{t})^tDroot_{m}P^{-1})
+![equation](https://latex.codecogs.com/svg.image?&space;G'=(D_{root}P^{t})^tD_{root}P^{-1})
 
-![equation](https://latex.codecogs.com/svg.image?&space;G'=(Droot_{m}P^{t})^tDroot_{m}P^{t})
+![equation](https://latex.codecogs.com/svg.image?&space;G'=(D_{root}P^{t})^tD_{root}P^{t})
 
-![equation](https://latex.codecogs.com/svg.image?A_n=Droot_mP^t)
+![equation](https://latex.codecogs.com/svg.image?A_n=D_{root}P^t)
 ### Zeroing eigenvectors
 
 Similar to the method above for dealing with negative eigenvalues, instead of just zeroing the negative eigenvalues, we now zero all but the largest N vectors.
@@ -229,7 +231,7 @@ The resulting matrix then can be decomposed using the reduced dimension decompos
 
 ### Nearest correlation matrix with rank constraint
 
-There are also methods to find the nearest correlation matrix with a rank constraint, such that the resulting matrix G<sub>m</sub> has only m non zero eigenvalues
+There are also methods to find the nearest correlation matrix with a rank constraint, such that the resulting matrix G' has only d non zero eigenvalues
 
 The resulting matrix then can be decomposed using the reduced dimension decomposition
 
@@ -241,7 +243,9 @@ Since it is not possible to perfectly solve the problem, we would like to come u
 ## K neighbour score
 Ideally, close neighbours of the vector embeddings should correspond to close neighbours the original image. The K neighbour score is the fraction of the K most similar images (i.e. highest image product) in K closest vector embeddings (i.e. highest dot product) for the corresponding vector. In an ideal case, the score would be one.
 
-Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. Their order does not matter.
+Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. The order within the closest neighbours does not matter.
+
+Due to 
 
 # Sampling approach
 
@@ -255,19 +259,19 @@ A more scalable approach would be to first get a small sample the total image se
 
 The subset of images from the original image set will be a random sample of n images. This subset will be called the **sampled image set**. 
 
-The image product matrix computed using this sample image set will be called **matrix G<sup>n</sup>** where n is the size of the sampled image set.
+The image product matrix computed using this sample image set will be called **matrix G<sub>n</sub>** where n is the size of the sampled image set.
 
-The vector embeddings for the sampled image set can then be calculated using the brute force approach. The matrix with its columns corresponding to the sampled vector embeddings will be called the **sampled embedding matrix or matrix $A^n_m$**, where n is the size of the sampled image set and m is the number of dimensions chosen for the vector embeddings. Note that matrix $A^n_m$ will be an m by n matrix.
+The vector embeddings for the sampled image set can then be calculated using the brute force approach. The matrix with its columns corresponding to the sampled vector embeddings will be called the **sampled embedding matrix or matrix A<sub>d,n</sub>**, where d is the number of dimensions chosen for the vector embeddings and n is the size of the sampled image set and . Note that matrix A<sub>d,n</sub> will be an m by n matrix.
 
 ## Preparing the sample set
 
 First, the size of the sample set will be chosen to be some n, where n is less than the total size of the image set.
 
-A random sample of n images from the original image set will be chosen, and their image product will be computed to obtain matrix G<sup>n</sup>.
+A random sample of n images from the original image set will be chosen, and their image product will be computed to obtain matrix G<sub>n</sub>.
 
-Next the dimensionality of the embedding vectors will be chosen to be some m.
+Next the dimensionality of the embedding vectors will be chosen to be some d.
 
-Matrix G<sup>n</sup> will undergo a rank reduction to obtain matrix $G^n_m$ followed by a decomposition, to obtain the sampled embedding matrix, $A^n_m$
+Matrix G<sub>n</sub> will undergo a rank reduction to obtain matrix G'<sub>n</sub> followed by a decomposition, to obtain the sampled embedding matrix, A<sub>d,n</sub>
 
 ## Vectorising new images
 
@@ -275,9 +279,9 @@ The **image product vector** of an image will be defined as an n by 1 matrix, wh
  
 When a new image is obtained, it's image product will be computed with each of the images in the sample to obtain an image product vector.
 
-Note that the **vector embedding** of the new image will be m by 1 matrix
+Note that the **vector embedding** of the new image will be d by 1 matrix
 
-Note that the result of the matrix multiplication between the transposed vector embedding of the new image and matrix $A^n_m$ should be equal to the image product vector in an ideal case
+Note that the result of the matrix multiplication between the transposed vector embedding of the new image and matrix A<sub>d,n</sub><sup>t</sup> should be equal to the image product vector in an ideal case
 
 ## Minimising error
 
