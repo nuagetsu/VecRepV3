@@ -211,6 +211,50 @@ class TestEmbeddingFunction(unittest.TestCase):
         self.assertTrue(np.allclose(Gprime, Ares, atol=1e-4))
         self.assertEqual(A.shape, (3, 4))
 
+    def test_penCorr(self):
+        # Test correlation matrix input
+        G = np.array([[1, 0.5, 0],
+                      [0.5, 1, 0.75],
+                      [0, 0.75, 1]])
+        Gprime = EmbeddingFunctions.penCorr(G, 3)
+        self.assertTrue(np.allclose(G, Gprime))
+
+        # Test dimensional reduction
+
+        G = np.array([[1, 1, 1, 0],
+                      [1, 1, 1, 1],
+                      [1, 1, 1, 1],
+                      [0, 1, 1, 1]])
+        Gprime = EmbeddingFunctions.penCorr(G, 2)
+        self.assertTrue(EmbeddingFunctions.check_symmetric(Gprime))
+        eigval, eigvec = np.linalg.eig(Gprime)
+        # Check that the matrix is positive semidefinite
+        self.assertTrue(all(eigval >= -1e-5))
+
+
+        mPCA_result = np.array([[1., 0.75780223, 0.75780223, 0.14852844],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.75780223, 1., 1., 0.75780223],
+                           [0.14852844, 0.75780223, 0.75780223, 1.]])
+        mPCA_frob_distance = np.sum(np.power(G - mPCA_result, 2))
+        pencorr_frob_distance = np.sum(np.power(G - Gprime, 2))
+
+        # pencorr should have a smaller frob distance
+        self.assertTrue(mPCA_frob_distance >= pencorr_frob_distance)
+
+    def test_pencorr_embeddings(self):
+        # testing the shape of the array
+        G = np.array([[1, 1, 1, 0],
+                      [1, 1, 1, 1],
+                      [1, 1, 1, 1],
+                      [0, 1, 1, 1]])
+        A = EmbeddingFunctions.get_embeddings_PenCorr_nc(G, 2)
+        self.assertEqual(A.shape, (2, 4))
+        # test the decomposition is valid
+        Gprime = EmbeddingFunctions.penCorr(G, 2)
+        Ares = np.dot(A.T, A)
+        self.assertTrue(np.allclose(Ares, Gprime))
+
 
 
 if __name__ == '__main__':
