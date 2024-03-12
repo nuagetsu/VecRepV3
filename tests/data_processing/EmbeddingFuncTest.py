@@ -216,7 +216,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         G = np.array([[1, 0.5, 0],
                       [0.5, 1, 0.75],
                       [0, 0.75, 1]])
-        Gprime = EmbeddingFunctions.penCorr(G, 3)
+        Gprime = EmbeddingFunctions.pencorr(G, 3)
         self.assertTrue(np.allclose(G, Gprime))
 
         # Test dimensional reduction
@@ -225,7 +225,7 @@ class TestEmbeddingFunction(unittest.TestCase):
                       [1, 1, 1, 1],
                       [1, 1, 1, 1],
                       [0, 1, 1, 1]])
-        Gprime = EmbeddingFunctions.penCorr(G, 2)
+        Gprime = EmbeddingFunctions.pencorr(G, 2)
         self.assertTrue(EmbeddingFunctions.check_symmetric(Gprime))
         eigval, eigvec = np.linalg.eig(Gprime)
         # Check that the matrix is positive semidefinite
@@ -251,7 +251,7 @@ class TestEmbeddingFunction(unittest.TestCase):
         A = EmbeddingFunctions.get_embeddings_PenCorr_nc(G, 2)
         self.assertEqual(A.shape, (2, 4))
         # test the decomposition is valid
-        Gprime = EmbeddingFunctions.penCorr(G, 2)
+        Gprime = EmbeddingFunctions.pencorr(G, 2)
         Ares = np.dot(A.T, A)
         self.assertTrue(np.allclose(Ares, Gprime))
 
