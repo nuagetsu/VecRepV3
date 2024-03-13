@@ -132,7 +132,7 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
 def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     """
     :param matrixG: Symmetric matrix G
-    :return: Eigenvalues, transposed eigenvectors for matrix G.
+    :return: Eigenvalues, eigenvectors for matrix G.
 
     Checks that the matrix is symmetric then returns the sorted (in descending order) eigenvalues and the transposed eigenvectors
     """

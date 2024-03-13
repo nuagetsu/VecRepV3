@@ -1,6 +1,4 @@
-
-from typing import TypedDict
-
+from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
 
@@ -16,7 +14,9 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     Find the intersection between the two above arrays
     Divide the size of the intersection by K
     """
-    
+    k = k + 1 # This takes into account that the closest neighbour to the vector is itself
+
+
     # Get the index of the k largest elements in each list
     imgProd_max_index = np.argpartition(imageProducts, -k)[-k:]
     embProd_max_index = np.argpartition(embeddingDotProducts, -k)[-k:]
@@ -29,7 +29,8 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
 
-    return len(similar_neighbours) / k
+    return (len(similar_neighbours) - 1) / (k - 1) # Take into account that the closest neighbour is itself
+
 
 def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> float:
     """
@@ -37,9 +38,13 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
     :param embeddingMatrix: Embedding matrix to be compared
     :return: The frobenius distance between the two vectors
     """
+    diff = imageProductMatrix - embeddingMatrix
+    frobNorm = np.linalg.norm(diff)
+    return frobNorm
 
 
-def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDArray, startingK: int, endingK: int) -> NDArray:
+def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDArray, startingK: int,
+                      endingK: int) -> NDArray:
     """
     :param endingK: Ending K neighbour score, inclusive
     :param startingK: Starting K neighbour score, inclusive. finds the neighbour score then increments by one until endingK
@@ -57,21 +62,34 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
     kVals = range(startingK, endingK + 1)
     for kval in kVals:
         for imageNumber in len(imageProductArray):
-            output.append([kval, [get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval)]])
+            output.append([kval, [
+                get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval)]])
     output = np.array(output)
     return output
 
+
 class PlottingData:
-    def __init__(self, *,  initial_eigenvalues, final_eigenvalues, frob_distances, k_neighbour_scores):
-        self.initial_eigenvalues = np.array(initial_eigenvalues)
-        self.final_eigenvalues = np.array(final_eigenvalues)
-        self.frob_distances = np.array(frob_distances)
-        self.k_neighbour_scores = np.array(k_neighbour_scores)
+    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, kNeighbourScores, numImages):
+        self.initialEigenvalues = np.array(initialEigenvalues)
+        self.finalEigenvalues = np.array(finalEigenvalues)
+        self.frobDistance = frobDistance
+        self.aveFrobDistance = frobDistance / (numImages ** 2)
+        self.kNeighbourScores = np.array(kNeighbourScores)
+
 
 def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
     """
     :param imageProductMatrix:
     :param embeddingMatrix:
-    :return: A dictionary with the following information
-    1. The eigenvectors before
+    :return: A PlottingData object which can be used to make graphs
     """
+    initialEigenvalues, = get_eig_for_symmetric(imageProductMatrix)
+    dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
+    finalEigenvalues, = get_eig_for_symmetric(dotProdMatrix)
+    frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
+    numImages = len(imageProductMatrix[0])
+    # Sweep from k=2 to k = numimages/3 by default. If num images is small then sweep to
+    kNeighbourScores = get_k_neighbour_score(2, max(int(numImages / 3), 3))
+    output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
+                          frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages)
+    return output

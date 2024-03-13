@@ -9,7 +9,7 @@ def get_image_product(imageProductType: str):
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
-def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
+def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float: #TODO
     """
     :param mainImg: Main image to be scanned
     :param tempImg: Template image to be scanned over the main
