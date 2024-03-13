@@ -32,10 +32,21 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
 
-    res = float((len(similar_neighbours) - 1) / (k - 1))  # Take into account that the closest neighbour is itself
+    res = len(similar_neighbours) - 1  # Take into account that the closest neighbour is itself
     return res
 
 
+def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
+    """
+    :param imageProducts: 1 by N array of image product scores between an image and all another images
+    :param embeddingDotProducts: 1 by N array of dot products with an embedding and all other embeddings
+    :return: The k neighbour score, as defined in the readme
+    Same process as k neighbour score, except the final result is between 0 and 1
+    """
+    kNeighScore = get_k_neighbour_score(imageProducts, embeddingDotProducts, k)
+
+    res = float(kNeighScore / k)
+    return res
 def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> float:
     """
     :param imageProductMatrix: Image product array to be compared
@@ -74,12 +85,13 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
 
 
 class PlottingData:
-    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, kNeighbourScores, numImages):
+    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, kNeighbourScores, numImages, imagesFilepath):
         self.initialEigenvalues = np.array(initialEigenvalues)
         self.finalEigenvalues = np.array(finalEigenvalues)
         self.frobDistance = frobDistance
         self.aveFrobDistance = frobDistance / (numImages ** 2)
         self.kNeighbourScores = kNeighbourScores
+        self.imagesFilepath = imagesFilepath
 
 
 def get_plotting_data(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
@@ -101,10 +113,15 @@ def get_plotting_data(*, imageType: str, filters=None, imageProductType: str, em
     finalEigenvalues, eigVec = get_eig_for_symmetric(dotProdMatrix)
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
-    # Sweep from k=1 to k = numimages/3 by default. If num images is small then sweep from 1 - 2
-    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 3), 2))
+
+    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
+    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
+
+    imagesFilepath = FilepathUtils.get_image_set_filepath(imageType=imageType, filters=filters)
+
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
-                          frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages)
+                          frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages,
+                          imagesFilepath=imagesFilepath)
     return output
 
 

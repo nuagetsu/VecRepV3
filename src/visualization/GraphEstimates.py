@@ -1,6 +1,11 @@
+import os.path
+import random
+
 from Metrics import PlottingData
 import matplotlib.pyplot as plt
 import numpy as np
+from data_processing import FilepathUtils
+
 
 def plot_eigenvalues(ax1, ax2, initialEigenvalues, finalEigenvalues):
     """
@@ -31,4 +36,37 @@ def plot_eigenvalues(ax1, ax2, initialEigenvalues, finalEigenvalues):
     rects1 = ax2.bar(br1, bottomInitEigen, color='r', width=barWidth, label='IT')
     rects2 = ax2.bar(br2, bottomFinalEigen, color='g', width=barWidth, label='ECE')
     ax2.legend((rects1[0], rects2[0]), ('Initial Eigenvalues', 'Final eigenvalues'))
+
+def plot_k_neighbours(axList, imageAxList, kNeighbourScores, imagesFilepath, nImageSample = 3):
+    num_images = len(kNeighbourScores[0]["neighbourScore"])
+    if nImageSample > num_images:
+        raise ValueError("nImageSample is greater than the number of images")
+    if len(axList) != nImageSample:
+        raise ValueError("Please input the correct number of axes")
+    if len(imageAxList) != nImageSample:
+        raise ValueError("Please input the correct number of images axes")
+    if not os.path.exists(imagesFilepath):
+        raise FileNotFoundError(imagesFilepath + " does not exist")
+
+    #Choose a random sample of images
+    random_samples = random.sample(range(1, num_images), nImageSample)
+    images = np.load(imagesFilepath)
+    for count in range(nImageSample):
+        imageNum = random_samples[count]
+        ax = axList[count]
+        x = []
+        y = []
+        for k in range(len(kNeighbourScores)):
+            x.append(kNeighbourScores[k]["kval"])
+            y.append(kNeighbourScores[k]["neighbourScore"][imageNum])
+        ax.plot(x, y)
+        ax.set_ylim([0, 1.1])
+        ax.set_title("Neighbour score of image " + str(imageNum) + " against number of neighbours analysed")
+        ax.set_xlabel("Value of k")
+        ax.set_ylabel("K neighbour score")
+
+        imageAx = imageAxList[count]
+        choosenImage = images[imageNum]
+        imageAx.set_title("Image " + str(imageNum))
+        imageAx.imshow(choosenImage, cmap='Greys',  interpolation='nearest')
 
