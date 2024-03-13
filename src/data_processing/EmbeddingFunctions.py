@@ -61,7 +61,6 @@ def get_embeddings_PenCorr_nc(matrixG: NDArray, nDim=None) -> NDArray:
     # Check and clean input
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
 
-
     # Use the PennCorr algorithm
     matrixGprime = pencorr(matrixG, nDim)
 

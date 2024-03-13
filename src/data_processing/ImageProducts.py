@@ -9,6 +9,13 @@ def get_image_product(imageProductType: str):
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
+def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc, with scaled bounds of [-1,1]
+
+    """
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
