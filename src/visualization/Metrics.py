@@ -16,7 +16,6 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     Get the index of the top K + x elements in the imageProducts (IP) array, where x is the number of elements in the IP
     array with the same value as the Kth largest element in the IP array
     Find the intersection between the two above arrays
-    Divide the size of the intersection by K
     """
     k = k + 1  # This takes into account that the closest neighbour to the vector is itself
 

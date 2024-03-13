@@ -59,8 +59,9 @@ def plot_k_neighbours(axList, imageAxList, kNeighbourScores, imagesFilepath, nIm
         for k in range(len(kNeighbourScores)):
             x.append(kNeighbourScores[k]["kval"])
             y.append(kNeighbourScores[k]["neighbourScore"][imageNum])
-        ax.plot(x, y)
-        ax.set_ylim([0, 1.1])
+        idealPlot = range(1, len(kNeighbourScores) + 1)
+        ax.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
+        ax.plot(x, y, color='r', label="Real")
         ax.set_title("Neighbour score of image " + str(imageNum) + " against number of neighbours analysed")
         ax.set_xlabel("Value of k")
         ax.set_ylabel("K neighbour score")
