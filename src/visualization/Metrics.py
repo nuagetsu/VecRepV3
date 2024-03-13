@@ -1,4 +1,5 @@
 import os
+import pickle
 from typing import List
 
 from data_processing import FilepathUtils
@@ -84,28 +85,28 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
 
 
 class PlottingData:
-    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, kNeighbourScores, numImages, imagesFilepath):
+    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff,  kNeighbourScores, numImages, imagesFilepath):
         self.initialEigenvalues = np.array(initialEigenvalues)
         self.finalEigenvalues = np.array(finalEigenvalues)
         self.frobDistance = frobDistance
         self.aveFrobDistance = frobDistance / (numImages ** 2)
+        self.maxDiff = maxDiff
         self.kNeighbourScores = kNeighbourScores
         self.imagesFilepath = imagesFilepath
 
-
-def get_plotting_data(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
+def load_plotting_data(plottingDataFilepath):
+    if os.path.isfile(plottingDataFilepath):
+        with open(plottingDataFilepath, 'rb') as f:
+            plottingData = pickle.load(f)
+    else:
+        raise FileNotFoundError(plottingDataFilepath + " does not exist")
+    return plottingData
+def get_plotting_data(*, imageProductMatrix, embeddingMatrix, imagesFilepath): #TODO sweep plotting data and save plotting data
     """
-    :param imageType: imageType to of the images
-    :param filters: filters applied to the images
-    :param imageProductType: the image product type which we aim to estimate
-    :param embeddingType: The method used to generate the vector embeddings
     :return: A plotting data object which can be used for graphs to evaluate if the embeddings are a good estimate.
 
-    Note that the data must be saved beforehand in the data directory to obtain the plotting data. Use VecRep.py to generate the data first
     """
-    imageProductMatrix, embeddingMatrix = get_ipm_and_embeddings(imageType=imageType, filters=filters,
-                                                                 imageProductType=imageProductType,
-                                                                 embeddingType=embeddingType)
+
 
     initialEigenvalues, eigVec = get_eig_for_symmetric(imageProductMatrix)
     dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
@@ -116,11 +117,12 @@ def get_plotting_data(*, imageType: str, filters=None, imageProductType: str, em
     # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
     kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
 
-    imagesFilepath = FilepathUtils.get_image_set_filepath(imageType=imageType, filters=filters)
+
+    maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))
 
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
                           frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages,
-                          imagesFilepath=imagesFilepath)
+                          imagesFilepath=imagesFilepath, maxDiff=maxDiff)
     return output
 
 

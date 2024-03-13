@@ -1,7 +1,6 @@
 import os.path
 import random
 
-from Metrics import PlottingData
 import matplotlib.pyplot as plt
 import numpy as np
 from data_processing import FilepathUtils

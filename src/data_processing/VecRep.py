@@ -1,10 +1,13 @@
+import json
 import os
+import pickle
 from pathlib import Path
 from typing import Callable
 import numpy as np
 from numpy.typing import NDArray
 
 from src.data_processing import ImageGenerators, Filters, ImageProducts, EmbeddingFunctions, FilepathUtils
+from visualization import Metrics
 
 
 def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:
@@ -71,14 +74,24 @@ def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFil
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
 
+def generate_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
+    if not os.path.isfile(plottingDataFilepath) or overwrite:
+        plottingData = Metrics.get_plotting_data(imageProductMatrix=imageProductMatrix, embeddingMatrix=embeddingMatrix,
+                                                 imagesFilepath=imagesFilepath)
+        with open(plottingDataFilepath, 'wb') as f:
+            pickle.dump(plottingData, f)
+    else:
+        with open(plottingDataFilepath, 'rb') as f:
+            plottingData = pickle.load(f)
 
+    return plottingData
 def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
                       overwrite=None) -> NDArray:
     """
     :return: The vector embeddings solved using the brute force method
     """
     if overwrite is None:
-        overwrite = {"filter": False, "im_prod": False, "estimate": False}
+        overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
 
     print("Generating filtered images....")
     imageSetFilepath = FilepathUtils.get_image_set_filepath(imageType=imageType, filters=filters)
@@ -98,4 +111,10 @@ def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, em
                                                                     embeddingType=embeddingType)
     embeddingMatrix = generate_embedding_matrix(imageProductMatrix=imageProductMatrix, embeddingType=embeddingType,
                                                 embeddingFilepath=embeddingFilepath, overwrite=overwrite['estimate'])
+    print("Saving plotting data....")
+    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType,
+                                                                    embeddingType=embeddingType)
+    generate_plotting_data(plottingDataFilepath=plottingDataFilepath, imageProductMatrix=imageProductMatrix,
+                           embeddingMatrix=embeddingMatrix, imagesFilepath=imageSetFilepath, overwrite=overwrite['plot'])
     return embeddingMatrix

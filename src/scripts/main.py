@@ -51,8 +51,9 @@ imageType = "3bin"
 filters = ["unique"]
 imageProductType = "ncc"
 embeddingType = "pencorr_20"
-overwrite = {"filter": False, "im_prod": False, "estimate": False}
+overwrite = {"filter": False, "im_prod": False, "estimate": False, "plot": True}
 
 # -----Execution-----
 emb = VecRep.get_BF_embeddings(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                embeddingType=embeddingType, overwrite=overwrite)
+#TODO sweep parameters
