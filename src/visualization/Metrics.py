@@ -1,3 +1,5 @@
+from typing import List
+
 from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
@@ -14,8 +16,7 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     Find the intersection between the two above arrays
     Divide the size of the intersection by K
     """
-    k = k + 1 # This takes into account that the closest neighbour to the vector is itself
-
+    k = k + 1  # This takes into account that the closest neighbour to the vector is itself
 
     # Get the index of the k largest elements in each list
     imgProd_max_index = np.argpartition(imageProducts, -k)[-k:]
@@ -29,7 +30,8 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
 
-    return (len(similar_neighbours) - 1) / (k - 1) # Take into account that the closest neighbour is itself
+    res = float((len(similar_neighbours) - 1) / (k - 1))  # Take into account that the closest neighbour is itself
+    return res
 
 
 def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> float:
@@ -44,27 +46,27 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
 
 
 def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDArray, startingK: int,
-                      endingK: int) -> NDArray:
+                      endingK: int) -> List:
     """
     :param endingK: Ending K neighbour score, inclusive
     :param startingK: Starting K neighbour score, inclusive. finds the neighbour score then increments by one until endingK
     :param imageProductArray: Image product array to be compared
     :param embeddingDotProductArray: A^tA, where A is the embedding matrix
-    :return: A 3D array which has the k neighbour score for each image, for each value of k from startingK to endingK.
-    In the from of: [[startingK, [list of k neigbour scores]], [startingK + 1, [list of k + 1 neigbour scores]] ... ,
-    [[endingK, [list of endingK neigbour scores]]]
+    :return: A list which has the k neighbour score for each image, for each value of k from startingK to endingK.
+    In the form of: [{startingK, [list of k neigbour scores]}, {startingK + 1, [list of k + 1 neigbour scores]} ... ,
+    {[endingK, [list of endingK neigbour scores]}]
     """
     if startingK >= endingK:
         raise ValueError("Starting K should be lower than ending K")
-    if endingK > len(imageProductArray):
-        raise ValueError("Ending K should be less than the number of images")
+    if endingK + 1 > len(imageProductArray):
+        raise ValueError("Ending K + 1 should be less than the number of images")
     output = []
     kVals = range(startingK, endingK + 1)
     for kval in kVals:
-        for imageNumber in len(imageProductArray):
-            output.append([kval, [
-                get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval)]])
-    output = np.array(output)
+        scores = []
+        for imageNumber in range(len(imageProductArray)):
+            scores.append(get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
+        output.append({"kval": kval, "neighbourScore": scores})
     return output
 
 
@@ -83,13 +85,13 @@ def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
     :param embeddingMatrix:
     :return: A PlottingData object which can be used to make graphs
     """
-    initialEigenvalues, = get_eig_for_symmetric(imageProductMatrix)
+    initialEigenvalues, eigVec = get_eig_for_symmetric(imageProductMatrix)
     dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
-    finalEigenvalues, = get_eig_for_symmetric(dotProdMatrix)
+    finalEigenvalues, eigVec = get_eig_for_symmetric(dotProdMatrix)
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
-    # Sweep from k=2 to k = numimages/3 by default. If num images is small then sweep to
-    kNeighbourScores = get_k_neighbour_score(2, max(int(numImages / 3), 3))
+    # Sweep from k=1 to k = numimages/3 by default. If num images is small then sweep to
+    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 3), 3))
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
                           frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages)
     return output
