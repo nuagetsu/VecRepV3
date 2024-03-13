@@ -62,14 +62,14 @@ def get_embeddings_PenCorr_nc(matrixG: NDArray, nDim=None) -> NDArray:
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
 
     # Use the PennCorr algorithm
-    matrixGprime = penCorr(matrixG, nDim)
+    matrixGprime = pencorr(matrixG, nDim)
 
     # Decompose the matrix
     matrixA = get_embeddings_mPCA(matrixGprime, nDim)
     return matrixA
 
 
-def penCorr(matrixG: NDArray, nDim: int) -> NDArray:
+def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
     :param nDim: Number of non-zero eigenvalues in the output matrix
