@@ -1,5 +1,7 @@
+import os
 from typing import List
 
+from data_processing import FilepathUtils
 from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
@@ -76,7 +78,7 @@ class PlottingData:
         self.finalEigenvalues = np.array(finalEigenvalues)
         self.frobDistance = frobDistance
         self.aveFrobDistance = frobDistance / (numImages ** 2)
-        self.kNeighbourScores = np.array(kNeighbourScores)
+        self.kNeighbourScores = kNeighbourScores
 
 
 def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
@@ -90,8 +92,27 @@ def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
     finalEigenvalues, eigVec = get_eig_for_symmetric(dotProdMatrix)
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
-    # Sweep from k=1 to k = numimages/3 by default. If num images is small then sweep to
-    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 3), 3))
+    # Sweep from k=1 to k = numimages/3 by default. If num images is small then sweep from 1 - 2
+    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 3), 2))
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
                           frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages)
     return output
+
+def get_ipm_and_embeddings(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
+    embeddingFilepath = FilepathUtils.get_embedding_matrix_filepath(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType,
+                                                                    embeddingType=embeddingType)
+    imageProductFilepath = FilepathUtils.get_image_product_filepath(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType)
+
+    if os.path.isfile(imageProductFilepath):
+        imageProductMatrix = np.loadtxt(imageProductFilepath)
+    else:
+        raise ValueError(imageProductFilepath + " does not exist. Generate data first before graphing")
+
+    if os.path.isfile(embeddingFilepath):
+        embeddingMatrix = np.loadtxt(embeddingFilepath)
+    else:
+        raise ValueError(embeddingFilepath + " does not exist. Generate data first before graphing")
+
+    return imageProductMatrix, embeddingMatrix

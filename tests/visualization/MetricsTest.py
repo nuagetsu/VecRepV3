@@ -77,6 +77,20 @@ class Test(TestCase):
         self.assertTrue(correctResult == k_neigh_scores)
 
 
+        G = np.array([[1, 0.25, 0.5, 0.5],
+                      [0.25, 1, 0.33, 0.7],
+                      [0.5, 0.33, 1, 0.5],
+                      [0.8, 0.7, 0.5, 1]])
+        A = np.array([[1, 0.25, 0.5, 0.5],
+                      [0.5, 1, 0.33, 0.7],
+                      [0.5, 0.33, 1, 0.5],
+                      [0.6, 0.7, 0.5, 1]])
+        k_neigh_scores = Metrics.apply_k_neighbour(G, A, 1, 3)
+        correctResult = [{"kval": 1, "neighbourScore": [1, 1, 1, 0]}, {"kval": 2, "neighbourScore": [1, 0.5, 1, 1]},
+                         {"kval": 3, "neighbourScore": [1, 1, 1, 1]}]
+        self.assertTrue(correctResult == k_neigh_scores)
+
+
 
     def test_get_plotting_data(self):
         G = np.array([[1, 0.25, 0.5, 0.5],
@@ -89,7 +103,8 @@ class Test(TestCase):
                       [-1.27650337e-01, -2.88441992e-01, -3.81425294e-02, 3.75831079e-01]])
         plottingData = Metrics.get_plotting_data(G, A)
         self.assertAlmostEqual(plottingData.frobDistance, 0)
-        self.assertTrue(np.allclose(plottingData.initialEigenvalues, np.array([2.40591524, 0.85188751, 0.5 , 0.24219724])))
-        self.assertTrue(np.allclose(plottingData.finalEigenvalues, np.array([2.40591524, 0.85188751, 0.5 , 0.24219724])))
-        self.assertTrue(np.allclose(plottingData.kNeighbourScores, np.array([[2, [1, 1, 1, 1]], [3, [1, 1, 1, 1]]])))
+        self.assertTrue(np.allclose(plottingData.initialEigenvalues, np.array([2.40591524, 0.85188751, 0.5, 0.24219724])))
+        self.assertTrue(np.allclose(plottingData.finalEigenvalues, np.array([2.40591524, 0.85188751, 0.5, 0.24219724])))
+        correctResult = [{"kval": 1, "neighbourScore": [1, 1, 1, 1]}, {"kval": 2, "neighbourScore": [1, 1, 1, 1]}]
+        self.assertTrue(plottingData.kNeighbourScores == correctResult)
         self.assertAlmostEqual(plottingData.aveFrobDistance, 0)
