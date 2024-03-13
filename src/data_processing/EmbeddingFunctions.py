@@ -80,6 +80,7 @@ def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     files in Rank_CaliMat, which replaces the mexeig.c file with a mexeig.m file with similar functionality
     https://www.polyu.edu.hk/ama/profile/dfsun/Rank_CaliMatHdm.zip
     """
+    #TODO what if solver fails
     matlabDir = get_matlab_dirpath()
     _ = octave.addpath(matlabDir)
     octave.push("n", len(matrixG))

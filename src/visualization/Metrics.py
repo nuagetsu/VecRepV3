@@ -67,7 +67,8 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
     for kval in kVals:
         scores = []
         for imageNumber in range(len(imageProductArray)):
-            scores.append(get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
+            scores.append(
+                get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
         output.append({"kval": kval, "neighbourScore": scores})
     return output
 
@@ -81,12 +82,20 @@ class PlottingData:
         self.kNeighbourScores = kNeighbourScores
 
 
-def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
+def get_plotting_data(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
     """
-    :param imageProductMatrix:
-    :param embeddingMatrix:
-    :return: A PlottingData object which can be used to make graphs
+    :param imageType: imageType to of the images
+    :param filters: filters applied to the images
+    :param imageProductType: the image product type which we aim to estimate
+    :param embeddingType: The method used to generate the vector embeddings
+    :return: A plotting data object which can be used for graphs to evaluate if the embeddings are a good estimate.
+
+    Note that the data must be saved beforehand in the data directory to obtain the plotting data. Use VecRep.py to generate the data first
     """
+    imageProductMatrix, embeddingMatrix = get_ipm_and_embeddings(imageType=imageType, filters=filters,
+                                                                 imageProductType=imageProductType,
+                                                                 embeddingType=embeddingType)
+
     initialEigenvalues, eigVec = get_eig_for_symmetric(imageProductMatrix)
     dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
     finalEigenvalues, eigVec = get_eig_for_symmetric(dotProdMatrix)
@@ -97,6 +106,7 @@ def get_plotting_data(imageProductMatrix: NDArray, embeddingMatrix: NDArray):
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
                           frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages)
     return output
+
 
 def get_ipm_and_embeddings(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
     embeddingFilepath = FilepathUtils.get_embedding_matrix_filepath(imageType=imageType, filters=filters,
