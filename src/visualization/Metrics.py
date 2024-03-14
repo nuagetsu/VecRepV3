@@ -1,20 +1,12 @@
 import os
-import pickle
+from statistics import mean
 from typing import List
 
 from data_processing import FilepathUtils
-from data_processing.VecRep import get_BF_embeddings
 from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
-import logging
-import sys
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
 
 def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
     """
@@ -104,22 +96,24 @@ class PlottingData:
         self.maxDiff = maxDiff
         self.kNeighbourScores = kNeighbourScores
         self.imagesFilepath = imagesFilepath
+        self.aveKNeighbourScore = calculate_average_neighbour_scores(kNeighbourScores)
 
+    def get_specified_k_neighbour_score(self, k: int):
+        for score in self.aveKNeighbourScore:
+            if score["kval"] == k:
+                return score["neighbourScore"]
+        raise ValueError(str(k) + " is an invalid value of k")
 
-def load_BF_plotting_data(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
-                          overwrite=None):
-    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-
-    if not os.path.isfile(plottingDataFilepath):
-        logging.info("No plotting data found. Generating plotting data... ")
-        get_BF_embeddings(imageType=imageType, filters=filters,
-                          imageProductType=imageProductType,
-                          embeddingType=embeddingType, overwrite=overwrite)
-    with open(plottingDataFilepath, 'rb') as f:
-        plottingData = pickle.load(f)
-    return plottingData
+def calculate_average_neighbour_scores(kNeighbourScores):
+    """
+    :param kNeighbourScores:
+    :return: Takes in an array of kNeighbour scores and returns an array of dictionaries,
+    Each dictionary contains the value of k, and the corresponding average k neighbour score
+    """
+    output = []
+    for score in kNeighbourScores:
+        output.append({"kval": score["kval"], "neighbourScore": mean(score["neighbourScore"])})
+    return output
 
 
 def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
@@ -135,7 +129,7 @@ def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
 
-    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2 TODO make this calculate from plottingdata as a function instead of default
+    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2
     kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 2), 2))
 
     maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))

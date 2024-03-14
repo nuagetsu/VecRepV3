@@ -6,6 +6,7 @@ from typing import Callable
 import numpy as np
 from numpy.typing import NDArray
 
+from data_processing import FilepathUtils
 from data_processing.ImageProducts import calculate_image_product_matrix
 from src.data_processing import ImageGenerators, Filters, ImageProducts, EmbeddingFunctions, FilepathUtils
 from visualization import Metrics
@@ -73,7 +74,7 @@ def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFil
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
 
-def generate_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
+def generate_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=True):
     if not os.path.isfile(plottingDataFilepath) or overwrite:
         plottingData = Metrics.get_plotting_data(imageProductMatrix=imageProductMatrix, embeddingMatrix=embeddingMatrix,
                                                  imagesFilepath=imagesFilepath)
@@ -117,3 +118,21 @@ def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, em
     generate_plotting_data(plottingDataFilepath=plottingDataFilepath, imageProductMatrix=imageProductMatrix,
                            embeddingMatrix=embeddingMatrix, imagesFilepath=imageSetFilepath, overwrite=overwrite['plot'])
     return embeddingMatrix
+
+
+def load_BF_plotting_data(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
+                          overwrite=None):
+    if overwrite is None:
+        overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
+    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType,
+                                                                    embeddingType=embeddingType)
+
+    if not os.path.isfile(plottingDataFilepath) or overwrite['plot']:
+        logging.info("No plotting data found. Generating plotting data... ")
+        get_BF_embeddings(imageType=imageType, filters=filters,
+                          imageProductType=imageProductType,
+                          embeddingType=embeddingType, overwrite=overwrite)
+    with open(plottingDataFilepath, 'rb') as f:
+        plottingData = pickle.load(f)
+    return plottingData

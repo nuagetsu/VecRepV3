@@ -44,6 +44,7 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
 
 
 def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNeighbourScores: List,
+                      aveKNeighbourScores: List,
                       imagesFilepath: str, nImageSample=3, numPlottedK=None):
     num_images = len(kNeighbourScores[0]["neighbourScore"])
     if nImageSample > num_images:
@@ -62,7 +63,7 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
     # Choose a random sample of images
     random_samples = random.sample(range(1, num_images), nImageSample)
     images = np.load(imagesFilepath)
-    idealPlot = range(1, numPlottedK + 1) # for plotting y=x
+    idealPlot = range(1, numPlottedK + 1)  # for plotting y=x
     for count in range(nImageSample):
         imageNum = random_samples[count]
         ax = axArr[count]
@@ -85,11 +86,11 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
 
     aveX = []
     aveY = []
-    for i in range(numPlottedK):
-        aveX.append(kNeighbourScores[i]["kval"])
-        aveY.append(median(kNeighbourScores[i]["neighbourScore"]))  # Take the median of the kval scores
+    for score in aveKNeighbourScores:
+        aveX.append(score["kval"])
+        aveY.append(score["neighbourScore"])
     aveAx.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
-    aveAx.plot(x, y, color='r', label="Real")
+    aveAx.plot(aveX, aveY, color='r', label="Real")
     aveAx.set_title("Median neighbour score of all images against number of neighbours analysed")
     aveAx.set_xlabel("Value of k")
     aveAx.set_ylabel("K neighbour score")
@@ -106,3 +107,27 @@ def plot_key_stats_text(ax: Axes, plottingData: PlottingData):
     ax.text(0.5, 0.5, displayText, color='black',
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
 
+
+def plot_error_against_rank_constraint(frobAx: Axes, neighbourAx: Axes, rankArr: List, frobArr: List, neighArr: List,
+                                       specifiedK: int):
+    """
+    :param frobAx: Axes to plot the frobenius graph
+    :param neighbourAx: Axes to plot the neighbour graph
+    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
+    :param frobArr: Data for the frob graph (y axis)
+    :param neighArr: Data for the neighbour graph (y axis)
+    :param specifiedK: The k neighbour score used
+    :return:
+    """
+    frobAx.plot(rankArr, frobArr)
+    frobAx.set_title("Average frobenius error against rank constraint")
+    frobAx.set_xlabel("Rank Constraint")
+    frobAx.set_ylabel("Average frobenius error")
+
+    idealPlot = [specifiedK for i in range(len(rankArr))]  # for plotting the max possible score
+    neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
+    neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
+    neighbourAx.set_title("Mean neighbour score of all images against the rank constraint applied to pencorr")
+    neighbourAx.set_xlabel("Rank Constraint")
+    neighbourAx.set_ylabel("K neighbour score")
+    neighbourAx.legend(loc="upper left")

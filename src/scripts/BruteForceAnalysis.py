@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from data_processing import VecRep, FilepathUtils
+import data_processing.VecRep
 from visualization import Metrics, GraphEstimates
 from visualization.Metrics import PlottingData
 import logging
@@ -11,6 +11,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
+
 
 def investigate_k(plottingData: PlottingData, numK=None):
     """
@@ -27,7 +28,8 @@ def investigate_k(plottingData: PlottingData, numK=None):
     temp.set_axis_off()
     GraphEstimates.plot_k_neighbours(axArr=axArr, imageAxArr=imgAxArr, aveAx=aveAx,
                                      kNeighbourScores=plottingData.kNeighbourScores,
-                                     imagesFilepath=plottingData.imagesFilepath, numPlottedK=numK)
+                                     imagesFilepath=plottingData.imagesFilepath, numPlottedK=numK,
+                                     aveKNeighbourScores=plottingData.aveKNeighbourScore)
 
 
 def investigate_BF_method(plottingData: PlottingData):
@@ -48,8 +50,9 @@ def investigate_BF_method(plottingData: PlottingData):
 
 
 def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                        endingConstr: int):
+                                        endingConstr: int, specifiedK=5):
     """
+    :param specifiedK: value of k for the k neighbour score
     :param imageType:
     :param filters:
     :param imageProductType:
@@ -71,12 +74,14 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        plottingData = Metrics.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                 imageProductType=imageProductType,
-                                                 embeddingType=embType)
+        plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType,
+                                                                    embeddingType=embType)
         aveFrobDistanceArr.append(plottingData.aveFrobDistance)
 
-
+        aveNeighArr.append(plottingData.get_specified_k_neighbour_score(specifiedK))
+    rankFig, (neighAx, frobAx) = plt.subplots(1, 2)
+    GraphEstimates.plot_error_against_rank_constraint(frobAx,neighAx,rankConstraints, aveFrobDistanceArr,aveNeighArr, specifiedK)
 
 
 if __name__ == '__main__':
@@ -84,9 +89,16 @@ if __name__ == '__main__':
     filters = ["unique"]
     imageProductType = "ncc"
     embeddingType = "pencorr_20"
-    plottingData = Metrics.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                 imageProductType=imageProductType,
-                                                 embeddingType=embeddingType)
+    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': True}
+    investigate_pencorr_rank_constraint(imageType=imageType, filters=filters,
+                                                                imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+
+    """
+    plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                                imageProductType=imageProductType,
+                                                                embeddingType=embeddingType, overwrite=overwrite)
     investigate_k(plottingData)
     investigate_BF_method(plottingData)
+    """
+
     plt.show()
