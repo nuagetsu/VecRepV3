@@ -123,7 +123,7 @@ def load_BF_plotting_data(*, imageType: str, filters=None, imageProductType=None
 
 
 def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
-                      imagesFilepath):  # TODO sweep plotting data and save plotting data
+                      imagesFilepath):
     """
     :return: A plotting data object which can be used for graphs to evaluate if the embeddings are a good estimate.
 
@@ -135,7 +135,7 @@ def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
 
-    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2 TODO make this value of k more easily changed
+    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2 TODO make this calculate from plottingdata as a function instead of default
     kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 2), 2))
 
     maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))
