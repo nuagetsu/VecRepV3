@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 import cv2
 from numpy._typing import NDArray
@@ -42,3 +44,30 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
 
     return max_val
+
+def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:
+    """
+    Applies the image product between every possible permutation of images in the imageSet
+    """
+    imageProductMatrix = []
+    for image1 in imageSet:
+        for image2 in imageSet:
+            imageProductMatrix.append(imageProduct(image1, image2))
+    imageProductMatrix = np.reshape(imageProductMatrix, (len(imageSet), len(imageSet)))
+    return imageProductMatrix
+
+def calculate_image_product_vector(newImage: NDArray, imageSet: NDArray, imageProduct: Callable):
+    """
+    :param newImage: New image which you want to find the image product vector of
+    :param imageSet: Images to be comapared to
+    :param imageProduct: image product used to compare
+    :return: A 1d numpy array which is the image product of the new image with each of the images in the imageset
+    """
+    if newImage.shape != imageSet[0].shape:
+        raise ValueError("Input image has the dimensions " + str(newImage.shape) + " when it should be "
+                         + str(imageSet[0].shape))
+    imageProductVector = []
+    for image in imageSet:
+        imageProductVector.append(imageProduct(newImage, image))
+    imageProductVector = np.array(imageProductVector)
+    return imageProductVector

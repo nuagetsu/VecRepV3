@@ -6,20 +6,12 @@ from typing import Callable
 import numpy as np
 from numpy.typing import NDArray
 
+from data_processing.ImageProducts import calculate_image_product_matrix
 from src.data_processing import ImageGenerators, Filters, ImageProducts, EmbeddingFunctions, FilepathUtils
 from visualization import Metrics
 
 
-def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:
-    """
-    Applies the image product between every possible permutation of images in the imageSet
-    """
-    imageProductMatrix = []
-    for image1 in imageSet:
-        for image2 in imageSet:
-            imageProductMatrix.append(imageProduct(image1, image2))
-    imageProductMatrix = np.reshape(imageProductMatrix, (len(imageSet), len(imageSet)))
-    return imageProductMatrix
+
 
 
 def generate_filtered_image_set(*, imageType: str, filters=None, imageSetFilepath: str, overwrite=False) -> NDArray:
