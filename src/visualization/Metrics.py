@@ -3,10 +3,18 @@ import pickle
 from typing import List
 
 from data_processing import FilepathUtils
+from data_processing.VecRep import get_BF_embeddings
 from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
+import logging
+import sys
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 
 def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
     """
@@ -98,12 +106,19 @@ class PlottingData:
         self.imagesFilepath = imagesFilepath
 
 
-def load_plotting_data(plottingDataFilepath):
-    if os.path.isfile(plottingDataFilepath):
-        with open(plottingDataFilepath, 'rb') as f:
-            plottingData = pickle.load(f)
-    else:
-        raise FileNotFoundError(plottingDataFilepath + " does not exist")
+def load_BF_plotting_data(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
+                          overwrite=None):
+    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
+                                                                    imageProductType=imageProductType,
+                                                                    embeddingType=embeddingType)
+
+    if not os.path.isfile(plottingDataFilepath):
+        logging.info("No plotting data found. Generating plotting data... ")
+        get_BF_embeddings(imageType=imageType, filters=filters,
+                          imageProductType=imageProductType,
+                          embeddingType=embeddingType, overwrite=overwrite)
+    with open(plottingDataFilepath, 'rb') as f:
+        plottingData = pickle.load(f)
     return plottingData
 
 

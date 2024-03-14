@@ -9,7 +9,14 @@ from numpy.typing import NDArray
 from data_processing.ImageProducts import calculate_image_product_matrix
 from src.data_processing import ImageGenerators, Filters, ImageProducts, EmbeddingFunctions, FilepathUtils
 from visualization import Metrics
+import logging
+import sys
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 
 
 
@@ -85,25 +92,25 @@ def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, em
     if overwrite is None:
         overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
 
-    print("Generating filtered images....")
+    logging.info("Generating filtered images....")
     imageSetFilepath = FilepathUtils.get_image_set_filepath(imageType=imageType, filters=filters)
     imageSet = generate_filtered_image_set(imageType=imageType, filters=filters, imageSetFilepath=imageSetFilepath,
                                            overwrite=overwrite['filter'])
     imageProductFilepath = FilepathUtils.get_image_product_filepath(imageType=imageType, filters=filters,
                                                                     imageProductType=imageProductType)
 
-    print("Generating image product matrix....")
+    logging.info("Generating image product matrix....")
     imageProductMatrix = generate_image_product_matrix(imageSet=imageSet, imageProductType=imageProductType,
                                                        imageProductFilepath=imageProductFilepath,
                                                        overwrite=overwrite['im_prod'])
 
-    print("Generating embeddings....")
+    logging.info("Generating embeddings....")
     embeddingFilepath = FilepathUtils.get_embedding_matrix_filepath(imageType=imageType, filters=filters,
                                                                     imageProductType=imageProductType,
                                                                     embeddingType=embeddingType)
     embeddingMatrix = generate_embedding_matrix(imageProductMatrix=imageProductMatrix, embeddingType=embeddingType,
                                                 embeddingFilepath=embeddingFilepath, overwrite=overwrite['estimate'])
-    print("Saving plotting data....")
+    logging.info("Saving plotting data....")
     plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
                                                                     imageProductType=imageProductType,
                                                                     embeddingType=embeddingType)

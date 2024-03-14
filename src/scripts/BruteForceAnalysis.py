@@ -40,16 +40,14 @@ def investigate_BF_method(plottingData: PlottingData):
     GraphEstimates.plot_key_stats_text(ax, plottingData)
 
 
-
 if __name__ == '__main__':
     imageType = "3bin"
     filters = ["unique"]
     imageProductType = "ncc"
     embeddingType = "pencorr_20"
-    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-    plottingData = Metrics.load_plotting_data(plottingDataFilepath)
+    plottingData = Metrics.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                 imageProductType=imageProductType,
+                                                 embeddingType=embeddingType)
     investigate_k(plottingData)
     investigate_BF_method(plottingData)
     plt.show()
