@@ -3,9 +3,17 @@ from typing import Callable
 
 import numpy as np
 import cv2
-from src.data_processing.ImageProducts import ncc, get_image_product
+from src.data_processing.ImageProducts import ncc, get_image_product, calculate_image_product_vector
 
 class TestNCC(unittest.TestCase):
+
+    def test_get_image_product_vector(self):
+        mainImgs = np.array([[[1, 0], [0, 0]], [[0, 1], [0, 0]], [[1, 0], [0, 1]], [[1, 1], [0, 1]]])
+        tempImg = np.array([[1, 0], [0, 1]])
+        correctResult = np.array([0.7071067, 0.7071067, 1, 0.816496])
+        result = calculate_image_product_vector(tempImg, mainImgs, ncc)
+        self.assertTrue(np.allclose(correctResult, result))
+
     def test_get_image_product(self):
         result = get_image_product("ncc")
         self.assertIsInstance(result, Callable)

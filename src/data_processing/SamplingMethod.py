@@ -2,8 +2,10 @@ import numpy as np
 
 import time
 from data_processing import FilepathUtils
+from data_processing.ImageProducts import calculate_image_product_vector, get_image_product
 from data_processing.VecRep import generate_filtered_image_set, generate_image_product_matrix, \
     generate_embedding_matrix, generate_plotting_data
+from helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 
 def get_sample_name(sampleSize):
@@ -39,6 +41,7 @@ class SampleEstimator:
         self.imageProductMatrix = generate_image_product_matrix(imageSet=self.sampledImageSet,
                                                                 imageProductType=imageProductType,
                                                                 imageProductFilepath=imageProductFilepath)
+        self.imageProduct = get_image_product(imageProductType)
 
         print("Generating embeddings....")
         embeddingFilepath = FilepathUtils.get_sample_embedding_filepath(self.sampleDirectory)
@@ -51,7 +54,14 @@ class SampleEstimator:
                                embeddingMatrix=self.embeddingMatrix, imagesFilepath=imageSetFilepath)
 
     def get_embedding_estimate(self, imageInput):
-        pass
+        """
+        :param imageInput: Takes in an image with the same dimensions as images in the image sample
+        :return: A vector embedding of the input image generated using the image sample. Method used is by minimizing
+        the error between the dot product results and the image product vector.
+        """
+        imageProductVector = calculate_image_product_vector(imageInput, self.sampledImageSet, self.imageProduct)
+        estimateVector = Lagrangian_Method2(self.embeddingMatrix, imageProductVector)
+        return estimateVector
 
 
 
