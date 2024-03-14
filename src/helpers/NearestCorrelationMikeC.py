@@ -3,6 +3,7 @@ from numpy import diag, inf
 from numpy import copy, dot
 from numpy.linalg import norm
 
+# Code was obtained from https://github.com/mikecroucher/nearest_correlation
 
 class ExceededMaxIterationsError(Exception):
     def __init__(self, msg, matrix=[], iteration=[], ds=[]):

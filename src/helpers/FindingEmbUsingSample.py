@@ -2,6 +2,7 @@ import numpy as np
 from sympy import *
 from scipy import optimize
 
+# The following method was written by Lim Cheng Ze Jed
 
 def Lagrangian_Method2(A, b):
     """
@@ -15,7 +16,6 @@ def Lagrangian_Method2(A, b):
 
     """
 
-    print("\nFinding The Lagragian Multiplier\n")
     # Below is the math done to find the multiplier
     A = np.array(A)
     A = A.T
