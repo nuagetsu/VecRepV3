@@ -44,7 +44,7 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
 
 
 def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNeighbourScores: List,
-                      imagesFilepath: str, nImageSample=3):
+                      imagesFilepath: str, nImageSample=3, numPlottedK=None):
     num_images = len(kNeighbourScores[0]["neighbourScore"])
     if nImageSample > num_images:
         raise ValueError("nImageSample is greater than the number of images")
@@ -54,17 +54,21 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
         raise ValueError("Please input the correct number of images axes")
     if not os.path.exists(imagesFilepath):
         raise FileNotFoundError(imagesFilepath + " does not exist")
+    if numPlottedK is None:
+        numPlottedK = len(kNeighbourScores)
+    if numPlottedK > len(kNeighbourScores):
+        raise ValueError("Choose a lower value for num plotted K")
 
     # Choose a random sample of images
     random_samples = random.sample(range(1, num_images), nImageSample)
     images = np.load(imagesFilepath)
-    idealPlot = range(1, len(kNeighbourScores) + 1)
+    idealPlot = range(1, numPlottedK + 1) # for plotting y=x
     for count in range(nImageSample):
         imageNum = random_samples[count]
         ax = axArr[count]
         x = []
         y = []
-        for i in range(len(kNeighbourScores)):
+        for i in range(numPlottedK):
             x.append(kNeighbourScores[i]["kval"])
             y.append(kNeighbourScores[i]["neighbourScore"][imageNum])
         ax.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
@@ -81,7 +85,7 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
 
     aveX = []
     aveY = []
-    for i in range(len(kNeighbourScores)):
+    for i in range(numPlottedK):
         aveX.append(kNeighbourScores[i]["kval"])
         aveY.append(median(kNeighbourScores[i]["neighbourScore"]))  # Take the median of the kval scores
     aveAx.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")

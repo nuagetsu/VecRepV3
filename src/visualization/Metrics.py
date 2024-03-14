@@ -47,6 +47,8 @@ def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: N
 
     res = float(kNeighScore / k)
     return res
+
+
 def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> float:
     """
     :param imageProductMatrix: Image product array to be compared
@@ -85,7 +87,8 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
 
 
 class PlottingData:
-    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff,  kNeighbourScores, numImages, imagesFilepath):
+    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff, kNeighbourScores, numImages,
+                 imagesFilepath):
         self.initialEigenvalues = np.array(initialEigenvalues)
         self.finalEigenvalues = np.array(finalEigenvalues)
         self.frobDistance = frobDistance
@@ -94,6 +97,7 @@ class PlottingData:
         self.kNeighbourScores = kNeighbourScores
         self.imagesFilepath = imagesFilepath
 
+
 def load_plotting_data(plottingDataFilepath):
     if os.path.isfile(plottingDataFilepath):
         with open(plottingDataFilepath, 'rb') as f:
@@ -101,12 +105,14 @@ def load_plotting_data(plottingDataFilepath):
     else:
         raise FileNotFoundError(plottingDataFilepath + " does not exist")
     return plottingData
-def get_plotting_data(*, imageProductMatrix, embeddingMatrix, imagesFilepath): #TODO sweep plotting data and save plotting data
+
+
+def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
+                      imagesFilepath):  # TODO sweep plotting data and save plotting data
     """
     :return: A plotting data object which can be used for graphs to evaluate if the embeddings are a good estimate.
 
     """
-
 
     initialEigenvalues, eigVec = get_eig_for_symmetric(imageProductMatrix)
     dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
@@ -114,9 +120,8 @@ def get_plotting_data(*, imageProductMatrix, embeddingMatrix, imagesFilepath): #
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
 
-    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
-    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
-
+    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2 TODO make this value of k more easily changed
+    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 2), 2))
 
     maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))
 
