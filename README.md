@@ -1,4 +1,4 @@
-# VecRepV3
+﻿# VecRepV3
 Tools to convert images into vector representations in a vector space with specified properties
 
 This README serves as a general overview of what we are attempting to do and gives context to the code written. Specific instructions on how the code is structured and how to use it can be found in the documentation file
@@ -178,6 +178,8 @@ In such a case, we are able to calculate ![equation](https://latex.codecogs.com/
 However, it is often the case that matrix G is not positive semi-definite. As such, we have to find methods to transform matrix G into a positive semi-definite matrix, while minimising the error incurred.
 
 ### Zeroing eigenvectors
+This is not the main option for creating the matrix G'. The main option is detailed in [Pencorr](https://github.com/WhangShihEe/VecRepV3/tree/master/src/matlab_functions)
+
 The first option is to just ceiling all the negative eigenvalues in the diagonal matrix D to zero, then calculate ![equation](https://latex.codecogs.com/svg.image?G'=PD'P^{-1})
 
 The issue with this approach is that the unit vector constraint is not preserved. In the previous approach the unit vector constraint was preserved by the diagonal of ones in the image product matrix. However after the negative eigenvectors are zeroed, the diagonal entries will not longer be equal to one.
@@ -192,6 +194,7 @@ TODO graphic of the eigenvalues of 2bin unique, then zeroing it
 A matrix which is positive semi-definite with unit diagonals is called a correlation matrix. Finding the nearest correlation matrix, while minimising the error is a [studied problem](https://nhigham.com/2013/02/13/the-nearest-correlation-matrix/). 
 
 We can use these algorithms to find G' while maintaining the unit vector constraint. The matrix can then be decomposed using the above method
+
 
 ## Reducing the rank of G
 
@@ -236,6 +239,42 @@ There are also methods to find the nearest correlation matrix with a rank constr
 
 The resulting matrix then can be decomposed using the reduced dimension decomposition
 
+# Lagrangian Method
+
+## Estimation of vector embedding
+We wish to estimate a vector $x$, the reduced dimension vector embedding of one of the images not in $A$ that we randomly pick. This x will be the estimation of the vector embedding of the image.
+ 
+ ## Obtaining $x$
+Having decomposed the Matrix G' into ![equation](https://latex.codecogs.com/svg.image?{A_{d,n}}^tA_{d,n}=G)
+and obtaining the value of $A_{d,n}$, we are able to minimise the error $\frac{1}{2}||A^tx-b||^2_2$ , 
+$x \in \real^{d*1}, b \in \real^{n*1}$ where b is the image products between the picked image and the images in A. We also need to ensure that $x^tx = 1$ as the image product of an image with itself should be 1.
+
+**The problem statement**
+$$min\  \frac{1}{2}||A^tx-b||^2_2,  \ x^tx = 1$$
+
+### Using Lagrange Multipliers 
+
+$$\mathcal{L}(x,\lambda) = \frac{1}{2}||A^tx-b||^2_2 + \frac{1}{2}\lambda(||x||^2_2-1)
+\\0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)+\lambda(x)  \qquad (1) 
+\\x^tx=1 \qquad (2)$$
+
+From above, $A = \sqrt{D}P^t$
+$$AA^t = \sqrt{D}P^t(\sqrt{D}P^t)^t=\sqrt{D}P^tP\sqrt{D} = \sqrt{D}I\sqrt{D} = D$$
+
+From (1), $0 = AA^tx - Ab + \lambda x$
+$$(AA^t + \lambda I)x = Ab
+\\ (D + \lambda I)x = Ab
+\\x = (D + \lambda I)^{-1}Ab$$
+
+From (2), $$1 = x^tx = [(D + \lambda I)^{-1}Ab]^t[(D + \lambda I)^{-1}Ab] \qquad \ \ \ 
+\\= b^tA^t(D + \lambda I)^{-1}(D + \lambda I)^{-1}Ab
+\\=  b^tA^t(D + \lambda I)^{-2}Ab \qquad \qquad \ \ \ 
+\\= y^t(D + \lambda I)^{-2}y \qquad(y = Ab) \ \ 
+\\ \implies
+\\ 1 = \sum_{i=1}^{n} \left(\frac{y_i}{D_{i,i}+\lambda} \right)^2
+$$
+
+We will thereafter solve for the lagrangian multipliers using numerical methods provided by scipy, and find the x that minimises $\frac{1}{2}||Ax-b||^2_2$. 
 
 # Metrics for embeddings
 Since it is not possible to perfectly solve the problem, we would like to come up with metrics to compare different set of vector embeddings to choose the estimate that best satisfies our requirements.
@@ -244,9 +283,38 @@ Since it is not possible to perfectly solve the problem, we would like to come u
 ## K neighbour score
 Ideally, close neighbours of the vector embeddings should correspond to close neighbours the original image. The K neighbour score is the fraction of the K most similar images (i.e. highest image product) in K closest vector embeddings (i.e. highest dot product) for the corresponding vector. In an ideal case, the score would be one.
 
-Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. The order within the closest neighbours does not matter.
+Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. The order within the closest neighbours does not matter (we can make it matter though).
 
-Due to 
+## K nearest neighbours algorithm 
+Let the **image products** be b, and the **image product function** be f, 
+s is any random image that is chosen, and n is the total number of images.
+For example, for the image product table of 3x3 binary unique images, 
+n = 64, and if we pick an image s = 20,   
+
+$$b = [f(Image \ 1, Image\  s), f(Image\  2, Image\  s), ..., f(Image\  n, Image \ s)$$
+
+Note that $f(Image \ i, Image \ i) = 1$.
+
+Let x be the **estimated vector embedding**, and $A_i$ be the **vector representation of the image**. The dot product vector is defined as c, where
+$$c = [ A_1.x, A_2.x, ... , A_n.x]  $$
+
+Let k be the **nearest neighbour score**, where we track the k nearest neighbours to our vector x that represents image s. In vectors b and c, if k = 3, we will find the top 3 highest values and store their indices in a list.
+
+For example let n = 5 and s = 3 and k = 2, an example vector b can be 
+$$b = [0.988, 0.745, 1, 0.303, 0.812]$$
+The two highest values (and thus 2 nearest neighbours) excluding s = 3 are at positions 1 and 5. Therefore the set of nearest neighbours will be in the form of $b_{neighbours} = (1,5)$
+
+An example vector c can be 
+$$c = [0.455, 0.325, 1, 0.983, 0.812]$$
+Accordingly its nearest neighbours are $c_{neighbours} = (4,5)$
+
+Using the formula of $k_{score} = (b_{neighbours} \cap c_{neighbours})  / k$,  in this case the k score will 0.5.
+
+Using another example, if for the same values of n, s and k,
+$$b = [0.988, 0.745, 1, 0.812, 0.812]$$
+the nearest neighours will be (1,,4,5), as b[4] and b[5] have the same values.
+
+Using this $k_{score}$, we will be able to plot out the consistency of nearest neighbours in a graph.
 
 # Sampling approach
 
