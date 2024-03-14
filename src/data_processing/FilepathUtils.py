@@ -25,8 +25,10 @@ def get_filepath(*, imageType: str, filters=None, imageProductType=None, embeddi
             filepath = os.path.join(filepath, embeddingType)
     return filepath
 
+
 def get_matlab_dirpath() -> str:
     return os.path.join(get_project_root(), "src", "matlab_functions")
+
 
 def get_image_set_filepath(*, imageType: str, filters=None) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters)
@@ -48,3 +50,25 @@ def get_plotting_data_filepath(*, imageType: str, filters=None, imageProductType
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
                             embeddingType=embeddingType)
     return os.path.join(filepath, "plotting_data")
+
+
+def get_sample_directory(*, imageType: str, filters=None, imageProductType: str, embeddingType: str, sampleName) -> str:
+    filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                            embeddingType=embeddingType)
+    return os.path.join(filepath, sampleName)
+
+
+def get_sample_embedding_filepath(sampleDirectory: str):
+    return os.path.join(sampleDirectory, "sample_embeddings")
+
+
+def get_sample_ipm_filepath(sampleDirectory: str):
+    return os.path.join(sampleDirectory, "sample_image_product_matrix")
+
+
+def get_sample_images_filepath(sampleDirectory: str):
+    return os.path.join(sampleDirectory, "sample_images.npy")
+
+
+def get_sample_plotting_data_filepath(sampleDirectory: str):
+    return os.path.join(sampleDirectory, "sample_plotting_data")
