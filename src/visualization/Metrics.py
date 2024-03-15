@@ -107,8 +107,14 @@ class PlottingData:
         self.imagesFilepath = imagesFilepath
         self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScores)
 
-    def get_specified_k_neighbour_score(self, k: int):
-        for score in self.aveKNeighbourScore:
+    def get_specified_ave_k_neighbour_score(self, k: int):
+        for score in self.aveNormKNeighbourScore:
+            if score["kval"] == k:
+                return score["neighbourScore"]
+        raise ValueError(str(k) + " is an invalid value of k")
+
+    def get_specified_k_neighbour_scores(self, k:int):
+        for score in self.kNormNeighbourScores:
             if score["kval"] == k:
                 return score["neighbourScore"]
         raise ValueError(str(k) + " is an invalid value of k")
