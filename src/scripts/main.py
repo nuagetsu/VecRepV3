@@ -24,7 +24,7 @@ Sample input: 60max_ones
 unique: Outputs a set of images such that each image is NOT a simple translation of another image 
 in the set
 """
-IMAGE_PRODUCT_TYPES = ["ncc"]
+IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
 
 EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D", "pencorr_D"]
 

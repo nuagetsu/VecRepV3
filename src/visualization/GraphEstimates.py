@@ -43,6 +43,25 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
     ax2.legend((rects1[0], rects2[0]), ('Initial Eigenvalues', 'Final eigenvalues'))
 
 
+def plot_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None):
+    if numPlottedK is None:
+        numPlottedK = len(aveKNeighbourScores)
+    if numPlottedK > len(aveKNeighbourScores):
+        raise ValueError("Choose a lower value for num plotted K")
+    idealPlot = range(1, numPlottedK + 1)  # for plotting y=x
+    aveX = []
+    aveY = []
+    for score in aveKNeighbourScores[: numPlottedK]:
+        aveX.append(score["kval"])
+        aveY.append(score["neighbourScore"])
+    ax.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
+    ax.plot(aveX, aveY, color='r', label="Real")
+    ax.set_title("Mean neighbour score of all images against number of neighbours analysed")
+    ax.set_xlabel("Value of k")
+    ax.set_ylabel("K neighbour score")
+    ax.legend(loc="upper left")
+
+
 def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNeighbourScores: List,
                       aveKNeighbourScores: List,
                       imagesFilepath: str, nImageSample=3, numPlottedK=None):
@@ -84,28 +103,28 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
         imageAx.set_title("Image " + str(imageNum))
         imageAx.imshow(choosenImage, cmap='Greys', interpolation='nearest')
 
-    aveX = []
-    aveY = []
-    for score in aveKNeighbourScores:
-        aveX.append(score["kval"])
-        aveY.append(score["neighbourScore"])
-    aveAx.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
-    aveAx.plot(aveX, aveY, color='r', label="Real")
-    aveAx.set_title("Median neighbour score of all images against number of neighbours analysed")
-    aveAx.set_xlabel("Value of k")
-    aveAx.set_ylabel("K neighbour score")
-    aveAx.legend(loc="upper left")
+    plot_ave_k_neighbours(aveAx, aveKNeighbourScores, numPlottedK)
 
 
 def plot_key_stats_text(ax: Axes, plottingData: PlottingData):
     displayText = ("Total Frobenius distance between imageProductMatrix and A^tA: " + "{:.2f}".format(
         plottingData.frobDistance) + "\n" +
-                   "Average Frobenius distance between imageProductMatrix and A^tA: " + "{:.2f}".format(
+                   "Average Frobenius distance between imageProductMatrix and A^tA: " + "{:.3E}".format(
                 plottingData.aveFrobDistance) + "\n" +
                    "Max Frobenius distance between imageProductMatrix and A^tA: " + "{:.2f}".format(
                 plottingData.maxDiff) + "\n")
     ax.text(0.5, 0.5, displayText, color='black',
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
+
+
+def plot_comparison_btw_img_prod(ax1Arr: List[Axes], ax2Arr: List[Axes], imageProdType1: str, imageProdType2: str,
+                                 plottingData1: PlottingData, plottingData2: PlottingData):
+    plot_eigenvalues(ax1Arr[0], ax1Arr[1], plottingData1.initialEigenvalues, plottingData1.finalEigenvalues)
+    plot_eigenvalues(ax2Arr[0], ax2Arr[1], plottingData2.initialEigenvalues, plottingData2.finalEigenvalues)
+    plot_ave_k_neighbours(ax1Arr[2], plottingData1.aveKNeighbourScore)
+    plot_ave_k_neighbours(ax2Arr[2], plottingData2.aveKNeighbourScore)
+    plot_key_stats_text(ax1Arr[3], plottingData1)
+    plot_key_stats_text(ax2Arr[3], plottingData2)
 
 
 def plot_error_against_rank_constraint(frobAx: Axes, neighbourAx: Axes, rankArr: List, frobArr: List, neighArr: List,

@@ -32,10 +32,13 @@ def investigate_k(plottingData: PlottingData, numK=None):
                                      aveKNeighbourScores=plottingData.aveKNeighbourScore)
 
 
-def investigate_BF_method(plottingData: PlottingData):
+def investigate_BF_method(plottingData: PlottingData, numK=10):
     """
+    :param kVal: value of k for kneighbour score
     :param plottingData:
-    :return: Makes an eigenvalue graph and displays the frobenius distance for the embeddings
+    :return: Makes an eigenvalue graph
+     mean k neighbours score graph
+     and displays the frobenius distance for the embeddings
     Remember to use plt.show() to display plots
 
     Aims to answer the question: What is the error in using the selected method for generating embeddings?
@@ -43,6 +46,8 @@ def investigate_BF_method(plottingData: PlottingData):
     # Comparing the largest and the most negative eigenvalues
     eigenFig, (ax1, ax2) = plt.subplots(2)
     GraphEstimates.plot_eigenvalues(ax1, ax2, plottingData.initialEigenvalues, plottingData.finalEigenvalues)
+
+    # See
 
     # Display key values about the plot
     statsPlot, ax = plt.subplots()
@@ -81,24 +86,60 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
 
         aveNeighArr.append(plottingData.get_specified_k_neighbour_score(specifiedK))
     rankFig, (neighAx, frobAx) = plt.subplots(1, 2)
-    GraphEstimates.plot_error_against_rank_constraint(frobAx,neighAx,rankConstraints, aveFrobDistanceArr,aveNeighArr, specifiedK)
+    GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, aveFrobDistanceArr, aveNeighArr,
+                                                      specifiedK)
 
+
+def investigate_scaled_ncc(*, imageType: str, filters=None, imageProductType1: str, imageProductType2: str,
+                           embeddingType: str, numPlottedK=None, overwrite=None):
+    """
+    :param imageType:
+    :param filters:
+    :param imageProductType1:
+    :param imageProductType2:
+    :param embeddingType:
+    :param numPlottedK: number of K in the x axis for the k neighbour plot
+    :return: Creates a figure for displaying the eigenvalue plots, basic stats and average neighbour score against k value for both image product 1 and image product 2
+
+    Aims to answer the question: Does image product 1 result in better results than image product 2?
+    """
+    plottingData1 = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                                 imageProductType=imageProductType1,
+                                                                 embeddingType=embeddingType, overwrite=overwrite)
+    plottingData2 = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                                 imageProductType=imageProductType2,
+                                                                 embeddingType=embeddingType, overwrite=overwrite)
+    imgProd1Fig, ax1Arr = plt.subplots(4)
+    ax1Arr = list(ax1Arr)
+    imgProd1Fig.suptitle("Plots for " + imageProductType1)
+    imgProd2Fig, ax2Arr = plt.subplots(4)
+    ax2Arr = list(ax2Arr)
+    imgProd2Fig.suptitle("Plots for " + imageProductType2)
+    GraphEstimates.plot_comparison_btw_img_prod(ax1Arr, ax2Arr, imageProductType1, imageProductType2, plottingData1, plottingData2)
 
 if __name__ == '__main__':
     imageType = "3bin"
     filters = ["unique"]
     imageProductType = "ncc"
-    embeddingType = "pencorr_20"
-    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': True}
-    investigate_pencorr_rank_constraint(imageType=imageType, filters=filters,
-                                                                imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+    embeddingType = "pencorr_10"
+    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
+    plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
+                                                                imageProductType=imageProductType,
+                                                                embeddingType=embeddingType, overwrite=overwrite)
 
+    #investigate_BF_method(plottingData)
+
+    """investigate_pencorr_rank_constraint(imageType=imageType, filters=filters,
+                                       imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+"""
     """
     plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
                                                                 imageProductType=imageProductType,
                                                                 embeddingType=embeddingType, overwrite=overwrite)
     investigate_k(plottingData)
     investigate_BF_method(plottingData)
+    
     """
+    investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
 
     plt.show()
