@@ -24,6 +24,6 @@ We can define a new vector $b_1 \in \real^{nx1}$, where $b_1$ is the dot product
 
 The highest values in vectors $b_0$ and $b_1$ represent the k images that are closest to the testing image, and their indices will be placed in sets $c_0$ and $c_1$. The k_neighbour score is represented by the number of elements in the intersection between $c_0$ and $c_1$. The full diagram is illustrated in the example below. 
 
-![Graph illustrating obtaining k nearest neighbours score](../../assets/k_nearest_neighbours)
+![Graph illustrating obtaining k nearest neighbours score](../../assets/k_nearest_neighbours.png)
 
 When we use Pencorr.m to constrain the rank of the vector $x_{special}$, the k nearest neighbours score will vary, and we can analyse the trend of the k nearest neighbours score. This allows us to determine a specific rank where the dimension of $x_{special}$ can be reduced to.
