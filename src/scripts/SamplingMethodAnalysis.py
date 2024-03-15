@@ -3,6 +3,7 @@ import pickle
 from pathlib import Path
 
 import numpy as np
+from matplotlib import pyplot as plt
 from numpy._typing import NDArray
 
 from data_processing import SamplingMethod, FilepathUtils
@@ -13,6 +14,7 @@ from src.data_processing.ImageProducts import calculate_image_product_matrix, ge
 import logging
 import sys
 
+from visualization import GraphEstimates
 from visualization.Metrics import get_sample_plotting_data
 
 logging.basicConfig(
@@ -31,6 +33,7 @@ def get_random_image_sample(*, imageType: str, filters=None, nSamples: int) -> N
     imageSetFilepath = get_image_set_filepath(imageType=imageType, filters=filters)
     imageSet = generate_filtered_image_set(imageType=imageType, filters=filters, imageSetFilepath=imageSetFilepath)
 
+    #imageSet = imageSet[1:] #TODO HARDCODED TO PREVENT THE ZERO MATRIX FROM BEING CHOOSEN. MUST FIX
     # Sampling the image set
     if sampleSize >= len(imageSet):
         raise ValueError("n must be less than the length of the array.")
@@ -95,17 +98,41 @@ class SampleTester:
             with open(testSamplePlottingDataFilepath, 'rb') as f:
                 self.plottingData = pickle.load(f)
 
+def investigate_sample_tester(sampleTester: SampleTester, numSample: int, plotTitle: str):
+    plottingData = sampleTester.plottingData
+    kNeighFig, axList = plt.subplots(numSample + 1, 2)
+    kNeighFig.suptitle("Norm k neighbour plot for " + plotTitle)
+    if numSample != 0:
+        imgArr = [row[0] for row in axList[:-1]]
+        kNeighArr = [row[1] for row in axList[:-1]]
+    else:
+        imgArr = []
+        kNeighArr = []
+    aveAx = axList[-1][1]
+    # Set the bottom right subplot to be empty
+    axList[-1][0].set_axis_off()
+    GraphEstimates.plot_swept_k_neighbours(axArr=kNeighArr, imageAxArr=imgArr, aveAx=aveAx,
+                                           kNormNeighbourScores=plottingData.kNormNeighbourScore,
+                                           aveNormKNeighbourScores=plottingData.aveNormKNeighbourScore,
+                                           imagesFilepath=plottingData.imagesFilepath, nImageSample=numSample)
+
 if __name__ == '__main__':
     imageType = "3bin"
     filters = ["unique"]
     imageProductType = "ncc"
     embeddingType = "pencorr_10"
     overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False, 'sampling': False}
-    sampleSize = 20
+    sampleSize = 40
     testSize = 20
     sampleName = SamplingMethod.get_unique_sample_name(sampleSize)
     testName = SamplingMethod.get_unique_sample_test_name(testSize)
+    randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
+    imageSample = randSample[:sampleSize]
+    testSample = randSample[sampleSize:]
     sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
                                       filters=filters, embeddingType=embeddingType, imageProductType=imageProductType,
-                                      overwrite=overwrite)
-    sampleTest = SampleTester()
+                                      overwrite=overwrite,imageSamplesInput=imageSample)
+    sampleTest = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator,
+                              sampleDir=sampleEstimator.sampleDirectory, testName=testName)
+    investigate_sample_tester(sampleTest, 3, "test")
+    plt.show()

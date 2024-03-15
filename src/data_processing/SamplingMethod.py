@@ -95,6 +95,6 @@ class SampleEstimator:
         the error between the dot product results and the image product vector.
         """
         imageProductVector = calculate_image_product_vector(imageInput, self.sampledImageSet, self.imageProduct)
-        estimateVector = Lagrangian_Method2(self.embeddingMatrix, imageProductVector)
+        estimateVector = Lagrangian_Method2(self.embeddingMatrix, imageProductVector)[0]
         return estimateVector
 
