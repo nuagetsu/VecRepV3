@@ -43,7 +43,7 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
     ax2.legend((rects1[0], rects2[0]), ('Initial Eigenvalues', 'Final eigenvalues'))
 
 
-def plot_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None):
+def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None):
     if numPlottedK is None:
         numPlottedK = len(aveKNeighbourScores)
     if numPlottedK > len(aveKNeighbourScores):
@@ -54,18 +54,31 @@ def plot_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None):
     for score in aveKNeighbourScores[: numPlottedK]:
         aveX.append(score["kval"])
         aveY.append(score["neighbourScore"])
-    ax.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
+    ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
     ax.plot(aveX, aveY, color='r', label="Real")
     ax.set_title("Mean neighbour score of all images against number of neighbours analysed")
     ax.set_xlabel("Value of k")
-    ax.set_ylabel("K neighbour score")
+    ax.set_ylabel("Norm K neighbour score")
+    ax.set_ylim(0,1.1)
     ax.legend(loc="upper left")
 
 
-def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNeighbourScores: List,
-                      aveKNeighbourScores: List,
-                      imagesFilepath: str, nImageSample=3, numPlottedK=None):
-    num_images = len(kNeighbourScores[0]["neighbourScore"])
+def plot_swept_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNormNeighbourScores: List,
+                            aveNormKNeighbourScores: List,
+                            imagesFilepath: str, nImageSample=3, numPlottedK=None, imageIndexArr=None):
+    """
+    :param axArr: axes for the k neighbour plots for each image
+    :param imageAxArr: axes for the image plot itself
+    :param aveAx: axes for the average k neighbour plots
+    :param kNormNeighbourScores: list of k neighbour scores from PlottingData
+    :param aveNormKNeighbourScores: list of ave k neighbour scores from PlottingData
+    :param imagesFilepath: Imagefile path where the images are stored (must be loaded previously)
+    :param nImageSample: Number of images to plot their k neighbour score as the value of k changes. 3 by default
+    :param numPlottedK: The number of k to sweep. Start the sweep from 1 and ends at numPlottedK - 1. By default plots the max possible number of k stored in plotting data
+    :param imageIndexArr: The index of images for which you want to see the k neighbour plot. Images are randomly selected by default
+    :return: Plots a graph of norm k neighbour score against the value of K for a sample of images, as well as the mean norm k neighbour score against the value of k
+    """
+    num_images = len(kNormNeighbourScores[0]["neighbourScore"])
     if nImageSample > num_images:
         raise ValueError("nImageSample is greater than the number of images")
     if len(axArr) != nImageSample:
@@ -75,43 +88,48 @@ def plot_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes,
     if not os.path.exists(imagesFilepath):
         raise FileNotFoundError(imagesFilepath + " does not exist")
     if numPlottedK is None:
-        numPlottedK = len(kNeighbourScores)
-    if numPlottedK > len(kNeighbourScores):
+        numPlottedK = len(kNormNeighbourScores)
+    if numPlottedK > len(kNormNeighbourScores):
         raise ValueError("Choose a lower value for num plotted K")
 
-    # Choose a random sample of images
-    random_samples = random.sample(range(1, num_images), nImageSample)
-    images = np.load(imagesFilepath)
-    idealPlot = range(1, numPlottedK + 1)  # for plotting y=x
-    for count in range(nImageSample):
-        imageNum = random_samples[count]
-        ax = axArr[count]
-        x = []
-        y = []
-        for i in range(numPlottedK):
-            x.append(kNeighbourScores[i]["kval"])
-            y.append(kNeighbourScores[i]["neighbourScore"][imageNum])
-        ax.plot(idealPlot, idealPlot, color='b', linestyle=':', label="Ideal")
-        ax.plot(x, y, color='r', label="Real")
-        ax.set_title("Neighbour score of image " + str(imageNum) + " against number of neighbours analysed")
-        ax.set_xlabel("Value of k")
-        ax.set_ylabel("K neighbour score")
-        ax.legend(loc="upper left")
+    if nImageSample != 0:
+        # Choose a random sample of images
+        if imageIndexArr is None:
+            imageIndexArr = random.sample(range(1, num_images), nImageSample)
+        elif max(imageIndexArr) > num_images:
+            raise ValueError("Invalid image index entered")
+        images = np.load(imagesFilepath)
+        idealPlot = range(1, numPlottedK + 1)  # for plotting y=1
+        for count in range(nImageSample):
+            imageNum = imageIndexArr[count]
+            ax = axArr[count]
+            x = []
+            y = []
+            for i in range(numPlottedK):
+                x.append(kNormNeighbourScores[i]["kval"])
+                y.append(kNormNeighbourScores[i]["neighbourScore"][imageNum])
+            ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
+            ax.plot(x, y, color='r', label="Real")
+            ax.set_title("Normed k neighbour score of image " + str(imageNum) + " against number of neighbours analysed")
+            ax.set_xlabel("Value of k")
+            ax.set_ylabel("Normed K neighbour score")
+            ax.set_ylim(0, 1.1)
+            ax.legend(loc="upper left")
 
-        imageAx = imageAxArr[count]
-        choosenImage = images[imageNum]
-        imageAx.set_title("Image " + str(imageNum))
-        imageAx.imshow(choosenImage, cmap='Greys', interpolation='nearest')
+            imageAx = imageAxArr[count]
+            choosenImage = images[imageNum]
+            imageAx.set_title("Image " + str(imageNum))
+            imageAx.imshow(choosenImage, cmap='Greys', interpolation='nearest')
 
-    plot_ave_k_neighbours(aveAx, aveKNeighbourScores, numPlottedK)
+    plot_swept_ave_k_neighbours(aveAx, aveNormKNeighbourScores, numPlottedK)
 
 
 def plot_key_stats_text(ax: Axes, plottingData: PlottingData):
-    displayText = ("Total Frobenius distance between imageProductMatrix and A^tA: " + "{:.2f}".format(
+    displayText = ("Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
         plottingData.frobDistance) + "\n" +
-                   "Average Frobenius distance between imageProductMatrix and A^tA: " + "{:.3E}".format(
+                   "Average Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.3E}".format(
                 plottingData.aveFrobDistance) + "\n" +
-                   "Max Frobenius distance between imageProductMatrix and A^tA: " + "{:.2f}".format(
+                   "Greatest single element difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
                 plottingData.maxDiff) + "\n")
     ax.text(0.5, 0.5, displayText, color='black',
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
@@ -121,8 +139,8 @@ def plot_comparison_btw_img_prod(ax1Arr: List[Axes], ax2Arr: List[Axes], imagePr
                                  plottingData1: PlottingData, plottingData2: PlottingData):
     plot_eigenvalues(ax1Arr[0], ax1Arr[1], plottingData1.initialEigenvalues, plottingData1.finalEigenvalues)
     plot_eigenvalues(ax2Arr[0], ax2Arr[1], plottingData2.initialEigenvalues, plottingData2.finalEigenvalues)
-    plot_ave_k_neighbours(ax1Arr[2], plottingData1.aveKNeighbourScore)
-    plot_ave_k_neighbours(ax2Arr[2], plottingData2.aveKNeighbourScore)
+    plot_swept_ave_k_neighbours(ax1Arr[2], plottingData1.aveNormKNeighbourScore)
+    plot_swept_ave_k_neighbours(ax2Arr[2], plottingData2.aveNormKNeighbourScore)
     plot_key_stats_text(ax1Arr[3], plottingData1)
     plot_key_stats_text(ax2Arr[3], plottingData2)
 
@@ -143,10 +161,10 @@ def plot_error_against_rank_constraint(frobAx: Axes, neighbourAx: Axes, rankArr:
     frobAx.set_xlabel("Rank Constraint")
     frobAx.set_ylabel("Average frobenius error")
 
-    idealPlot = [specifiedK for i in range(len(rankArr))]  # for plotting the max possible score
+    idealPlot = [1 for i in range(len(rankArr))]  # for plotting the max possible score
     neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
     neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
-    neighbourAx.set_title("Mean neighbour score of all images against the rank constraint applied to pencorr")
+    neighbourAx.set_title("Mean norm k neighbour score of all images against the rank constraint applied to pencorr (k = " + str(specifiedK) + ")")
     neighbourAx.set_xlabel("Rank Constraint")
-    neighbourAx.set_ylabel("K neighbour score")
+    neighbourAx.set_ylabel("K neighbour score (k = " + str(specifiedK) + ")")
     neighbourAx.legend(loc="upper left")

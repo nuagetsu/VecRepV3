@@ -81,22 +81,31 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
         scores = []
         for imageNumber in range(len(imageProductArray)):
             scores.append(
-                get_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
+                get_normed_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
         output.append({"kval": kval, "neighbourScore": scores})
     return output
 
 
 class PlottingData:
-    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff, kNeighbourScores, numImages,
+    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff, kNormNeighbourScores, numImages,
                  imagesFilepath):
+        """
+        :param initialEigenvalues:
+        :param finalEigenvalues:
+        :param frobDistance:
+        :param maxDiff:
+        :param kNormNeighbourScores:
+        :param numImages:
+        :param imagesFilepath:
+        """
         self.initialEigenvalues = np.array(initialEigenvalues)
         self.finalEigenvalues = np.array(finalEigenvalues)
         self.frobDistance = frobDistance
         self.aveFrobDistance = frobDistance / (numImages ** 2)
         self.maxDiff = maxDiff
-        self.kNeighbourScores = kNeighbourScores
+        self.kNormNeighbourScores = kNormNeighbourScores
         self.imagesFilepath = imagesFilepath
-        self.aveKNeighbourScore = calculate_average_neighbour_scores(kNeighbourScores)
+        self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScores)
 
     def get_specified_k_neighbour_score(self, k: int):
         for score in self.aveKNeighbourScore:
@@ -129,13 +138,13 @@ def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
     frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
     numImages = len(imageProductMatrix[0])
 
-    # Sweep from k=1 to k = numimages/2 by default. If num images is small then sweep from 1 - 2
-    kNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 2), 2))
+    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
+    kNormNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
 
     maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))
 
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
-                          frobDistance=frobDistance, kNeighbourScores=kNeighbourScores, numImages=numImages,
+                          frobDistance=frobDistance, kNormNeighbourScores=kNormNeighbourScores, numImages=numImages,
                           imagesFilepath=imagesFilepath, maxDiff=maxDiff)
     return output
 

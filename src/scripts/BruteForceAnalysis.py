@@ -26,32 +26,44 @@ def investigate_k(plottingData: PlottingData, numK=None):
     axArr = [ax1, ax2, ax3]
     imgAxArr = [imgAx1, imgAx2, imgAx3]
     temp.set_axis_off()
-    GraphEstimates.plot_k_neighbours(axArr=axArr, imageAxArr=imgAxArr, aveAx=aveAx,
-                                     kNeighbourScores=plottingData.kNeighbourScores,
-                                     imagesFilepath=plottingData.imagesFilepath, numPlottedK=numK,
-                                     aveKNeighbourScores=plottingData.aveKNeighbourScore)
+    GraphEstimates.plot_swept_k_neighbours(axArr=axArr, imageAxArr=imgAxArr, aveAx=aveAx,
+                                           kNormNeighbourScores=plottingData.kNormNeighbourScores,
+                                           imagesFilepath=plottingData.imagesFilepath, numPlottedK=numK,
+                                           aveNormKNeighbourScores=plottingData.aveNormKNeighbourScore)
 
 
-def investigate_BF_method(plottingData: PlottingData, numK=10):
+def investigate_BF_method(plottingData: PlottingData, plottedImagesIndex=None, numSample=2):
     """
-    :param kVal: value of k for kneighbour score
+    :param plottedImagesIndex: Index of images you want to plot the k neighbours plot for
+    :param numSample: Number of images to plot in the k neighbour plot
     :param plottingData:
     :return: Makes an eigenvalue graph
-     mean k neighbours score graph
+     swept k neighbours score graph for the mean K val and for a number of images
      and displays the frobenius distance for the embeddings
     Remember to use plt.show() to display plots
 
     Aims to answer the question: What is the error in using the selected method for generating embeddings?
     """
     # Comparing the largest and the most negative eigenvalues
-    eigenFig, (ax1, ax2) = plt.subplots(2)
+    eigenFig, (ax1, ax2, ax3) = plt.subplots(3)
     GraphEstimates.plot_eigenvalues(ax1, ax2, plottingData.initialEigenvalues, plottingData.finalEigenvalues)
+    GraphEstimates.plot_key_stats_text(ax3, plottingData)
+    kNeighFig, axList = plt.subplots(numSample + 1, 2)
+    if numSample != 0:
+        imgArr = [row[0] for row in axList[:-1]]
+        kNeighArr = [row[1] for row in axList[:-1]]
+    else:
+        imgArr = []
+        kNeighArr = []
+    aveAx = axList[-1][1]
+    #Set the bottom right subplot to be empty
+    axList[-1][0].set_axis_off()
+    GraphEstimates.plot_swept_k_neighbours(axArr=kNeighArr, imageAxArr=imgArr, aveAx=aveAx,
+                                           kNormNeighbourScores=plottingData.kNormNeighbourScores,
+                                           aveNormKNeighbourScores=plottingData.aveNormKNeighbourScore,
+                                           imagesFilepath=plottingData.imagesFilepath, nImageSample=numSample,
+                                           imageIndexArr=plottedImagesIndex)
 
-    # See
-
-    # Display key values about the plot
-    statsPlot, ax = plt.subplots()
-    GraphEstimates.plot_key_stats_text(ax, plottingData)
 
 
 def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
@@ -122,24 +134,20 @@ if __name__ == '__main__':
     filters = ["unique"]
     imageProductType = "ncc"
     embeddingType = "pencorr_10"
-    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
+    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': True}
     plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
                                                                 imageProductType=imageProductType,
                                                                 embeddingType=embeddingType, overwrite=overwrite)
-
-    #investigate_BF_method(plottingData)
-
-    """investigate_pencorr_rank_constraint(imageType=imageType, filters=filters,
-                                       imageProductType=imageProductType, startingConstr=5, endingConstr=20)
-"""
-    """
-    plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                                imageProductType=imageProductType,
-                                                                embeddingType=embeddingType, overwrite=overwrite)
-    investigate_k(plottingData)
+    # General error analysis for one set of parameters
     investigate_BF_method(plottingData)
-    
-    """
-    investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
+
+    # Sweep rank constraint
+    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+
+    # Sweep the value of k
+    #investigate_k(plottingData)
+
+    # Carry out a general analysis for two image products
+    #investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
 
     plt.show()
