@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 import re
 
-from src.helpers.NumIslands import countIslands
+from helpers.NumIslands import countIslands
 
 
 def get_filtered_image_sets(*, imageSet: NDArray, filters: list[str]) -> NDArray:

@@ -16,7 +16,7 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
     """
     :param ax1: axes to plot the largest 20%/top 15 eigenvalues
     :param ax2: axes to plot the lowest 20%/bottom 15 eigenvalues
-    :param initialEigenvalues: intial eigenvlaues of the image product matrix
+    :param initialEigenvalues: initial eigenvlaues of the image product matrix
     :param finalEigenvalues: final eigenvalues of the embedding matrix dot product
     :return:
     """

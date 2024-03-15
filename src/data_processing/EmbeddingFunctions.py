@@ -4,9 +4,9 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
 from oct2py import octave
-from src.data_processing.FilepathUtils import get_matlab_dirpath
+from data_processing.FilepathUtils import get_matlab_dirpath
 
-from src.helpers.NearestCorrelationMikeC import nearcorr, ExceededMaxIterationsError
+from helpers.NearestCorrelationMikeC import nearcorr, ExceededMaxIterationsError
 
 
 class NonPositiveSemidefiniteError(Exception):
