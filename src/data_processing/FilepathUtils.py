@@ -1,9 +1,8 @@
 import os
 from pathlib import Path
 
-
 def get_project_root() -> Path:
-    return Path(__file__).parent.parent.parent
+    return Path(__file__).parent.parent.parent.parent.parent
 
 
 def get_filepath(*, imageType: str, filters=None, imageProductType=None, embeddingType=None):
