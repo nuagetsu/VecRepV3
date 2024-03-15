@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 import data_processing.VecRep
 from visualization import Metrics, GraphEstimates
-from visualization.Metrics import PlottingData
+from visualization.Metrics import PlottingData, get_specified_ave_k_neighbour_score
 import logging
 import sys
 
@@ -94,7 +94,7 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
                                                                     embeddingType=embType)
         aveFrobDistanceArr.append(plottingData.aveFrobDistance)
 
-        aveNeighArr.append(plottingData.get_specified_ave_k_neighbour_score(specifiedK))
+        aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, specifiedK))
     rankFig, (neighAx, frobAx) = plt.subplots(1, 2)
     GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, aveFrobDistanceArr, aveNeighArr,
                                                       specifiedK)

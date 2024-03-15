@@ -30,6 +30,7 @@ def generate_filtered_image_set(*, imageType: str, filters=None, imageSetFilepat
     If not, or if overridden, it uses the ImageGenerator and Filters module to generate a filtered image set
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
+        logging.info("Image set not found/overwrite, generating filtered image set...")
         imageSet = ImageGenerators.get_image_set(imageType=imageType)
         filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -48,6 +49,7 @@ def generate_image_product_matrix(*, imageSet, imageProductType, imageProductFil
     :return: An NDArray which is an image product matrix of the input filtered images and image product
     """
     if not os.path.isfile(imageProductFilepath) or overwrite:
+        logging.info("Image product table not found/overwrite, generating image product table...")
         imageProduct = ImageProducts.get_image_product(imageProductType)
         imageProductMatrix = calculate_image_product_matrix(imageSet, imageProduct)
         Path(imageProductFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -66,6 +68,7 @@ def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFil
     :return: The embedding matrix based on the inputs
     """
     if not os.path.isfile(embeddingFilepath) or overwrite:
+        logging.info("Embedding matrix not found/overwrite. Generating embedding matrix...")
         embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix=imageProductMatrix,
                                                                   embeddingType=embeddingType)
         Path(embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -74,8 +77,9 @@ def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFil
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
 
-def generate_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=True):
+def generate_BF_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
     if not os.path.isfile(plottingDataFilepath) or overwrite:
+        logging.info("Plotting data not found/overwrite. Generating plotting data...")
         plottingData = Metrics.get_plotting_data(imageProductMatrix=imageProductMatrix, embeddingMatrix=embeddingMatrix,
                                                  imagesFilepath=imagesFilepath)
         with open(plottingDataFilepath, 'wb') as f:
@@ -115,8 +119,8 @@ def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, em
     plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
                                                                     imageProductType=imageProductType,
                                                                     embeddingType=embeddingType)
-    generate_plotting_data(plottingDataFilepath=plottingDataFilepath, imageProductMatrix=imageProductMatrix,
-                           embeddingMatrix=embeddingMatrix, imagesFilepath=imageSetFilepath, overwrite=overwrite['plot'])
+    generate_BF_plotting_data(plottingDataFilepath=plottingDataFilepath, imageProductMatrix=imageProductMatrix,
+                              embeddingMatrix=embeddingMatrix, imagesFilepath=imageSetFilepath, overwrite=overwrite['plot'])
     return embeddingMatrix
 
 

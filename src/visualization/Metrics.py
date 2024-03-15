@@ -2,7 +2,7 @@ import os
 from statistics import mean
 from typing import List
 
-from data_processing import FilepathUtils
+from src.data_processing import FilepathUtils
 from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
@@ -85,6 +85,11 @@ def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDAr
         output.append({"kval": kval, "neighbourScore": scores})
     return output
 
+class SamplePlottingData:
+    def __init__(self, kNormNeighbourScore, imagesFilepath):
+        self.kNormNeighbourScore = kNormNeighbourScore
+        self.imagesFilepath = imagesFilepath
+        self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScore)
 
 class PlottingData:
     def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff, kNormNeighbourScores, numImages,
@@ -107,18 +112,18 @@ class PlottingData:
         self.imagesFilepath = imagesFilepath
         self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScores)
 
-    def get_specified_ave_k_neighbour_score(self, k: int):
-        for score in self.aveNormKNeighbourScore:
-            if score["kval"] == k:
-                return score["neighbourScore"]
-        raise ValueError(str(k) + " is an invalid value of k")
 
-    def get_specified_k_neighbour_scores(self, k:int):
-        for score in self.kNormNeighbourScores:
-            if score["kval"] == k:
-                return score["neighbourScore"]
-        raise ValueError(str(k) + " is an invalid value of k")
+def get_specified_ave_k_neighbour_score(aveNormKNeighbourScore, k: int):
+    for score in aveNormKNeighbourScore:
+        if score["kval"] == k:
+            return score["neighbourScore"]
+    raise ValueError(str(k) + " is an invalid value of k")
 
+def get_specified_k_neighbour_scores(kNormNeighbourScores, k:int):
+    for score in kNormNeighbourScores:
+        if score["kval"] == k:
+            return score["neighbourScore"]
+    raise ValueError(str(k) + " is an invalid value of k")
 def calculate_average_neighbour_scores(kNeighbourScores):
     """
     :param kNeighbourScores:
@@ -152,6 +157,16 @@ def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
     output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
                           frobDistance=frobDistance, kNormNeighbourScores=kNormNeighbourScores, numImages=numImages,
                           imagesFilepath=imagesFilepath, maxDiff=maxDiff)
+    return output
+
+def get_sample_plotting_data(*, imageProductMatrix, embeddingMatrix,
+                      imagesFilepath):
+    dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
+    numImages = len(imageProductMatrix[0])
+
+    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
+    kNormNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
+    output = SamplePlottingData(kNormNeighbourScores, imagesFilepath)
     return output
 
 
