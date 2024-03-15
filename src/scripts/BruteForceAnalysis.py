@@ -1,6 +1,9 @@
+import sys
+sys.path.append("..")
+
 import matplotlib.pyplot as plt
 
-import data_processing.VecRep
+import data_processing.VecRep 
 from visualization import Metrics, GraphEstimates
 from visualization.Metrics import PlottingData
 import logging
@@ -139,13 +142,13 @@ if __name__ == '__main__':
                                                                 imageProductType=imageProductType,
                                                                 embeddingType=embeddingType, overwrite=overwrite)
     # General error analysis for one set of parameters
-    investigate_BF_method(plottingData)
+    # investigate_BF_method(plottingData)
 
     # Sweep rank constraint
-    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+    investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=20)
 
     # Sweep the value of k
-    #investigate_k(plottingData)
+    # investigate_k(plottingData)
 
     # Carry out a general analysis for two image products
     #investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
