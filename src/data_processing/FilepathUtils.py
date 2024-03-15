@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 
+
 def get_project_root() -> Path:
-    return Path(__file__).parent.parent.parent.parent.parent
+    return Path(__file__).parent.parent.parent
 
 
 def get_filepath(*, imageType: str, filters=None, imageProductType=None, embeddingType=None):
@@ -71,18 +72,22 @@ def get_sample_images_filepath(sampleDirectory: str):
 def get_sample_plotting_data_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_plotting_data")
 
+
 def get_sample_info_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_info")
+
 
 def get_sample_test_images_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_image_set.npy")
 
+
 def get_sample_test_embeddings_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_embeddings")
+
 
 def get_sample_test_plotting_data_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_plotting_data")
 
+
 def get_sample_test_ipm_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_image_product_matrix")
-
