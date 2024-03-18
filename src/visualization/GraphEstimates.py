@@ -9,7 +9,7 @@ from matplotlib.axes import Axes
 from numpy._typing import NDArray
 
 from data_processing import FilepathUtils
-from visualization.Metrics import PlottingData
+from visualization.Metrics import PlottingData, get_specified_k_neighbour_scores
 
 
 def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEigenvalues: NDArray):
@@ -64,10 +64,11 @@ def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None)
 
 
 def plot_k_histograms(ax: Axes, plottingData: PlottingData, kVal: int):
-    kValScores = plottingData.get_specified_k_neighbour_scores(kVal)
+    kValScores = get_specified_k_neighbour_scores(plottingData.kNormNeighbourScores, kVal)
     kValScores = np.array(kValScores)
     kValScores = kValScores * kVal
     labels, counts = np.unique(kValScores, return_counts=True)
+    ax.set_xlim(-0.5, kVal + 0.5)
     ax.bar(labels, counts, align='center')
     ax.set_xticks(labels)
     ax.set_title("Histogram of K scores for k = " + str(kVal), fontsize=12)
@@ -158,8 +159,8 @@ def plot_comparison_btw_img_prod(ax1Arr: List[Axes], ax2Arr: List[Axes], imagePr
     plot_key_stats_text(ax2Arr[3], plottingData2)
 
 
-def plot_error_against_rank_constraint(frobAx: Axes, neighbourAx: Axes, rankArr: List, frobArr: List, neighArr: List,
-                                       specifiedK: int):
+def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes], rankArr: List, frobArr: List, fullNeighArr: List,
+                                       specifiedKArr: List):
     """
     :param frobAx: Axes to plot the frobenius graph
     :param neighbourAx: Axes to plot the neighbour graph
@@ -174,12 +175,17 @@ def plot_error_against_rank_constraint(frobAx: Axes, neighbourAx: Axes, rankArr:
     frobAx.set_xlabel("Rank Constraint")
     frobAx.set_ylabel("Average frobenius error")
 
-    idealPlot = [1 for i in range(len(rankArr))]  # for plotting the max possible score
-    neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
-    neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
-    neighbourAx.set_title(
-        "Mean norm k neighbour score of all images against the rank constraint applied to pencorr (k = " + str(
-            specifiedK) + ")")
-    neighbourAx.set_xlabel("Rank Constraint")
-    neighbourAx.set_ylabel("K neighbour score (k = " + str(specifiedK) + ")")
-    neighbourAx.legend(loc="upper left")
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+        neighArr = [arr[count] for arr in fullNeighArr]
+        idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
+        neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
+        neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
+        neighbourAx.set_title(
+            "Mean norm k neighbour score of all images against the rank constraint applied to pencorr (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Rank Constraint")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="upper left")

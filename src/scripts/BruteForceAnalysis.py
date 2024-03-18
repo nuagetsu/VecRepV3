@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 
 import data_processing.VecRep
@@ -13,7 +15,7 @@ logging.basicConfig(
 )
 
 
-def investigate_k(plottingData: PlottingData, plotTitle:str, kArr = None, numK=5):
+def investigate_k(plottingData: PlottingData, plotTitle:str, kArr = None, numK=16):
     """
     :param numK: Number of K swept before ending the sweep. inclusive
     :param plottingData:
@@ -21,11 +23,22 @@ def investigate_k(plottingData: PlottingData, plotTitle:str, kArr = None, numK=5
     Remember to use plt.show() to display plots
     Aims to answer the question: What is the best value to choose for K?
     """
-    fig, axArr = plt.subplots(numK)
+    sideLen = math.ceil(math.sqrt(numK))
+    fig, axArr = plt.subplots(sideLen, sideLen)
+    flat_list = []
+    for sub_list in axArr:
+        for ele in sub_list:
+            flat_list.append(ele)
+
     if kArr is None:
         kArr = [i for i in range(1, numK + 1)]
+
     for k in kArr:
-        GraphEstimates.plot_k_histograms(axArr[k - 1], plottingData, k)
+        try:
+            GraphEstimates.plot_k_histograms(flat_list[k - 1], plottingData, k)
+        except ValueError:
+            logging.error("Value of numK is to high to sweep completely")
+            break
     fig.suptitle("K neighbour score histograms for " + plotTitle)
 
 
@@ -65,9 +78,9 @@ def investigate_BF_method(plottingData: PlottingData, plotTitle: str, plottedIma
 
 
 def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                        endingConstr: int, specifiedK=5):
+                                        endingConstr: int, specifiedKArr=None):
     """
-    :param specifiedK: value of k for the k neighbour score
+    :param specifiedKArr: value of k for the k neighbour score
     :param imageType:
     :param filters:
     :param imageProductType:
@@ -82,8 +95,9 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
     """
     if startingConstr >= endingConstr:
         raise ValueError("Starting rank constraint must be lower than ending constraint")
-
-    aveNeighArr = []
+    if specifiedKArr is None:
+        specifiedKArr = [5]
+    allAveNeighArr = []
     aveFrobDistanceArr = []
     rankConstraints = range(startingConstr, endingConstr + 1)
     for rank in rankConstraints:
@@ -92,12 +106,18 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
         plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
                                                                     imageProductType=imageProductType,
                                                                     embeddingType=embType)
+        aveNeighArr = []
+        for k in specifiedKArr:
+            aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, k))
+        allAveNeighArr.append(aveNeighArr)
         aveFrobDistanceArr.append(plottingData.aveFrobDistance)
 
-        aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, specifiedK))
-    rankFig, (neighAx, frobAx) = plt.subplots(1, 2)
-    GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, aveFrobDistanceArr, aveNeighArr,
-                                                      specifiedK)
+
+    rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
+    frobAx = axArr[-1]
+    neighAx = axArr[:-1]
+    GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, aveFrobDistanceArr, allAveNeighArr,
+                                                      specifiedKArr)
 
 
 def investigate_scaled_ncc(*, imageType: str, filters=None, imageProductType1: str, imageProductType2: str,
@@ -137,11 +157,11 @@ def get_plot_title(*, imageType: str, filters=None, imageProductType: str, embed
 
 
 if __name__ == '__main__':
-    imageType = "3bin"
-    filters = ["unique"]
+    imageType = "5bin50max_ones"
+    filters = ["one_island", "unique"]
     imageProductType = "ncc"
-    embeddingType = "pencorr_10"
-    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': True}
+    embeddingType = "pencorr_20"
+    overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
     plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
                                                                 imageProductType=imageProductType,
                                                                 embeddingType=embeddingType, overwrite=overwrite)
@@ -149,10 +169,10 @@ if __name__ == '__main__':
                                imageProductType=imageProductType,
                                embeddingType=embeddingType)
     # General error analysis for one set of parameters
-    #investigate_BF_method(plottingData, plotTitle)
+    investigate_BF_method(plottingData, plotTitle)
 
     # Sweep rank constraint
-    # investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=20)
+    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=40, specifiedKArr=[1, 3, 5])
 
     # Sweep the value of k
     # investigate_k(plottingData)
@@ -160,6 +180,6 @@ if __name__ == '__main__':
     # Carry out a general analysis for two image products
     # investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
 
-    investigate_k(plottingData, plotTitle)
+    #investigate_k(plottingData, plotTitle)
 
     plt.show()

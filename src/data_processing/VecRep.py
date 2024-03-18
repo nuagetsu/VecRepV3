@@ -32,6 +32,7 @@ def generate_filtered_image_set(*, imageType: str, filters=None, imageSetFilepat
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
         imageSet = ImageGenerators.get_image_set(imageType=imageType)
+        logging.info("Image set generated, applying filters...")
         filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
         np.save(imageSetFilepath, filteredImageSet)
