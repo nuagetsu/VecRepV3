@@ -250,19 +250,28 @@ and obtaining the value of $A_{d,n}$, we are able to minimise the error $\frac{1
 Define $b$ as the image products between the picked image and the images in A. We also need to ensure that $x^tx = 1$ as the image product of an image with itself should be 1.
 
 **The problem statement**
+
+
 ![equation](https://latex.codecogs.com/svg.image?&space;min\frac{1}{2}||A^tx-b||^2_2,\quad&space;x^tx=1&space;)
 
 ### Using Lagrange Multipliers 
 
+
 ![equation](https://latex.codecogs.com/svg.image?\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline\hspace{10cm}0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda(x)\qquad(1)\newline&space;x^tx=1\qquad(2))
 
 From above, $A = \sqrt{D}P^t$
+
+
 ![equation](https://latex.codecogs.com/svg.image?&space;AA^t=\sqrt{D}P^t(\sqrt{D}P^t)^t=\sqrt{D}P^tP\sqrt{D}=\sqrt{D}I\sqrt{D}=D)
 
-From (1), ![equation](https://latex.codecogs.com/svg.image?0=AA^tx-Ab&plus;\lambda&space;x)
+From (1), 
+
+![equation](https://latex.codecogs.com/svg.image?0=AA^tx-Ab&plus;\lambda&space;x)
+
 ![equation](https://latex.codecogs.com/svg.image?\newline(AA^t&plus;\lambda&space;I)x=Ab\newline(D&plus;\lambda&space;I)x=Ab\newline&space;x=(D&plus;\lambda&space;I)^{-1}Ab)
 
 From (2), 
+
 ![equation](https://latex.codecogs.com/svg.image?\newline&space;1=x^tx=[(D&plus;\lambda&space;I)^{-1}Ab]^t[(D&plus;\lambda&space;I)^{-1}Ab]\qquad\newline\hspace{2.5mm}=b^tA^t(D&plus;\lambda&space;I)^{-1}(D&plus;\lambda&space;I)^{-1}Ab\newline\hspace{-1mm}=b^tA^t(D&plus;\lambda&space;I)^{-2}Ab\qquad\qquad\newline=y^t(D&plus;\lambda&space;I)^{-2}y\qquad(Let\hspace{1mm}y=Ab)\newline\implies&space;1=\sum_{i=1}^{n}\left(\frac{y_i}{D_{i,i}&plus;\lambda}\right)^2)
 
 We will thereafter solve for the lagrangian multipliers using numerical methods provided by scipy, and find the x that minimises $\frac{1}{2}||Ax-b||^2_2$. 
