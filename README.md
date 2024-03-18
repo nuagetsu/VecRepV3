@@ -287,7 +287,6 @@ Since it is not possible to perfectly solve the problem, we would like to come u
 Ideally, close neighbours of the vector embeddings should correspond to close neighbours the original image. The K neighbour score is the fraction of the K most similar images (i.e. highest image product) in K closest vector embeddings (i.e. highest dot product) for the corresponding vector. In an ideal case, the score would be one.
 
 Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. The order within the closest neighbours does not matter (we can make it matter though).
-<<<<<<< HEAD
 
 ## K nearest neighbours algorithm 
 Let the **image products** be b, and the **image product function** be f, 
@@ -322,40 +321,6 @@ Using this $k_{score}$, we will be able to plot out the consistency of nearest n
 
 ### Plotting of graphs
 Using the data that we have obtained, we are able to plot a number of graphs that will allow us to see how the data correlates to one another. The details of the graphs can be found under [visualisations](https://github.com/WhangShihEe/VecRepV3/tree/jed/src/visualization/README.md).
-
-=======
-
-## K nearest neighbours algorithm 
-Let the **image products** be b, and the **image product function** be f, 
-s is any random image that is chosen, and n is the total number of images.
-For example, for the image product table of 3x3 binary unique images, 
-n = 64, and if we pick an image s = 20,   
-
-$$b = [f(Image \ 1, Image\  s), f(Image\  2, Image\  s), ..., f(Image\  n, Image \ s)$$
-
-Note that $f(Image \ i, Image \ i) = 1$.
-
-Let x be the **estimated vector embedding**, and $A_i$ be the **vector representation of the image**. The dot product vector is defined as c, where
-$$c = [ A_1.x, A_2.x, ... , A_n.x]  $$
-
-Let k be the **nearest neighbour score**, where we track the k nearest neighbours to our vector x that represents image s. In vectors b and c, if k = 3, we will find the top 3 highest values and store their indices in a list.
-
-For example let n = 5 and s = 3 and k = 2, an example vector b can be 
-$$b = [0.988, 0.745, 1, 0.303, 0.812]$$
-The two highest values (and thus 2 nearest neighbours) excluding s = 3 are at positions 1 and 5. Therefore the set of nearest neighbours will be in the form of $b_{neighbours} = (1,5)$
-
-An example vector c can be 
-$$c = [0.455, 0.325, 1, 0.983, 0.812]$$
-Accordingly its nearest neighbours are $c_{neighbours} = (4,5)$
-
-Using the formula of $k_{score} = (b_{neighbours} \cap c_{neighbours})  / k$,  in this case the k score will 0.5.
-
-Using another example, if for the same values of n, s and k,
-$$b = [0.988, 0.745, 1, 0.812, 0.812]$$
-the nearest neighours will be (1,,4,5), as b[4] and b[5] have the same values.
-
-Using this $k_{score}$, we will be able to plot out the consistency of nearest neighbours in a graph.
->>>>>>> jed
 
 # Sampling approach
 
