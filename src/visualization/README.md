@@ -2,7 +2,7 @@
 The following will be a detailed explanation on the graphs plotted in GraphEstimates.py and the metrics we use to detect any trends between different data distributions.
 
 ## Plot Eigenvalues
-Let $G \in \real^{nxn}$. Matrix $G$ contains the vectors that embed the $n$ images, where each column of the matrix has an individual vector with $dim(d)$.
+Matrix $G$ contains the vectors that embed the $n$ images, where each column of the matrix has an individual vector with $dim(d)$.
 
 We used our rank reduction algorithm *Pencorr.m* to reduce the rank and turn Matrix $G$ **positive semi definite** (PSD) by removing the negative eigenvalues from Matrix $G$, while also ensuring that it remains a **correlation matrix** (Diagonals have value equal to 1), and ensuring that the **Fronbenius Norm** of $|G-G^{\prime}|$ is minimised (in order to get the nearest correlation matrix). 
 
@@ -18,9 +18,9 @@ As seen above, the eigenvalues as seen in graph 1 tend to be quite close togethe
 ## K_neighbour score
 For example, given a population of 64 images, we select a subset of 21 images, where 1 of them will taken out and chosen as the **testing image**, and the 20 remaining images will be the **sample subset**.
 
-Let $x_{special} \in \real^{dx1}$ and $b_0 \in \real^{nx1}$, where $x$ is the vector embedding of the testing image, and b is the vector representing the image product (currently only NCC) of the testing image and the images in the sample subset.  
+Let $x$ be the vector embedding of the testing image, and $b$ is the vector representing the image product (currently only NCC) of the testing image and the images in the sample subset.  
 
-We can define a new vector $b_1 \in \real^{nx1}$, where $b_1$ is the dot product of $x_{special}$ and the vectors representing the images in the sample subset. 
+We can define a new vector $b_1$, where $b_1$ is the dot product of $x_{special}$ and the vectors representing the images in the sample subset. 
 
 The highest values in vectors $b_0$ and $b_1$ represent the k images that are closest to the testing image, and their indices will be placed in sets $c_0$ and $c_1$. The k_neighbour score is represented by the number of elements in the intersection between $c_0$ and $c_1$. The full diagram is illustrated in the example below. 
 
