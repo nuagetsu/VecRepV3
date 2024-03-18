@@ -257,9 +257,9 @@ Define $b$ as the image products between the picked image and the images in A. W
 ### Using Lagrange Multipliers 
 
 
-![equation](https://latex.codecogs.com/svg.image?\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline\hspace{10cm}0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda(x)\qquad(1)\newline&space;x^tx=1\qquad(2))
+![equation]([(https://latex.codecogs.com/svg.image?\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline\hspace{10cm}0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda(x)\qquad(1)\newline&space;x^tx=1\qquad(2))](https://latex.codecogs.com/svg.image?\newline\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline&space;0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda&space;x\hspace{8.5mm}(1)\newline&space;x^tx=1\hspace{54.2mm}(2)))
 
-From above, $A = \sqrt{D}P^t$
+From above, $A = \sqrt{D}P^t$:
 
 
 ![equation](https://latex.codecogs.com/svg.image?&space;AA^t=\sqrt{D}P^t(\sqrt{D}P^t)^t=\sqrt{D}P^tP\sqrt{D}=\sqrt{D}I\sqrt{D}=D)
