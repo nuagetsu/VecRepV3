@@ -245,7 +245,10 @@ The resulting matrix then can be decomposed using the reduced dimension decompos
 We wish to estimate a vector $x$, the reduced dimension vector embedding of one of the images not in $A$ that we randomly pick. This x will be the estimation of the vector embedding of the image.
  
  ## Obtaining $x$
-Having decomposed the Matrix G' into ![equation](https://latex.codecogs.com/svg.image?{A_{d,n}}^tA_{d,n}=G)
+Having decomposed the Matrix G' into 
+
+![equation](https://latex.codecogs.com/svg.image?{A_{d,n}}^tA_{d,n}=G)
+
 and obtaining the value of $A_{d,n}$, we are able to minimise the error $\frac{1}{2}||A^tx-b||^2_2$ , 
 Define $b$ as the image products between the picked image and the images in A. We also need to ensure that $x^tx = 1$ as the image product of an image with itself should be 1.
 
@@ -257,7 +260,7 @@ Define $b$ as the image products between the picked image and the images in A. W
 ### Using Lagrange Multipliers 
 
 
-![equation]([(https://latex.codecogs.com/svg.image?\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline\hspace{10cm}0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda(x)\qquad(1)\newline&space;x^tx=1\qquad(2))](https://latex.codecogs.com/svg.image?\newline\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline&space;0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda&space;x\hspace{8.5mm}(1)\newline&space;x^tx=1\hspace{54.2mm}(2)))
+![equation](https://latex.codecogs.com/svg.image?\newline\mathcal{L}(x,\lambda)=\frac{1}{2}||A^tx-b||^2_2&plus;\frac{1}{2}\lambda(||x||^2_2-1)\newline&space;0=\nabla\mathcal{L}(x,\lambda)=A(A^tx-b)&plus;\lambda&space;x\hspace{8.5mm}(1)\newline&space;x^tx=1\hspace{54.2mm}(2))
 
 From above, $A = \sqrt{D}P^t$:
 
