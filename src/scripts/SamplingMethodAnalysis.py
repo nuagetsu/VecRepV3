@@ -15,7 +15,7 @@ import logging
 import sys
 
 from visualization import GraphEstimates
-from visualization.Metrics import get_sample_plotting_data
+from visualization.Metrics import get_sample_plotting_data, get_specified_ave_k_neighbour_score
 
 logging.basicConfig(
     level=logging.INFO,
@@ -115,8 +115,8 @@ def investigate_sample_tester(sampleTester: SampleTester, numSample: int, plotTi
                                            aveNormKNeighbourScores=plottingData.aveNormKNeighbourScore,
                                            imagesFilepath=plottingData.imagesFilepath, nImageSample=numSample)
 
-def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                        endingConstr: int, specifiedKArr=None):
+def investigate_tester_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
+                                        endingConstr: int, specifiedKArr=None, sampleSize: int, testSize: int, testPrefix:str):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageType:
@@ -136,19 +136,25 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
     if specifiedKArr is None:
         specifiedKArr = [5]
     allAveNeighArr = []
-    aveFrobDistanceArr = []
     rankConstraints = range(startingConstr, endingConstr + 1)
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embType)
+        sampleName = testPrefix + "_sample_" + str(rank) + "/" + str(endingConstr)
+        testName = testPrefix + "_test_" + str(rank) + "/" + str(endingConstr)
+        randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
+        imageSample = randSample[:sampleSize]
+        testSample = randSample[sampleSize:]
+        sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
+                                          filters=filters, embeddingType=embeddingTypeInput, imageProductType=imageProductType,
+                                          overwrite=overwrite, imageSamplesInput=imageSample)
+        sampleTest = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator,
+                                  sampleDir=sampleEstimator.sampleDirectory, testName=testName)
+        plottingData = sampleTest.plottingData
         aveNeighArr = []
         for k in specifiedKArr:
             aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, k))
         allAveNeighArr.append(aveNeighArr)
-        aveFrobDistanceArr.append(plottingData.aveFrobDistance)
 
 
     rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
@@ -158,22 +164,26 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
                                                       specifiedKArr)
 
 if __name__ == '__main__':
-    imageType = "5bin50max_ones"
-    filters = ["one_island", "unique"]
-    imageProductType = "ncc"
-    embeddingType = "pencorr_20"
+    imageTypeInput = "5bin50max_ones"
+    filtersInput = ["one_island", "unique"]
+    imageProductTypeInput = "ncc"
+    embeddingTypeInput = "pencorr_20"
     overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False, 'sampling': False}
     sampleSize = 400
     testSize = 50
-    sampleName = SamplingMethod.get_unique_sample_name(sampleSize)
-    testName = SamplingMethod.get_unique_sample_test_name(testSize)
-    randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
-    imageSample = randSample[:sampleSize]
-    testSample = randSample[sampleSize:]
-    sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
-                                      filters=filters, embeddingType=embeddingType, imageProductType=imageProductType,
-                                      overwrite=overwrite,imageSamplesInput=imageSample)
-    sampleTest = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator,
-                              sampleDir=sampleEstimator.sampleDirectory, testName=testName)
-    investigate_sample_tester(sampleTest, 5, "test")
+    """
+    sampleNameInput = SamplingMethod.get_unique_sample_name(sampleSize)
+    testNameInput = SamplingMethod.get_unique_sample_test_name(testSize)
+    randSampleInput = get_random_image_sample(imageType=imageTypeInput, filters=filtersInput, nSamples=sampleSize + testSize)
+    imageSampleInput = randSampleInput[:sampleSize]
+    testSampleInput = randSampleInput[sampleSize:]
+    sampleEstimatorInput = SampleEstimator(sampleName=sampleNameInput, imageType=imageTypeInput,
+                                           filters=filtersInput, embeddingType=embeddingTypeInput, imageProductType=imageProductTypeInput,
+                                           overwrite=overwrite, imageSamplesInput=imageSampleInput)
+    sampleTestInput = SampleTester(testImages=testSampleInput, sampleEstimator=sampleEstimatorInput,
+                                   sampleDir=sampleEstimatorInput.sampleDirectory, testName=testNameInput)
+    """
+    investigate_tester_rank_constraint(imageType=imageTypeInput, filters=filtersInput,
+                                       imageProductType=imageProductTypeInput, startingConstr=5, endingConstr=40,
+                                       specifiedKArr=[1, 3, 5, 10, 20], sampleSize=400, testSize=100, testPrefix = "init_test")
     plt.show()
