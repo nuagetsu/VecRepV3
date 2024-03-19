@@ -4,6 +4,7 @@ We loop through the matrix, and use the algorithm below to figure out if the poi
 
 ### Algorithm
 ![Algorithm to generate triangle](../../../blob/master/assets/Generate_Triangle.png)
+
 In order to find the location of P, we first find the areas of $\triangle PXY$, $\triangle PYZ$, and $\triangle PZX$, and if 
 $$ \triangle PXY + \triangle PYZ + \triangle PZY = \triangle XYZ $$
 we can say that the point P in located within the $\triangle XYZ$
