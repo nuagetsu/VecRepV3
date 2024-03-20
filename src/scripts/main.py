@@ -47,11 +47,11 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "3bin"
+imageType = "2bin"
 filters = ["unique"]
 imageProductType = "ncc"
-embeddingType = "pencorr_20"
-overwrite = {"filter": False, "im_prod": False, "estimate": False, "plot": True}
+embeddingType = "zero_neg"
+overwrite = {"filter": False, "im_prod": False, "estimate": False, "plot": False}
 
 # -----Execution-----
 emb = VecRep.get_BF_embeddings(imageType=imageType, filters=filters, imageProductType=imageProductType,

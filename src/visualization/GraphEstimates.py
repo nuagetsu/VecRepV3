@@ -56,11 +56,11 @@ def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None)
         aveY.append(score["neighbourScore"])
     ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
     ax.plot(aveX, aveY, color='r', label="Real")
-    ax.set_title("Mean neighbour score of all images against number of neighbours analysed")
+    ax.set_title("Mean neighbour score against number of neighbours analysed")
     ax.set_xlabel("Value of k")
     ax.set_ylabel("Norm K neighbour score")
     ax.set_ylim(0, 1.1)
-    ax.legend(loc="upper left")
+    ax.legend(loc="lower right")
 
 
 def plot_k_histograms(ax: Axes, plottingData: PlottingData, kVal: int):
@@ -124,11 +124,12 @@ def plot_swept_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx:
             ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
             ax.plot(x, y, color='r', label="Real")
             ax.set_title(
-                "Normed k neighbour score of image " + str(imageNum) + " against number of neighbours analysed")
-            ax.set_xlabel("Value of k")
-            ax.set_ylabel("Normed K neighbour score")
+                "Normed k neighbour score of image " + str(imageNum) + " against k", fontsize = 12)
+
+            ax.set_xlabel("k")
+            ax.set_ylabel("Norm K neigh score", fontsize = 8)
             ax.set_ylim(0, 1.1)
-            ax.legend(loc="upper left")
+            ax.legend(loc="lower right")
 
             imageAx = imageAxArr[count]
             choosenImage = images[imageNum]
@@ -159,6 +160,23 @@ def plot_comparison_btw_img_prod(ax1Arr: List[Axes], ax2Arr: List[Axes], imagePr
     plot_key_stats_text(ax2Arr[3], plottingData2)
 
 
+def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
+                                       specifiedKArr: List):
+
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+        neighArr = [arr[count] for arr in fullNeighArr]
+        idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
+        neighbourAx.plot(sampleSizeArr, idealPlot, color='b', linestyle=':', label="Ideal")
+        neighbourAx.plot(sampleSizeArr, neighArr, color='r', label="Real")
+        neighbourAx.set_title(
+            "Mean norm k neighbour score against sample size (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Sample size")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="upper left")
 def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes], rankArr: List, frobArr: List, fullNeighArr: List,
                                        specifiedKArr: List):
     """
@@ -170,10 +188,12 @@ def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes],
     :param specifiedK: The k neighbour score used
     :return:
     """
+    # Frob plotting is a mess
+    """ 
     frobAx.plot(rankArr, frobArr)
     frobAx.set_title("Average frobenius error against rank constraint")
     frobAx.set_xlabel("Rank Constraint")
-    frobAx.set_ylabel("Average frobenius error")
+    frobAx.set_ylabel("Average frobenius error")"""
 
     for count in range(len(specifiedKArr)):
         neighbourAx = neighbourAxArr[count]
@@ -183,7 +203,7 @@ def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes],
         neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
         neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
         neighbourAx.set_title(
-            "Mean norm k neighbour score of all images against the rank constraint applied to pencorr (k = " + str(
+            "Mean norm k neighbour score against the rank constraint (k = " + str(
                 specifiedK) + ")")
         neighbourAx.set_xlabel("Rank Constraint")
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")

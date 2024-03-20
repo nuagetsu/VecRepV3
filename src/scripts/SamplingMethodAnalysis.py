@@ -16,6 +16,7 @@ import sys
 
 from visualization import GraphEstimates
 from visualization.Metrics import get_sample_plotting_data, get_specified_ave_k_neighbour_score
+from src.data_processing.ImageGenerators import get_island_image_set
 
 logging.basicConfig(
     level=logging.INFO,
@@ -138,15 +139,17 @@ def investigate_tester_rank_constraint(*, imageType: str, filters=None, imagePro
     allAveNeighArr = []
     rankConstraints = range(startingConstr, endingConstr + 1)
     for rank in rankConstraints:
-        logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
+        logging.info("Investigating rank " + str(rank) + " of " + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        sampleName = testPrefix + "_sample_" + str(rank) + "/" + str(endingConstr)
-        testName = testPrefix + "_test_" + str(rank) + "/" + str(endingConstr)
-        randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
+        sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
+        testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
+        #randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
+        #TODO make this system better
+        randSample = get_island_image_set(imageType, sampleSize + testSize)
         imageSample = randSample[:sampleSize]
         testSample = randSample[sampleSize:]
         sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
-                                          filters=filters, embeddingType=embeddingTypeInput, imageProductType=imageProductType,
+                                          filters=filters, embeddingType=embType, imageProductType=imageProductType,
                                           overwrite=overwrite, imageSamplesInput=imageSample)
         sampleTest = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator,
                                   sampleDir=sampleEstimator.sampleDirectory, testName=testName)
@@ -160,16 +163,52 @@ def investigate_tester_rank_constraint(*, imageType: str, filters=None, imagePro
     rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
     frobAx = axArr[-1]
     neighAx = axArr[:-1]
-    GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, aveFrobDistanceArr, allAveNeighArr,
+    GraphEstimates.plot_error_against_rank_constraint(frobAx, neighAx, rankConstraints, [], allAveNeighArr,
                                                       specifiedKArr)
 
+
+def investigate_sample_size(*, imageType, imageProductType, startingSampleSize, endingSampleSize, increment, embeddingType, testSize, testPrefix, specifiedKArr):
+    if startingSampleSize> endingSampleSize:
+        raise ValueError("Starting sample size must be lower than ending")
+    sampleSizeArr = []
+    allAveNeighArr = []
+    for sampleSizeTested in range(startingSampleSize, endingSampleSize, increment):
+        logging.info("Investigating sample size " + str(sampleSizeTested) + " of " + str(endingSampleSize))
+
+        sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingSampleSize)
+        testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingSampleSize)
+        #randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
+        #TODO make this system better
+        randSample = get_island_image_set(imageType, sampleSizeTested + testSize)
+        imageSample = randSample[:sampleSizeTested]
+        testSample = randSample[sampleSizeTested:]
+        sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
+                                          filters=[], embeddingType=embeddingType,
+                                          imageProductType=imageProductType, imageSamplesInput=imageSample)
+        sampleTest = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator,
+                                  sampleDir=sampleEstimator.sampleDirectory, testName=testName)
+        plottingData = sampleTest.plottingData
+        aveNeighArr = []
+
+        for k in specifiedKArr:
+            aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, k))
+        allAveNeighArr.append(aveNeighArr)
+        sampleSizeArr.append(sampleSizeTested)
+
+    rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
+    frobAx = axArr[-1]
+    neighAx = axArr[:-1]
+    GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr,
+                                                      specifiedKArr)
+
+
 if __name__ == '__main__':
-    imageTypeInput = "5bin50max_ones"
-    filtersInput = ["one_island", "unique"]
+    imageTypeInput = "10island50max_ones"
+    filtersInput = [] #["one_island", "unique"]
     imageProductTypeInput = "ncc"
-    embeddingTypeInput = "pencorr_20"
+    embeddingTypeInput = "pencorr_10"
     overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False, 'sampling': False}
-    sampleSize = 400
+    sampleSize = 50
     testSize = 50
     """
     sampleNameInput = SamplingMethod.get_unique_sample_name(sampleSize)
@@ -183,7 +222,7 @@ if __name__ == '__main__':
     sampleTestInput = SampleTester(testImages=testSampleInput, sampleEstimator=sampleEstimatorInput,
                                    sampleDir=sampleEstimatorInput.sampleDirectory, testName=testNameInput)
     """
-    investigate_tester_rank_constraint(imageType=imageTypeInput, filters=filtersInput,
-                                       imageProductType=imageProductTypeInput, startingConstr=5, endingConstr=40,
-                                       specifiedKArr=[1, 3, 5, 10, 20], sampleSize=400, testSize=100, testPrefix = "init_test")
+    investigate_sample_size(imageType=imageTypeInput, embeddingType=embeddingTypeInput,
+                                       imageProductType=imageProductTypeInput, startingSampleSize=100, endingSampleSize=710, increment=100,
+                                       specifiedKArr=[1, 3, 5, 10], testSize=50, testPrefix = "samples_final_results")
     plt.show()

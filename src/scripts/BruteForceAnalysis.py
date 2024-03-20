@@ -157,7 +157,7 @@ def get_plot_title(*, imageType: str, filters=None, imageProductType: str, embed
 
 
 if __name__ == '__main__':
-    imageType = "5bin50max_ones"
+    imageType = "4bin50max_ones"
     filters = ["one_island", "unique"]
     imageProductType = "ncc"
     embeddingType = "pencorr_20"
@@ -169,10 +169,10 @@ if __name__ == '__main__':
                                imageProductType=imageProductType,
                                embeddingType=embeddingType)
     # General error analysis for one set of parameters
-    investigate_BF_method(plottingData, plotTitle)
+    investigate_BF_method(plottingData, plotTitle, numSample=3, plottedImagesIndex=[832, 114, 363])
 
     # Sweep rank constraint
-    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=40, specifiedKArr=[1, 3, 5])
+    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=40, specifiedKArr=[10])
 
     # Sweep the value of k
     # investigate_k(plottingData)
