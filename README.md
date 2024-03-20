@@ -1,4 +1,16 @@
-﻿# VecRepV3
+# Message to new intern
+HELLO THERE THIS IS $JED$ HERE
+If you are looking at this me and Shih Ee have been working on this for 3 months!!!
+I heard that you are a math major that's 2 YEARS OLDER so you should make alot more progress
+(We are pre uni interns)
+If the project gets too hard do NOT give up 
+You can ask the lovable dolt Aaron to guide you (he is very smart)
+Working alone sounds like a pain in the ass but if you feel stuck just remember it is normal and okay
+Hope you get some good results!
+- Jed 
+ 
+ 
+ # VecRepV3
 Tools to convert images into vector representations in a vector space with specified properties
 
 This README serves as a general overview of what we are attempting to do and gives context to the code written. Specific instructions on how the code is structured and how to use it can be found in the documentation file
