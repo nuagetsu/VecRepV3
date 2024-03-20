@@ -186,8 +186,6 @@ The issue with this approach is that the unit vector constraint is not preserved
 
 This can be remedied by normalising the embedding vectors again, though this might result in deviation of G' from G.
 
-TODO graphic of the eigenvalues of 2bin unique, then zeroing it
-
 
 ### Nearest correlation matrix
 
