@@ -117,7 +117,7 @@ def investigate_sample_tester(sampleTester: SampleTester, numSample: int, plotTi
                                            imagesFilepath=plottingData.imagesFilepath, nImageSample=numSample)
 
 def investigate_tester_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                        endingConstr: int, specifiedKArr=None, sampleSize: int, testSize: int, testPrefix:str):
+                                        endingConstr: int, specifiedKArr=None, sampleSize: int, testSize: int, testPrefix:str, increment = 1):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageType:
@@ -137,7 +137,8 @@ def investigate_tester_rank_constraint(*, imageType: str, filters=None, imagePro
     if specifiedKArr is None:
         specifiedKArr = [5]
     allAveNeighArr = []
-    rankConstraints = range(startingConstr, endingConstr + 1)
+    rankConstraints = range(startingConstr, endingConstr + 1, increment)
+    randSample = np.load("C:/Users/Asus/PycharmProjects/VecRepV3/data/final_sample.npy")
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + " of " + str(endingConstr))
         embType = "pencorr_" + str(rank)
@@ -145,9 +146,8 @@ def investigate_tester_rank_constraint(*, imageType: str, filters=None, imagePro
         testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
         #randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
         #TODO make this system better
-        randSample = get_island_image_set(imageType, sampleSize + testSize)
         imageSample = randSample[:sampleSize]
-        testSample = randSample[sampleSize:]
+        testSample = randSample[-testSize:]
         sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
                                           filters=filters, embeddingType=embType, imageProductType=imageProductType,
                                           overwrite=overwrite, imageSamplesInput=imageSample)
@@ -172,6 +172,7 @@ def investigate_sample_size(*, imageType, imageProductType, startingSampleSize, 
         raise ValueError("Starting sample size must be lower than ending")
     sampleSizeArr = []
     allAveNeighArr = []
+    randSample = np.load("C:/Users/Asus/PycharmProjects/VecRepV3/data/final_sample.npy")
     for sampleSizeTested in range(startingSampleSize, endingSampleSize, increment):
         logging.info("Investigating sample size " + str(sampleSizeTested) + " of " + str(endingSampleSize))
 
@@ -179,9 +180,8 @@ def investigate_sample_size(*, imageType, imageProductType, startingSampleSize, 
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingSampleSize)
         #randSample = get_random_image_sample(imageType=imageType, filters=filters, nSamples=sampleSize+testSize)
         #TODO make this system better
-        randSample = get_island_image_set(imageType, sampleSizeTested + testSize)
         imageSample = randSample[:sampleSizeTested]
-        testSample = randSample[sampleSizeTested:]
+        testSample = randSample[-testSize:]
         sampleEstimator = SampleEstimator(sampleName=sampleName, imageType=imageType,
                                           filters=[], embeddingType=embeddingType,
                                           imageProductType=imageProductType, imageSamplesInput=imageSample)
@@ -222,7 +222,12 @@ if __name__ == '__main__':
     sampleTestInput = SampleTester(testImages=testSampleInput, sampleEstimator=sampleEstimatorInput,
                                    sampleDir=sampleEstimatorInput.sampleDirectory, testName=testNameInput)
     """
+
     investigate_sample_size(imageType=imageTypeInput, embeddingType=embeddingTypeInput,
-                                       imageProductType=imageProductTypeInput, startingSampleSize=100, endingSampleSize=710, increment=100,
-                                       specifiedKArr=[1, 3, 5, 10], testSize=50, testPrefix = "samples_final_results")
+                                       imageProductType=imageProductTypeInput, startingSampleSize=10, endingSampleSize=1000, increment=100,
+                                       specifiedKArr=[5], testSize=300, testPrefix = "superC_sample_results")
+
+    """
+    investigate_tester_rank_constraint(imageType=imageTypeInput, imageProductType=imageProductTypeInput, startingConstr=5,endingConstr=50,specifiedKArr=[5], sampleSize=250,testSize=300,testPrefix="SuperC_rank_constr_small", increment=5)
+"""
     plt.show()
