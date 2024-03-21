@@ -51,10 +51,12 @@ def get_plotting_data_filepath(*, imageType: str, filters=None, imageProductType
     return os.path.join(filepath, "plotting_data")
 
 
-def get_sample_directory(*, imageType: str, filters=None, imageProductType: str, embeddingType: str, sampleName) -> str:
-    filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                            embeddingType=embeddingType)
-    return os.path.join(filepath, sampleName)
+def get_sample_directory(sampleName:str) -> str:
+    """
+    :param sampleName: Name of sample
+    :return: Directory where the sample data should be saved
+    """
+    return os.path.join(get_project_root(), "data", "samples", sampleName)
 
 
 def get_sample_embedding_filepath(sampleDirectory: str):
