@@ -6,52 +6,13 @@ from sklearn.preprocessing import normalize
 from oct2py import octave
 from src.data_processing.FilepathUtils import get_matlab_dirpath
 
-from src.helpers.NearestCorrelationMikeC import nearcorr, ExceededMaxIterationsError
 
 
 class NonPositiveSemidefiniteError(Exception):
     pass
 
 
-def get_embeddings_negatives_zeroed(matrixG):
-    """
-    :param matrixG: MatrixG to decompose
-    :return: embeddings generated after all negative eigenvalue of the image product matrix are zeroed.
-    Embeddings are then normalized
-    """
-    eigenvalues, eigenvectors = get_eig_for_symmetric(matrixG)
-    eigenvalues[0 > eigenvalues] = 0
-    Droot = np.sqrt(np.diag(eigenvalues))
-
-    matrixA = np.matmul(Droot, eigenvectors.T)
-
-    # Normalizing matrix A
-    matrixA = normalize(matrixA, norm='l2', axis=0)
-    return matrixA
-
-
-def get_embeddings_mikecroucher_nc(matrixG, nDim=None) -> NDArray:
-    """
-    :param matrixG: Matrix to be decomposed :param nDim: Number of dimensions of vector embeddings in the embedding
-    matrix :return: An embedding matrix with dimensions: nDim by len(matrix G) Approximates matrix G to a Positive
-    semi-definite matrix using the nearest correlation algorithm programmed in python by mike croucher
-    """
-    # Check and clean input
-    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
-
-    # Use the NC matrix algo
-    try:
-        matrixGprime = nearcorr(matrixG, max_iterations=10000)
-    except ExceededMaxIterationsError:
-        print("No NC matrix found after 10000 iterations")
-        raise
-
-    # Decompose the matrix
-    matrixA = get_embeddings_mPCA(matrixGprime, nDim)
-    return matrixA
-
-
-def get_embeddings_PenCorr_nc(matrixG: NDArray, nDim=None) -> NDArray:
+def get_embeddings_PenCorr(matrixG: NDArray, nDim=None) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
     :param nDim: Number of non-zero eigenvalues in the output matrix
@@ -110,21 +71,9 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     If none that means the nDim = length of image product matrix
     :return:
     """
-
-    if embeddingType == "zero_neg":
-        embeddingMatrix = get_embeddings_negatives_zeroed(imageProductMatrix)
-
-    elif re.search('zero_[0-9]?[0-9]$', embeddingType) is not None:
+    if re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim)
-    elif embeddingType == "nc":
-        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix)
-    elif re.search('nc_[0-9]?[0-9]$', embeddingType) is not None:
-        nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix, nDim=nDim)
-    elif re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
-        nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_PenCorr_nc(imageProductMatrix, nDim=nDim)
+        embeddingMatrix = get_embeddings_PenCorr(imageProductMatrix, nDim=nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix

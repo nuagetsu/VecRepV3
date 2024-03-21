@@ -26,21 +26,9 @@ in the set
 """
 IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
 
-EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D", "pencorr_D"]
+EMBEDDING_TYPES = ["pencorr_D"]
 
 """
-zero_neg: Zero all negative eigenvalues in matrix G, then normalize the output embeddings
-
-zero_D: Zero all but the D largest eigenvalues in matrix G, then computes embeddings with D dimensions,
-then normalize the embeddings before output
-Sample input: zero_10, zero_5
-
-nc: Find the nearest correlation matrix, then decomposes it to find the vector embeddings
-
-nc_D: Find the nearest correlation matrix, then zero all but the D largest eigenvalues in the matrix, 
-then computes embeddings with D dimensions, then normalize the embeddings before output
-Sample input: nc_10
-
 pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
 Then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: pencorr_20
@@ -56,4 +44,3 @@ overwrite = {"filter": False, "im_prod": False, "estimate": False, "plot": False
 # -----Execution-----
 emb = VecRep.get_BF_embeddings(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                embeddingType=embeddingType, overwrite=overwrite)
-#TODO sweep parameters
