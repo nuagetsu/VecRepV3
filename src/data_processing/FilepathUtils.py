@@ -80,21 +80,15 @@ def get_sample_info_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_info")
 
 
-def get_sample_test_images_filepath(sampleDirectory: str, testName: str):
+def get_test_images_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_image_set.npy")
 
 
-def get_sample_test_embeddings_filepath(sampleDirectory: str, testName: str):
+def get_test_embeddings_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_embeddings")
 
-def get_sample_test_plotting_data_filepath(sampleDirectory: str, testName: str):
-    return os.path.join(sampleDirectory, testName, "test_plotting_data")
 
-
-def get_sample_test_ipm_filepath(sampleDirectory: str, testName: str):
+def get_test_ipm_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_image_product_matrix")
 
-def get_graphs_dir(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
-    return os.path.join(get_embedding_matrix_filepath(imageType=imageType, filters=filters,
-                                                      imageProductType=imageProductType,
-                                                      embeddingType=embeddingType), "Graphs")
+

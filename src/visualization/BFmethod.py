@@ -88,6 +88,7 @@ def investigate_BF_method(bfEstimator: BruteForceEstimator, numK: int, plottedIm
     # Creating the values of K to plot
     kArr = list(range(1, numK + 1))
     count = 0
+    # Plotting the image and neighbour plot for each image
     for imageIndex in plottedImagesIndex:
         image = bfEstimator.imageSet[imageIndex]
         imageTitle = "Image " + str(imageIndex)
@@ -131,9 +132,9 @@ def investigate_rank_constraint(*, imageType: str, filters=None, imageProductTyp
         raise ValueError("Starting rank constraint must be lower than ending constraint")
     if specifiedKArr is None:
         specifiedKArr = [5]
+    # A list of k nieghbour plotting data, for each of the k in specified K array
 
-    allAveNeighArr = [[] for i in
-                      specifiedKArr]  # A list of k nieghbour plotting data, for each of the k in specified K array
+    allAveNeighArr = [[] for i in specifiedKArr]
     aveFrobDistanceArr = []
     rankConstraints = list(range(startingConstr, endingConstr + 1, interval))
     for rank in rankConstraints:
@@ -159,8 +160,3 @@ def investigate_rank_constraint(*, imageType: str, filters=None, imageProductTyp
     GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)
 
 
-def get_plot_title(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
-    if filters is None:
-        filters = []
-    return ("Image type: " + imageType + ", Filters: " + ''.join(filters) + ", Image product type: "
-            + imageProductType + ", Embedding type: " + embeddingType)

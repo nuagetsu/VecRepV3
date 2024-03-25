@@ -20,8 +20,6 @@ logging.basicConfig(
 )
 
 
-
-
 def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, overwrite=False) -> NDArray:
     """
     :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
@@ -45,7 +43,8 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     return filteredImageSet
 
 
-def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imageProductFilepath: str, overwrite=False) -> NDArray:
+def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imageProductFilepath: str,
+                                  overwrite=False) -> NDArray:
     """
     :param imageProductType: type of image product function to use
     :param imageSet: NDArray of images
@@ -84,68 +83,3 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     else:
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
-
-def generate_BF_plotting_data(plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
-    if not os.path.isfile(plottingDataFilepath) or overwrite:
-        logging.info("Plotting data not found/overwrite. Generating plotting data...")
-        plottingData = Metrics.get_plotting_data(imageProductMatrix=imageProductMatrix, embeddingMatrix=embeddingMatrix,
-                                                 imagesFilepath=imagesFilepath)
-        with open(plottingDataFilepath, 'wb') as f:
-            pickle.dump(plottingData, f)
-    else:
-        with open(plottingDataFilepath, 'rb') as f:
-            plottingData = pickle.load(f)
-
-    return plottingData
-
-def get_BF_embeddings(imageType: str, filters=None, imageProductType=None, embeddingType=None,
-                      overwrite=None) -> NDArray:
-    """
-    :return: The vector embeddings solved using the brute force method
-    """
-    if overwrite is None:
-        overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
-
-    logging.info("Generating filtered images....")
-    imageSetFilepath = FilepathUtils.get_image_set_filepath(imageType=imageType, filters=filters)
-    imageSet = generate_filtered_image_set(imageType=imageType, filters=filters, imageSetFilepath=imageSetFilepath,
-                                           overwrite=overwrite['filter'])
-    imageProductFilepath = FilepathUtils.get_image_product_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType)
-
-    logging.info("Generating image product matrix....")
-    imageProductMatrix = generate_image_product_matrix(imageSet=imageSet, imageProductType=imageProductType,
-                                                       imageProductFilepath=imageProductFilepath,
-                                                       overwrite=overwrite['im_prod'])
-
-    logging.info("Generating embeddings....")
-    embeddingFilepath = FilepathUtils.get_embedding_matrix_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-    embeddingMatrix = generate_embedding_matrix(imageProductMatrix=imageProductMatrix, embeddingType=embeddingType,
-                                                embeddingFilepath=embeddingFilepath, overwrite=overwrite['estimate'])
-    logging.info("Saving plotting data....")
-    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-    generate_BF_plotting_data(plottingDataFilepath=plottingDataFilepath, imageProductMatrix=imageProductMatrix,
-                              embeddingMatrix=embeddingMatrix, imagesFilepath=imageSetFilepath, overwrite=overwrite['plot'])
-    return embeddingMatrix
-
-
-def load_BF_plotting_data(imageType: str, filters=None, imageProductType=None, embeddingType=None,
-                          overwrite=None):
-    if overwrite is None:
-        overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
-    plottingDataFilepath = FilepathUtils.get_plotting_data_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-
-    if not os.path.isfile(plottingDataFilepath) or overwrite['plot']:
-        logging.info("No plotting data found. Generating plotting data... ")
-        get_BF_embeddings(imageType=imageType, filters=filters,
-                          imageProductType=imageProductType,
-                          embeddingType=embeddingType, overwrite=overwrite)
-    with open(plottingDataFilepath, 'rb') as f:
-        plottingData = pickle.load(f)
-    return plottingData
