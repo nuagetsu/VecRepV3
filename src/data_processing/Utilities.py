@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 import numpy as np
 from numpy.typing import NDArray
 
@@ -22,18 +22,22 @@ logging.basicConfig(
 
 
 
-def generate_filtered_image_set(*, imageType: str, filters=None, imageSetFilepath: str, overwrite=False) -> NDArray:
+def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, overwrite=False) -> NDArray:
     """
+    :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
     :param overwrite: If true, generates and saves the filtered image set even if it is saved
-    :return: An NDArray of filtered image sets as specified
-    Checks if such an image set is already saved previously. If so it loads the image set
+    :return: An NDArray of filtered image sets as specified by imageType and filters
+    Checks if such an image set is already saved in imageSetFilepath. If so it loads the image set
     If not, or if overridden, it uses the ImageGenerator and Filters module to generate a filtered image set
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
         imageSet = ImageGenerators.get_image_set(imageType=imageType)
+
         logging.info("Image set generated, applying filters...")
         filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)
+
+        # Creating the directory and saving the image set
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
         np.save(imageSetFilepath, filteredImageSet)
     else:
@@ -41,7 +45,7 @@ def generate_filtered_image_set(*, imageType: str, filters=None, imageSetFilepat
     return filteredImageSet
 
 
-def generate_image_product_matrix(*, imageSet, imageProductType, imageProductFilepath, overwrite=False) -> NDArray:
+def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imageProductFilepath: str, overwrite=False) -> NDArray:
     """
     :param imageProductType: type of image product function to use
     :param imageSet: NDArray of images
@@ -53,6 +57,8 @@ def generate_image_product_matrix(*, imageSet, imageProductType, imageProductFil
         logging.info("Image product table not found/overwrite, generating image product table...")
         imageProduct = ImageProducts.get_image_product(imageProductType)
         imageProductMatrix = calculate_image_product_matrix(imageSet, imageProduct)
+
+        # Creating the directory and saving the image product matrix
         Path(imageProductFilepath).parent.mkdir(parents=True, exist_ok=True)
         np.savetxt(imageProductFilepath, imageProductMatrix)
     else:
@@ -60,7 +66,7 @@ def generate_image_product_matrix(*, imageSet, imageProductType, imageProductFil
     return imageProductMatrix
 
 
-def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False):
+def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False):
     """
     :param imageProductMatrix: The image product matrix used to generate the vector embeddings
     :param embeddingType: Method used to generate the vector embeddings
@@ -70,15 +76,16 @@ def generate_embedding_matrix(*, imageProductMatrix, embeddingType, embeddingFil
     """
     if not os.path.isfile(embeddingFilepath) or overwrite:
         logging.info("Embedding matrix not found/overwrite. Generating embedding matrix...")
-        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix=imageProductMatrix,
-                                                                  embeddingType=embeddingType)
+        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType)
+
+        # Creating the directory and saving the embedding matrix
         Path(embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
         np.savetxt(embeddingFilepath, embeddingMatrix)
     else:
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
 
-def generate_BF_plotting_data(*, plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
+def generate_BF_plotting_data(plottingDataFilepath, imageProductMatrix, embeddingMatrix, imagesFilepath, overwrite=False):
     if not os.path.isfile(plottingDataFilepath) or overwrite:
         logging.info("Plotting data not found/overwrite. Generating plotting data...")
         plottingData = Metrics.get_plotting_data(imageProductMatrix=imageProductMatrix, embeddingMatrix=embeddingMatrix,
@@ -90,7 +97,8 @@ def generate_BF_plotting_data(*, plottingDataFilepath, imageProductMatrix, embed
             plottingData = pickle.load(f)
 
     return plottingData
-def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
+
+def get_BF_embeddings(imageType: str, filters=None, imageProductType=None, embeddingType=None,
                       overwrite=None) -> NDArray:
     """
     :return: The vector embeddings solved using the brute force method
@@ -125,7 +133,7 @@ def get_BF_embeddings(*, imageType: str, filters=None, imageProductType=None, em
     return embeddingMatrix
 
 
-def load_BF_plotting_data(*, imageType: str, filters=None, imageProductType=None, embeddingType=None,
+def load_BF_plotting_data(imageType: str, filters=None, imageProductType=None, embeddingType=None,
                           overwrite=None):
     if overwrite is None:
         overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}

@@ -2,9 +2,10 @@ import math
 
 import matplotlib.pyplot as plt
 
-import data_processing.VecRep
+import data_processing.Utilities
 from visualization import Metrics, GraphEstimates
 from visualization.Metrics import PlottingData, get_specified_ave_k_neighbour_score
+from src.data_processing.BruteForceEstimator import BruteForceEstimator
 import logging
 import sys
 
@@ -103,9 +104,7 @@ def investigate_pencorr_rank_constraint(*, imageType: str, filters=None, imagePr
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embType)
+        bfEstimator = Brut
         aveNeighArr = []
         for k in specifiedKArr:
             aveNeighArr.append(get_specified_ave_k_neighbour_score(plottingData.aveNormKNeighbourScore, k))
@@ -162,24 +161,8 @@ if __name__ == '__main__':
     imageProductType = "ncc"
     embeddingType = "pencorr_20"
     overwrite = {"filter": False, "im_prod": False, "estimate": False, 'plot': False}
-    plottingData = data_processing.VecRep.load_BF_plotting_data(imageType=imageType, filters=filters,
-                                                                imageProductType=imageProductType,
-                                                                embeddingType=embeddingType, overwrite=overwrite)
-    plotTitle = get_plot_title(imageType=imageType, filters=filters,
-                               imageProductType=imageProductType,
-                               embeddingType=embeddingType)
-    # General error analysis for one set of parameters
+
     investigate_BF_method(plottingData, plotTitle, numSample=3, plottedImagesIndex=[832, 114, 363])
 
-    # Sweep rank constraint
-    #investigate_pencorr_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType, startingConstr=5, endingConstr=40, specifiedKArr=[10])
-
-    # Sweep the value of k
-    # investigate_k(plottingData)
-
-    # Carry out a general analysis for two image products
-    # investigate_scaled_ncc(imageType=imageType,filters=filters, embeddingType=embeddingType, imageProductType1="ncc", imageProductType2="ncc_scaled", overwrite=overwrite )
-
-    #investigate_k(plottingData, plotTitle)
 
     plt.show()

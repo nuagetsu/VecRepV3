@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from numpy._typing import NDArray
-
+from src.data_processing.BruteForceEstimator import BruteForceEstimator
 from data_processing import FilepathUtils
-from visualization.Metrics import PlottingData, get_specified_k_neighbour_scores
+from visualization.Metrics import get_specified_k_neighbour_scores
 
 
 def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEigenvalues: NDArray):
@@ -63,7 +63,7 @@ def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None)
     ax.legend(loc="lower right")
 
 
-def plot_k_histograms(ax: Axes, plottingData: PlottingData, kVal: int):
+def plot_k_histograms(ax: Axes, bfEstimator: BruteForceEstimator, kVal: int):
     kValScores = get_specified_k_neighbour_scores(plottingData.kNormNeighbourScores, kVal)
     kValScores = np.array(kValScores)
     kValScores = kValScores * kVal
@@ -139,25 +139,17 @@ def plot_swept_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx:
     plot_swept_ave_k_neighbours(aveAx, aveNormKNeighbourScores, numPlottedK)
 
 
-def plot_key_stats_text(ax: Axes, plottingData: PlottingData):
+def plot_key_stats_text(ax: Axes, bfEstimator: BruteForceEstimator):
     displayText = ("Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
-        plottingData.frobDistance) + "\n" +
+        bfEstimator.frobDistance) + "\n" +
                    "Average Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.3E}".format(
-                plottingData.aveFrobDistance) + "\n" +
+                bfEstimator.aveFrobDistance) + "\n" +
                    "Greatest single element difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
-                plottingData.maxDiff) + "\n")
+                bfEstimator.maxDifference) + "\n")
     ax.text(0.5, 0.5, displayText, color='black',
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
 
 
-def plot_comparison_btw_img_prod(ax1Arr: List[Axes], ax2Arr: List[Axes], imageProdType1: str, imageProdType2: str,
-                                 plottingData1: PlottingData, plottingData2: PlottingData):
-    plot_eigenvalues(ax1Arr[0], ax1Arr[1], plottingData1.initialEigenvalues, plottingData1.finalEigenvalues)
-    plot_eigenvalues(ax2Arr[0], ax2Arr[1], plottingData2.initialEigenvalues, plottingData2.finalEigenvalues)
-    plot_swept_ave_k_neighbours(ax1Arr[2], plottingData1.aveNormKNeighbourScore)
-    plot_swept_ave_k_neighbours(ax2Arr[2], plottingData2.aveNormKNeighbourScore)
-    plot_key_stats_text(ax1Arr[3], plottingData1)
-    plot_key_stats_text(ax2Arr[3], plottingData2)
 
 
 def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
@@ -177,28 +169,29 @@ def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: Li
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="upper left")
-def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes], rankArr: List, frobArr: List, fullNeighArr: List,
-                                       specifiedKArr: List):
-    """
-    :param frobAx: Axes to plot the frobenius graph
-    :param neighbourAx: Axes to plot the neighbour graph
-    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
-    :param frobArr: Data for the frob graph (y axis)
-    :param neighArr: Data for the neighbour graph (y axis)
-    :param specifiedK: The k neighbour score used
-    :return:
-    """
-    # Frob plotting is a mess
-    """ 
+
+
+def plot_frob_error_against_rank_constraint(frobAx: Axes, rankArr: List[int], frobArr: List[float]):
     frobAx.plot(rankArr, frobArr)
     frobAx.set_title("Average frobenius error against rank constraint")
     frobAx.set_xlabel("Rank Constraint")
-    frobAx.set_ylabel("Average frobenius error")"""
+    frobAx.set_ylabel("Average frobenius error")
+
+def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List, fullNeighArr: List,
+                                       specifiedKArr: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return:
+    """
 
     for count in range(len(specifiedKArr)):
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]
-        neighArr = [arr[count] for arr in fullNeighArr]
+        neighArr = fullNeighArr[count]
+
         idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
         neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
         neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
@@ -208,4 +201,4 @@ def plot_error_against_rank_constraint(frobAx: Axes, neighbourAxArr: List[Axes],
         neighbourAx.set_xlabel("Rank Constraint")
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
-        neighbourAx.legend(loc="upper left")
+        neighbourAx.legend(loc="lower right")

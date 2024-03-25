@@ -38,6 +38,7 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
 
 def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
     """
+    :param k: Value of k in k neighbour score
     :param imageProducts: 1 by N array of image product scores between an image and all another images
     :param embeddingDotProducts: 1 by N array of dot products with an embedding and all other embeddings
     :return: The k neighbour score, as defined in the readme
@@ -48,6 +49,11 @@ def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: N
     res = float(kNeighScore / k)
     return res
 
+def get_mean_normed_k_neighbour_score(matrixG: NDArray, matrixGprime:NDArray, k: int) -> float:
+    kNeighArray = []
+    for rowIndex in range(len(matrixG)):
+        kNeighArray.append(get_normed_k_neighbour_score(matrixG[rowIndex], matrixGprime[rowIndex], k))
+    return mean(kNeighArray)
 
 def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> float:
     """
@@ -60,57 +66,12 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
     return frobNorm
 
 
-def apply_k_neighbour(imageProductArray: NDArray, embeddingDotProductArray: NDArray, startingK: int,
-                      endingK: int) -> List:
-    """
-    :param endingK: Ending K neighbour score, inclusive
-    :param startingK: Starting K neighbour score, inclusive. finds the neighbour score then increments by one until endingK
-    :param imageProductArray: Image product array to be compared
-    :param embeddingDotProductArray: A^tA, where A is the embedding matrix
-    :return: A list which has the k neighbour score for each image, for each value of k from startingK to endingK.
-    In the form of: [{startingK, [list of k neigbour scores]}, {startingK + 1, [list of k + 1 neigbour scores]} ... ,
-    {[endingK, [list of endingK neigbour scores]}]
-    """
-    if startingK >= endingK:
-        raise ValueError("Starting K should be lower than ending K")
-    if endingK + 1 > len(imageProductArray):
-        raise ValueError("Ending K + 1 should be less than the number of images")
-    output = []
-    kVals = range(startingK, endingK + 1)
-    for kval in kVals:
-        scores = []
-        for imageNumber in range(len(imageProductArray)):
-            scores.append(
-                get_normed_k_neighbour_score(imageProductArray[imageNumber], embeddingDotProductArray[imageNumber], kval))
-        output.append({"kval": kval, "neighbourScore": scores})
-    return output
 
 class SamplePlottingData:
     def __init__(self, kNormNeighbourScore, imagesFilepath):
         self.kNormNeighbourScore = kNormNeighbourScore
         self.imagesFilepath = imagesFilepath
         self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScore)
-
-class PlottingData:
-    def __init__(self, *, initialEigenvalues, finalEigenvalues, frobDistance, maxDiff, kNormNeighbourScores, numImages,
-                 imagesFilepath):
-        """
-        :param initialEigenvalues:
-        :param finalEigenvalues:
-        :param frobDistance:
-        :param maxDiff:
-        :param kNormNeighbourScores:
-        :param numImages:
-        :param imagesFilepath:
-        """
-        self.initialEigenvalues = np.array(initialEigenvalues)
-        self.finalEigenvalues = np.array(finalEigenvalues)
-        self.frobDistance = frobDistance
-        self.aveFrobDistance = frobDistance / (numImages ** 2)
-        self.maxDiff = maxDiff
-        self.kNormNeighbourScores = kNormNeighbourScores
-        self.imagesFilepath = imagesFilepath
-        self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScores)
 
 
 def get_specified_ave_k_neighbour_score(aveNormKNeighbourScore, k: int):
@@ -169,22 +130,3 @@ def get_sample_plotting_data(*, imageProductMatrix, embeddingMatrix,
     output = SamplePlottingData(kNormNeighbourScores, imagesFilepath)
     return output
 
-
-def get_ipm_and_embeddings(*, imageType: str, filters=None, imageProductType: str, embeddingType: str):
-    embeddingFilepath = FilepathUtils.get_embedding_matrix_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType,
-                                                                    embeddingType=embeddingType)
-    imageProductFilepath = FilepathUtils.get_image_product_filepath(imageType=imageType, filters=filters,
-                                                                    imageProductType=imageProductType)
-
-    if os.path.isfile(imageProductFilepath):
-        imageProductMatrix = np.loadtxt(imageProductFilepath)
-    else:
-        raise ValueError(imageProductFilepath + " does not exist. Generate data first before graphing")
-
-    if os.path.isfile(embeddingFilepath):
-        embeddingMatrix = np.loadtxt(embeddingFilepath)
-    else:
-        raise ValueError(embeddingFilepath + " does not exist. Generate data first before graphing")
-
-    return imageProductMatrix, embeddingMatrix

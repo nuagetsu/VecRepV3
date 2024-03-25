@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List
 
 
 def get_project_root() -> Path:
@@ -29,23 +30,23 @@ def get_matlab_dirpath() -> str:
     return os.path.join(get_project_root(), "src", "matlab_functions")
 
 
-def get_image_set_filepath(*, imageType: str, filters=None) -> str:
+def get_image_set_filepath(imageType: str, filters: List[str]) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters)
     return os.path.join(filepath, "filtered_images.npy")
 
 
-def get_image_product_filepath(*, imageType: str, filters=None, imageProductType: str) -> str:
+def get_image_product_filepath(imageType: str, filters: List[str], imageProductType: str) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType)
     return os.path.join(filepath, "image_product_matrix")
 
 
-def get_embedding_matrix_filepath(*, imageType: str, filters=None, imageProductType: str, embeddingType: str) -> str:
+def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
                             embeddingType=embeddingType)
     return os.path.join(filepath, "embedding_matrix")
 
 
-def get_plotting_data_filepath(*, imageType: str, filters=None, imageProductType: str, embeddingType: str) -> str:
+def get_plotting_data_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
                             embeddingType=embeddingType)
     return os.path.join(filepath, "plotting_data")

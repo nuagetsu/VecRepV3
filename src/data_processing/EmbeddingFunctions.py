@@ -7,41 +7,24 @@ from oct2py import octave
 from src.data_processing.FilepathUtils import get_matlab_dirpath
 
 
-
 class NonPositiveSemidefiniteError(Exception):
     pass
-
-
-def get_embeddings_PenCorr(matrixG: NDArray, nDim=None) -> NDArray:
-    """
-    :param matrixG: Symmetric square matrix
-    :param nDim: Number of non-zero eigenvalues in the output matrix
-    :return: An embedding matrix with dimensions: nDim by len(matrix G)
-    Uses the PennCorr method to approximate the closest near correlation matrix
-    """
-    # Check and clean input
-    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
-
-    # Use the PennCorr algorithm
-    matrixGprime = pencorr(matrixG, nDim)
-
-    # Decompose the matrix
-    matrixA = get_embeddings_mPCA(matrixGprime, nDim)
-    return matrixA
 
 
 def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
     :param nDim: Number of non-zero eigenvalues in the output matrix
-    :return: A symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
+    :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
     nDim non-zero eigenvalues
 
     Uses oct2py to run this matlab code by Prof SUN Defeng. The exact code used is slightly modified version of the
     files in Rank_CaliMat, which replaces the mexeig.c file with a mexeig.m file with similar functionality
     https://www.polyu.edu.hk/ama/profile/dfsun/Rank_CaliMatHdm.zip
     """
-    #TODO what if solver fails
+    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
+
+    # TODO what if solver fails
     matlabDir = get_matlab_dirpath()
     _ = octave.addpath(matlabDir)
     octave.push("n", len(matrixG))
@@ -73,7 +56,8 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     """
     if re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_PenCorr(imageProductMatrix, nDim=nDim)
+        matrixGprime = pencorr(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix
@@ -97,14 +81,18 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     return eigenvalues, eigenvectors
 
 
-def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
+def get_embeddings_mPCA(matrixG: NDArray, nDim: int):
     """
-    :param matrixG: Matrix to be decomposed
-    :param nDim: Number of dimensions of the vector embedding. If none, then carries out a normal decomposition
-    :return: An embedding matrix, with each vector having nDim dimensions.
-    Keeps the largest nDim number of eigenvalues and zeros the rest. Followed by the normalization of the embedding matrix
-    Effectively applies a modified PCA to the vector embeddings
-    Also used as a way to decompose a matrix to get an embedding with reduced dimensions for other methods
+    :param matrixG: Matrix G to be decomposed
+    :param nDim: Number of dimensions of the vector embedding.
+    :return: An embedding matrix, with each vector having nDim dimensions. An nDim by len(MatrixG) matrix
+    TLDR: Input matrix G' into the function, with the number of dimensions you want your vectors to have.
+    Function will then output matrix A.
+
+    1. Keeps the largest nDim number of eigenvalues and zeros the rest.
+    2. Decomposes the matrix G into matrix A
+    3. Normalize the embedding matrix
+
     """
     # Check and clean input
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
@@ -114,8 +102,7 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
     # Checking that the matrix is positive semi-definite
     for eigenvalue in eigenvalues[:nDim]:
         if not (eigenvalue > 0 or math.isclose(eigenvalue, 0, abs_tol=1e-5)):
-            raise NonPositiveSemidefiniteError("Even after zeroing smaller eigenvalues, matrix G is not a positive "
-                                               "semi-definite matrix. Consider increasing the value of nDim")
+            raise NonPositiveSemidefiniteError("Matrix G does not have al least nDim number of positive eigenvalues")
 
     # Zeros negative eigenvalues which are close to zero
     eigenvalues[0 > eigenvalues] = 0

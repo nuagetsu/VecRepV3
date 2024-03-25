@@ -6,9 +6,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy._typing import NDArray
 
-from data_processing import SamplingMethod, FilepathUtils
-from data_processing.SamplingMethod import SampleEstimator
-from data_processing.VecRep import generate_filtered_image_set
+from data_processing import SampleEstimator, FilepathUtils
+from data_processing.SampleEstimator import SampleEstimator
+from data_processing.Utilities import generate_filtered_image_set
 from data_processing.FilepathUtils import get_image_set_filepath
 from src.data_processing.ImageProducts import calculate_image_product_matrix, get_image_product
 import logging

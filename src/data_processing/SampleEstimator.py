@@ -9,7 +9,7 @@ from numpy._typing import NDArray
 
 from data_processing import FilepathUtils
 from data_processing.ImageProducts import calculate_image_product_vector, get_image_product
-from data_processing.VecRep import generate_filtered_image_set, generate_image_product_matrix, \
+from data_processing.Utilities import generate_filtered_image_set, generate_image_product_matrix, \
     generate_embedding_matrix, generate_BF_plotting_data
 from helpers.FindingEmbUsingSample import Lagrangian_Method2
 
