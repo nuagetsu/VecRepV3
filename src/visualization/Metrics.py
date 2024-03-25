@@ -18,6 +18,8 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     array with the same value as the Kth largest element in the IP array
     Find the intersection between the two above arrays
     """
+    if k > len(imageProducts) + 1:
+        raise ValueError("Value of k in K neighbour score must be less than the number of images")
     k = k + 1  # This takes into account that the closest neighbour to the vector is itself
 
     # Get the index of the k largest elements in each list
@@ -74,51 +76,6 @@ class SamplePlottingData:
         self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScore)
 
 
-def get_specified_ave_k_neighbour_score(aveNormKNeighbourScore, k: int):
-    for score in aveNormKNeighbourScore:
-        if score["kval"] == k:
-            return score["neighbourScore"]
-    raise ValueError(str(k) + " is an invalid value of k")
-
-def get_specified_k_neighbour_scores(kNormNeighbourScores, k:int):
-    for score in kNormNeighbourScores:
-        if score["kval"] == k:
-            return score["neighbourScore"]
-    raise ValueError(str(k) + " is an invalid value of k")
-def calculate_average_neighbour_scores(kNeighbourScores):
-    """
-    :param kNeighbourScores:
-    :return: Takes in an array of kNeighbour scores and returns an array of dictionaries,
-    Each dictionary contains the value of k, and the corresponding average k neighbour score
-    """
-    output = []
-    for score in kNeighbourScores:
-        output.append({"kval": score["kval"], "neighbourScore": mean(score["neighbourScore"])})
-    return output
-
-
-def get_plotting_data(*, imageProductMatrix, embeddingMatrix,
-                      imagesFilepath):
-    """
-    :return: A plotting data object which can be used for graphs to evaluate if the embeddings are a good estimate.
-
-    """
-
-    initialEigenvalues, eigVec = get_eig_for_symmetric(imageProductMatrix)
-    dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
-    finalEigenvalues, eigVec = get_eig_for_symmetric(dotProdMatrix)
-    frobDistance = get_frob_distance(imageProductMatrix, dotProdMatrix)
-    numImages = len(imageProductMatrix[0])
-
-    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
-    kNormNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
-
-    maxDiff = np.max(np.abs(imageProductMatrix - dotProdMatrix))
-
-    output = PlottingData(initialEigenvalues=initialEigenvalues, finalEigenvalues=finalEigenvalues,
-                          frobDistance=frobDistance, kNormNeighbourScores=kNormNeighbourScores, numImages=numImages,
-                          imagesFilepath=imagesFilepath, maxDiff=maxDiff)
-    return output
 
 def get_sample_plotting_data(*, imageProductMatrix, embeddingMatrix,
                       imagesFilepath):

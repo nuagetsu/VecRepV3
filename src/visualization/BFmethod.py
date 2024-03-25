@@ -1,4 +1,6 @@
 import math
+import random
+from typing import List
 
 import matplotlib.pyplot as plt
 
@@ -16,10 +18,10 @@ logging.basicConfig(
 )
 
 
-def investigate_k(bfEstimator: BruteForceEstimator, plotTitle: str, kArr=None, numK=16):
+def investigate_k(bfEstimator: BruteForceEstimator, kArr=None, numK=16):
     """
     :param numK: Number of K swept before ending the sweep. inclusive
-    :param plottingData:
+    :param bfEstimator: Brute Force estimator to investigate
     :return: Creates histogram of k distribution
     Remember to use plt.show() to display plots
     Aims to answer the question: What is the best value to choose for K?
@@ -27,24 +29,34 @@ def investigate_k(bfEstimator: BruteForceEstimator, plotTitle: str, kArr=None, n
     if kArr is None:
         kArr = [i for i in range(1, numK + 1)]
 
-    sideLen = math.ceil(math.sqrt(len(kArr))) # Find the size of the plotting area to fit in all the histograms
+    # Find the size of the plotting area to fit in all the histograms
+    sideLen = math.ceil(math.sqrt(len(kArr)))
+
+    # Creating the list of axes to plot
     fig, axArr = plt.subplots(sideLen, sideLen)
     flat_list = []
     for sub_list in axArr:
         for ele in sub_list:
             flat_list.append(ele)
 
-    for k in kArr:
-        try:
-            GraphEstimates.plot_k_histograms(flat_list[k - 1], plottingData, k)
-        except ValueError:
-            logging.error("Value of numK is to high to sweep completely")
-            break
-    fig.suptitle("K neighbour score histograms for " + plotTitle)
+    # Making the plots for all the histograms
+    for kIndex in range(len(kArr)):
+        kNeighArr = []
+        k = kArr[kIndex]
+        ax = flat_list[kIndex]
+        for imgIndex in range(len(bfEstimator.matrixG)):
+            imgProducts = bfEstimator.matrixG[imgIndex]
+            embDotProducts = bfEstimator.matrixGprime[imgIndex]
+            kNeighArr.append(metrics.get_k_neighbour_score(imgProducts, embDotProducts, k))
+        GraphEstimates.plot_k_histogram(ax, kNeighArr, k)
+
+    fig.suptitle("K neighbour score histograms for " + bfEstimator.to_string())
 
 
-def investigate_BF_method(bfEstimator: BruteForceEstimator, plotTitle: str, plottedImagesIndex=None, numSample=2):
+
+def investigate_BF_method(bfEstimator: BruteForceEstimator, numK: int, plottedImagesIndex=None, numSample=2):
     """
+    :param numK: Values of k to plot for the k neighbour graphs. k will sweep from 1 to numK
     :param bfEstimator: BruteForceEstimator to investigate
     :param plottedImagesIndex: Index of images you want to plot the k neighbours plot for
     :param numSample: Number of images to plot in the k neighbour plot
@@ -57,13 +69,47 @@ def investigate_BF_method(bfEstimator: BruteForceEstimator, plotTitle: str, plot
     """
     # Comparing the largest and the most negative eigenvalues
     eigenFig, (ax1, ax2, ax3) = plt.subplots(3)
-    eigenFig.suptitle("Eigenvalue plot and stats of " + plotTitle)
+    eigenFig.suptitle("Eigenvalue plot and stats of " + bfEstimator.to_string())
     GraphEstimates.plot_eigenvalues(ax1, ax2, bfEstimator.initialEigenvalues, bfEstimator.finalEigenvalues)
 
     # Displaying stats
     GraphEstimates.plot_key_stats_text(ax3, bfEstimator)
 
+    # Making plot for the images and their k neighbour scores
+    if plottedImagesIndex is None:
+        plottedImagesIndex = random.sample(range(1, len(bfEstimator.imageSet)), numSample)
+    else:
+        numSample = len(plottedImagesIndex)
 
+    # Creating the subplots for the images and their neighbour plots
+    imgFig, axArr = plt.subplots(numSample + 1, 2)
+    imgFig.suptitle("K neighbour plot of " + bfEstimator.to_string())
+
+    # Creating the values of K to plot
+    kArr = list(range(1, numK + 1))
+    count = 0
+    for imageIndex in plottedImagesIndex:
+        image = bfEstimator.imageSet[imageIndex]
+        imageTitle = "Image " + str(imageIndex)
+        imgAx = axArr[count][0]
+        neighAx = axArr[count][1]
+        kNeighArr = []
+        for k in kArr:
+            imageProducts = bfEstimator.matrixG[imageIndex]
+            dotProducts = bfEstimator.matrixGprime[imageIndex]
+            kNeighArr.append(metrics.get_normed_k_neighbour_score(imageProducts, dotProducts, k))
+        GraphEstimates.plot_single_image_k_neighbours(imgAx, neighAx, image, imageTitle, kArr, kNeighArr)
+        count += 1
+    # Plotting the average k score
+    aveKNeighArr = []
+    for k in kArr:
+        aveKNeighArr.append(metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG, bfEstimator.matrixGprime, k))
+
+    aveAx = axArr[-1][1]
+    GraphEstimates.plot_ave_k_neighbours(aveAx, aveKNeighArr, kArr)
+
+    # Set the bottom right subplot to be empty
+    axArr[-1][0].set_axis_off()
 def investigate_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
                                 endingConstr: int, interval=1, specifiedKArr=None, plotFrob=True):
     """
@@ -86,7 +132,8 @@ def investigate_rank_constraint(*, imageType: str, filters=None, imageProductTyp
     if specifiedKArr is None:
         specifiedKArr = [5]
 
-    allAveNeighArr = [[] for i in specifiedKArr] # A list of k nieghbour plotting data, for each of the k in specified K array
+    allAveNeighArr = [[] for i in
+                      specifiedKArr]  # A list of k nieghbour plotting data, for each of the k in specified K array
     aveFrobDistanceArr = []
     rankConstraints = list(range(startingConstr, endingConstr + 1, interval))
     for rank in rankConstraints:
@@ -117,5 +164,3 @@ def get_plot_title(*, imageType: str, filters=None, imageProductType: str, embed
         filters = []
     return ("Image type: " + imageType + ", Filters: " + ''.join(filters) + ", Image product type: "
             + imageProductType + ", Embedding type: " + embeddingType)
-
-

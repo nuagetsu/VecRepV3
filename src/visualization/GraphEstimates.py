@@ -9,7 +9,7 @@ from matplotlib.axes import Axes
 from numpy._typing import NDArray
 from src.data_processing.BruteForceEstimator import BruteForceEstimator
 from data_processing import FilepathUtils
-from visualization.Metrics import get_specified_k_neighbour_scores
+import visualization.Metrics as metrics
 
 
 def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEigenvalues: NDArray):
@@ -43,19 +43,16 @@ def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEig
     ax2.legend((rects1[0], rects2[0]), ('Initial Eigenvalues', 'Final eigenvalues'))
 
 
-def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None):
-    if numPlottedK is None:
-        numPlottedK = len(aveKNeighbourScores)
-    if numPlottedK > len(aveKNeighbourScores):
-        raise ValueError("Choose a lower value for num plotted K")
-    idealPlot = range(1, numPlottedK + 1)  # for plotting y=x
-    aveX = []
-    aveY = []
-    for score in aveKNeighbourScores[: numPlottedK]:
-        aveX.append(score["kval"])
-        aveY.append(score["neighbourScore"])
+def plot_ave_k_neighbours(ax, allAveKNeighbourScores: List, kArr: List):
+    """
+    :param ax: Axes to plot the graph
+    :param allAveKNeighbourScores: The list af all ave k neighbour scores for all values of k
+    :param kArr: List of k values to plot
+    :return: Plots the graph of average k neighbour score for a range of k values
+    """
+    idealPlot = range(1, len(kArr) + 1)  # for plotting ideal score
     ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
-    ax.plot(aveX, aveY, color='r', label="Real")
+    ax.plot(kArr, allAveKNeighbourScores, color='r', label="Real")
     ax.set_title("Mean neighbour score against number of neighbours analysed")
     ax.set_xlabel("Value of k")
     ax.set_ylabel("Norm K neighbour score")
@@ -63,11 +60,8 @@ def plot_swept_ave_k_neighbours(ax, aveKNeighbourScores: List, numPlottedK=None)
     ax.legend(loc="lower right")
 
 
-def plot_k_histograms(ax: Axes, bfEstimator: BruteForceEstimator, kVal: int):
-    kValScores = get_specified_k_neighbour_scores(plottingData.kNormNeighbourScores, kVal)
-    kValScores = np.array(kValScores)
-    kValScores = kValScores * kVal
-    labels, counts = np.unique(kValScores, return_counts=True)
+def plot_k_histogram(ax: Axes, kNeighScores: List, kVal: int):
+    labels, counts = np.unique(kNeighScores, return_counts=True)
     ax.set_xlim(-0.5, kVal + 0.5)
     ax.bar(labels, counts, align='center')
     ax.set_xticks(labels)
@@ -75,68 +69,28 @@ def plot_k_histograms(ax: Axes, bfEstimator: BruteForceEstimator, kVal: int):
     ax.set_ylabel("Frequency")
     ax.set_xlabel("Value of K score")
 
-
-def plot_swept_k_neighbours(*, axArr: List[Axes], imageAxArr: List[Axes], aveAx: Axes, kNormNeighbourScores: List,
-                            aveNormKNeighbourScores: List,
-                            imagesFilepath: str, nImageSample=3, numPlottedK=None, imageIndexArr=None):
+def plot_single_image_k_neighbours(imageAx: Axes, neighAx: Axes, image: NDArray, imageTitle:str, kArr: List[float], imageKNeighScore: List[float]):
     """
-    :param axArr: axes for the k neighbour plots for each image
-    :param imageAxArr: axes for the image plot itself
-    :param aveAx: axes for the average k neighbour plots
-    :param kNormNeighbourScores: list of k neighbour scores from PlottingData
-    :param aveNormKNeighbourScores: list of ave k neighbour scores from PlottingData
-    :param imagesFilepath: Imagefile path where the images are stored (must be loaded previously)
-    :param nImageSample: Number of images to plot their k neighbour score as the value of k changes. 3 by default
-    :param numPlottedK: The number of k to sweep. Start the sweep from 1 and ends at numPlottedK - 1. By default plots the max possible number of k stored in plotting data
-    :param imageIndexArr: The index of images for which you want to see the k neighbour plot. Images are randomly selected by default
-    :return: Plots a graph of norm k neighbour score against the value of K for a sample of images, as well as the mean norm k neighbour score against the value of k
+    :param imageAx: Axes to plot the image itself
+    :param neighAx: Axes to plot the nieghbour graph for the image
+    :param image: 2d numpy array of pixels
+    :param imageTitle: Title of the image
+    :param imageKNeighScore: K neighbour score of the image
+    :return:
     """
-    num_images = len(kNormNeighbourScores[0]["neighbourScore"])
-    if nImageSample > num_images:
-        raise ValueError("nImageSample is greater than the number of images")
-    if len(axArr) != nImageSample:
-        raise ValueError("Please input the correct number of axes")
-    if len(imageAxArr) != nImageSample:
-        raise ValueError("Please input the correct number of images axes")
-    if not os.path.exists(imagesFilepath):
-        raise FileNotFoundError(imagesFilepath + " does not exist")
-    if numPlottedK is None:
-        numPlottedK = len(kNormNeighbourScores)
-    if numPlottedK > len(kNormNeighbourScores):
-        raise ValueError("Choose a lower value for num plotted K")
+    imageAx.set_title(imageTitle)
+    imageAx.imshow(image, cmap='Greys', interpolation='nearest')
 
-    if nImageSample != 0:
-        # Choose a random sample of images
-        if imageIndexArr is None:
-            imageIndexArr = random.sample(range(1, num_images), nImageSample)
-        elif max(imageIndexArr) > num_images:
-            raise ValueError("Invalid image index entered")
-        images = np.load(imagesFilepath)
-        idealPlot = range(1, numPlottedK + 1)  # for plotting y=1
-        for count in range(nImageSample):
-            imageNum = imageIndexArr[count]
-            ax = axArr[count]
-            x = []
-            y = []
-            for i in range(numPlottedK):
-                x.append(kNormNeighbourScores[i]["kval"])
-                y.append(kNormNeighbourScores[i]["neighbourScore"][imageNum])
-            ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
-            ax.plot(x, y, color='r', label="Real")
-            ax.set_title(
-                "Normed k neighbour score of image " + str(imageNum) + " against k", fontsize = 12)
+    # Ideal plot:
+    neighAx.plot(kArr, [1 for count in range(len(kArr))], color='b', linestyle=':', label="Ideal")
+    neighAx.plot(kArr, imageKNeighScore, color='r', label="Real")
+    neighAx.set_title(
+        "Normed k neighbour score of " + imageTitle + " against k", fontsize=12)
 
-            ax.set_xlabel("k")
-            ax.set_ylabel("Norm K neigh score", fontsize = 8)
-            ax.set_ylim(0, 1.1)
-            ax.legend(loc="lower right")
-
-            imageAx = imageAxArr[count]
-            choosenImage = images[imageNum]
-            imageAx.set_title("Image " + str(imageNum))
-            imageAx.imshow(choosenImage, cmap='Greys', interpolation='nearest')
-
-    plot_swept_ave_k_neighbours(aveAx, aveNormKNeighbourScores, numPlottedK)
+    neighAx.set_xlabel("k")
+    neighAx.set_ylabel("Norm K neigh score", fontsize=8)
+    neighAx.set_ylim(0, 1.1)
+    neighAx.legend(loc="lower right")
 
 
 def plot_key_stats_text(ax: Axes, bfEstimator: BruteForceEstimator):
@@ -159,8 +113,9 @@ def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: Li
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]
         neighArr = [arr[count] for arr in fullNeighArr]
-        idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
-        neighbourAx.plot(sampleSizeArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        # for plotting the max possible score
+        neighbourAx.plot(sampleSizeArr, [1 for i in range(len(neighArr))], color='b', linestyle=':', label="Ideal")
         neighbourAx.plot(sampleSizeArr, neighArr, color='r', label="Real")
         neighbourAx.set_title(
             "Mean norm k neighbour score against sample size (k = " + str(
