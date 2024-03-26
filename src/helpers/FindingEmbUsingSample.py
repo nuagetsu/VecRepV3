@@ -18,7 +18,6 @@ def Lagrangian_Method2(A, b):
 
     # Below is the math done to find the multiplier
     A = np.array(A)
-    A = A.T
     b = np.array(b)
     S = np.diag(np.diag(np.dot(A, A.T)))
     eigenvalues = S

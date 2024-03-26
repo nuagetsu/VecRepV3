@@ -4,83 +4,27 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
 from oct2py import octave
-from data_processing.FilepathUtils import get_matlab_dirpath
-
-from helpers.NearestCorrelationMikeC import nearcorr, ExceededMaxIterationsError
+from src.data_processing.FilepathUtils import get_matlab_dirpath
 
 
 class NonPositiveSemidefiniteError(Exception):
     pass
 
 
-def get_embeddings_negatives_zeroed(matrixG):
-    """
-    :param matrixG: MatrixG to decompose
-    :return: embeddings generated after all negative eigenvalue of the image product matrix are zeroed.
-    Embeddings are then normalized
-    """
-    eigenvalues, eigenvectors = get_eig_for_symmetric(matrixG)
-    eigenvalues[0 > eigenvalues] = 0
-    Droot = np.sqrt(np.diag(eigenvalues))
-
-    matrixA = np.matmul(Droot, eigenvectors.T)
-
-    # Normalizing matrix A
-    matrixA = normalize(matrixA, norm='l2', axis=0)
-    return matrixA
-
-
-def get_embeddings_mikecroucher_nc(matrixG, nDim=None) -> NDArray:
-    """
-    :param matrixG: Matrix to be decomposed :param nDim: Number of dimensions of vector embeddings in the embedding
-    matrix :return: An embedding matrix with dimensions: nDim by len(matrix G) Approximates matrix G to a Positive
-    semi-definite matrix using the nearest correlation algorithm programmed in python by mike croucher
-    """
-    # Check and clean input
-    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
-
-    # Use the NC matrix algo
-    try:
-        matrixGprime = nearcorr(matrixG, max_iterations=10000)
-    except ExceededMaxIterationsError:
-        print("No NC matrix found after 10000 iterations")
-        raise
-
-    # Decompose the matrix
-    matrixA = get_embeddings_mPCA(matrixGprime, nDim)
-    return matrixA
-
-
-def get_embeddings_PenCorr_nc(matrixG: NDArray, nDim=None) -> NDArray:
-    """
-    :param matrixG: Symmetric square matrix
-    :param nDim: Number of non-zero eigenvalues in the output matrix
-    :return: An embedding matrix with dimensions: nDim by len(matrix G)
-    Uses the PennCorr method to approximate the closest near correlation matrix
-    """
-    # Check and clean input
-    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
-
-    # Use the PennCorr algorithm
-    matrixGprime = pencorr(matrixG, nDim)
-
-    # Decompose the matrix
-    matrixA = get_embeddings_mPCA(matrixGprime, nDim)
-    return matrixA
-
-
 def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
     :param nDim: Number of non-zero eigenvalues in the output matrix
-    :return: A symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
+    :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
     nDim non-zero eigenvalues
 
     Uses oct2py to run this matlab code by Prof SUN Defeng. The exact code used is slightly modified version of the
     files in Rank_CaliMat, which replaces the mexeig.c file with a mexeig.m file with similar functionality
     https://www.polyu.edu.hk/ama/profile/dfsun/Rank_CaliMatHdm.zip
     """
-    #TODO what if solver fails
+    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
+
+    # TODO what if solver fails
     matlabDir = get_matlab_dirpath()
     _ = octave.addpath(matlabDir)
     octave.push("n", len(matrixG))
@@ -110,21 +54,10 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     If none that means the nDim = length of image product matrix
     :return:
     """
-
-    if embeddingType == "zero_neg":
-        embeddingMatrix = get_embeddings_negatives_zeroed(imageProductMatrix)
-
-    elif re.search('zero_[0-9]?[0-9]$', embeddingType) is not None:
+    if re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim)
-    elif embeddingType == "nc":
-        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix)
-    elif re.search('nc_[0-9]?[0-9]$', embeddingType) is not None:
-        nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_mikecroucher_nc(imageProductMatrix, nDim=nDim)
-    elif re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
-        nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_PenCorr_nc(imageProductMatrix, nDim=nDim)
+        matrixGprime = pencorr(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix
@@ -148,14 +81,18 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     return eigenvalues, eigenvectors
 
 
-def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
+def get_embeddings_mPCA(matrixG: NDArray, nDim: int):
     """
-    :param matrixG: Matrix to be decomposed
-    :param nDim: Number of dimensions of the vector embedding. If none, then carries out a normal decomposition
-    :return: An embedding matrix, with each vector having nDim dimensions.
-    Keeps the largest nDim number of eigenvalues and zeros the rest. Followed by the normalization of the embedding matrix
-    Effectively applies a modified PCA to the vector embeddings
-    Also used as a way to decompose a matrix to get an embedding with reduced dimensions for other methods
+    :param matrixG: Matrix G to be decomposed
+    :param nDim: Number of dimensions of the vector embedding.
+    :return: An embedding matrix, with each vector having nDim dimensions. An nDim by len(MatrixG) matrix
+    TLDR: Input matrix G' into the function, with the number of dimensions you want your vectors to have.
+    Function will then output matrix A.
+
+    1. Keeps the largest nDim number of eigenvalues and zeros the rest.
+    2. Decomposes the matrix G into matrix A
+    3. Normalize the embedding matrix
+
     """
     # Check and clean input
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
@@ -165,8 +102,7 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
     # Checking that the matrix is positive semi-definite
     for eigenvalue in eigenvalues[:nDim]:
         if not (eigenvalue > 0 or math.isclose(eigenvalue, 0, abs_tol=1e-5)):
-            raise NonPositiveSemidefiniteError("Even after zeroing smaller eigenvalues, matrix G is not a positive "
-                                               "semi-definite matrix. Consider increasing the value of nDim")
+            raise NonPositiveSemidefiniteError("Matrix G does not have al least nDim number of positive eigenvalues")
 
     # Zeros negative eigenvalues which are close to zero
     eigenvalues[0 > eigenvalues] = 0

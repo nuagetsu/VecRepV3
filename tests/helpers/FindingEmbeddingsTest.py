@@ -1,6 +1,8 @@
 import unittest
 from math import sqrt
 
+import numpy as np
+
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 # Test cases were written by Lim Cheng Ze Jed
@@ -16,6 +18,7 @@ class FindingEmbeddingsTest(unittest.TestCase):
                 if row == col:
                     A[row][col] = 1  # makes it so that A is rank 20
 
+        A = np.array(A).T
         x_final, final_dist, lagragian = Lagrangian_Method2(A, b)
 
         self.assertTrue(42.1 >= final_dist >= 42.0)
@@ -93,7 +96,7 @@ class FindingEmbeddingsTest(unittest.TestCase):
              0.73029673, 0.7745967, 0.74535596, 0.5163978, 0.73029673, 0.7745967, 0.7745967, 0.6708204, 0.8451542,
              0.6708204, 0.6708204, 0.31622776, 0.91287094, 0.6761234, 0.6, 0.73029673, 0.8, 0.73029673, 0.6, 0.5163978,
              0.8944272, 0.7905694, 0.6, 0.6708204, 0.4472136, 0.6708204, 0.5163978, 0.8, 0.8944272, 0.8]
-
+        A = np.array(A).T
         x_final, final_dist, lagragian = Lagrangian_Method2(A, b)
 
         self.assertTrue(0.53 >= final_dist >= 0.52)
@@ -165,6 +168,7 @@ class FindingEmbeddingsTest(unittest.TestCase):
              0.47140452, 0.6666667, 0.6666667, 0.2581989, 0.2581989, 0.7745967, 0.5163978, 0.57735026, 0.5163978,
              0.28867513, 0.8164966, 0.4364358, 0.65465367, 0.57735026, 0.6666667, 0.5163978, 0.6666667, 0.33333334,
              0.28867513, 0.57735026, 0.6666667, 0.47140452]
+        A = np.array(A).T
 
         x_final, final_dist, lagragian = Lagrangian_Method2(A, b)
 
@@ -207,6 +211,7 @@ class FindingEmbeddingsTest(unittest.TestCase):
              0.61237246, 0.57735026, 0.8164966, 0.57735026, 0.6708204, 0.28867513, 0.5, 0.57735026, 0.35355338,
              0.4472136,
              0.8944272, 0.57735026, 0.28867513, 0.75, 0.6708204]
+        A = np.array(A).T
 
         x_final, final_dist, lagragian = Lagrangian_Method2(A, b)
 

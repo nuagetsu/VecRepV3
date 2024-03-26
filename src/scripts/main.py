@@ -1,5 +1,6 @@
-import src.data_processing.VecRep as VecRep
-import numpy as np
+import src.data_processing.BruteForceEstimator as bfEstimator
+import src.visualization.BFmethod as graphing
+import matplotlib.pyplot as plt
 # -----Possible options-----
 
 IMAGE_TYPES = ["NbinMmax_ones", "Nbin"]
@@ -26,21 +27,9 @@ in the set
 """
 IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
 
-EMBEDDING_TYPES = ["zero_neg", "zero_D", "nc", "nc_D", "pencorr_D"]
+EMBEDDING_TYPES = ["pencorr_D"]
 
 """
-zero_neg: Zero all negative eigenvalues in matrix G, then normalize the output embeddings
-
-zero_D: Zero all but the D largest eigenvalues in matrix G, then computes embeddings with D dimensions,
-then normalize the embeddings before output
-Sample input: zero_10, zero_5
-
-nc: Find the nearest correlation matrix, then decomposes it to find the vector embeddings
-
-nc_D: Find the nearest correlation matrix, then zero all but the D largest eigenvalues in the matrix, 
-then computes embeddings with D dimensions, then normalize the embeddings before output
-Sample input: nc_10
-
 pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
 Then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: pencorr_20
@@ -50,10 +39,25 @@ Sample input: pencorr_20
 imageType = "3bin"
 filters = ["unique"]
 imageProductType = "ncc"
-embeddingType = "pencorr_20"
-overwrite = {"filter": False, "im_prod": False, "estimate": False, "plot": True}
+embeddingType = "pencorr_15"
+overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
-emb = VecRep.get_BF_embeddings(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                               embeddingType=embeddingType, overwrite=overwrite)
-#TODO sweep parameters
+
+
+
+# Example to investigate k histograms
+# bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+#                                                       embeddingType=embeddingType, overwrite=overwrite)
+# graphing.investigate_k(bruteForceEstimator)
+
+# Example to investigate a specific set of parameters for BF estimator
+bruteForceEstimator = bfEstimator.BruteForceTestableEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                                              embeddingType=embeddingType, overwrite=overwrite)
+graphing.investigate_estimator(bruteForceEstimator, 16)
+
+
+# Example to investigate rank constraint
+# graphing.investigate_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
+#                                     startingConstr=5, endingConstr=10, specifiedKArr=[1, 3, 5], plotFrob=False)
+plt.show()
