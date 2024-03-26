@@ -1,6 +1,7 @@
+import re
+
 import numpy as np
 from numpy.typing import NDArray
-import re
 
 from src.helpers.NumIslands import countIslands
 

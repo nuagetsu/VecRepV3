@@ -1,21 +1,15 @@
+import logging
 import os.path
+import sys
 from pathlib import Path
 
 import numpy as np
+from numpy.typing import NDArray
 
-import time
-
-from numpy._typing import NDArray
-
-from data_processing import FilepathUtils
-from data_processing.ImageProducts import calculate_image_product_vector, get_image_product
-from data_processing.Utilities import generate_filtered_image_set, generate_image_product_matrix, \
-    generate_embedding_matrix
-from src.data_processing.TestableEstimator import TestableEstimator
-from helpers.FindingEmbUsingSample import Lagrangian_Method2
-
-import logging
-import sys
+from helpers import FilepathUtils
+from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
+from src.data_processing.Utilities import generate_image_product_matrix, generate_embedding_matrix
+from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 logging.basicConfig(
     level=logging.INFO,

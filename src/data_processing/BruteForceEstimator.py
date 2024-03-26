@@ -1,15 +1,11 @@
 from typing import List
 
-import numpy as np
-
-import src.data_processing.FilepathUtils as fpUtils
+import helpers.FilepathUtils as fpUtils
 import src.data_processing.Utilities as utils
-from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
-import src.visualization.Metrics as metrics
 from src.data_processing.TestableEstimator import TestableEstimator
 
 
-class BruteForceTestableEstimator(TestableEstimator):
+class BruteForceEstimator(TestableEstimator):
     def __init__(self, *, imageType: str, filters: List[str], imageProductType: str, embeddingType: str,
                  overwrite=None):
         self.imageType = imageType

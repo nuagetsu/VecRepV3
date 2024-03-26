@@ -1,9 +1,5 @@
-import os
 from statistics import mean
-from typing import List
 
-from src.data_processing import FilepathUtils
-from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 import numpy as np
 from numpy.typing import NDArray
 
@@ -68,22 +64,4 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
     return frobNorm
 
 
-
-class SamplePlottingData:
-    def __init__(self, kNormNeighbourScore, imagesFilepath):
-        self.kNormNeighbourScore = kNormNeighbourScore
-        self.imagesFilepath = imagesFilepath
-        self.aveNormKNeighbourScore = calculate_average_neighbour_scores(kNormNeighbourScore)
-
-
-
-def get_sample_plotting_data(*, imageProductMatrix, embeddingMatrix,
-                      imagesFilepath):
-    dotProdMatrix = np.matmul(embeddingMatrix.T, embeddingMatrix)
-    numImages = len(imageProductMatrix[0])
-
-    # Sweep from k=1 to k = numimages/5 by default. If num images is small then sweep from 1 - 2
-    kNormNeighbourScores = apply_k_neighbour(imageProductMatrix, dotProdMatrix, 1, max(int(numImages / 5), 2))
-    output = SamplePlottingData(kNormNeighbourScores, imagesFilepath)
-    return output
 

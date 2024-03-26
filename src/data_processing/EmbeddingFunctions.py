@@ -1,10 +1,12 @@
 import math
 import re
+
 import numpy as np
 from numpy.typing import NDArray
-from sklearn.preprocessing import normalize
 from oct2py import octave
-from src.data_processing.FilepathUtils import get_matlab_dirpath
+from sklearn.preprocessing import normalize
+
+from helpers.FilepathUtils import get_matlab_dirpath
 
 
 class NonPositiveSemidefiniteError(Exception):
@@ -81,7 +83,7 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     return eigenvalues, eigenvectors
 
 
-def get_embeddings_mPCA(matrixG: NDArray, nDim: int):
+def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
     """
     :param matrixG: Matrix G to be decomposed
     :param nDim: Number of dimensions of the vector embedding.

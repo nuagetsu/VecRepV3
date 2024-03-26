@@ -1,7 +1,8 @@
 import numpy as np
-from numpy._typing import NDArray
-from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
+from numpy.typing import NDArray
+
 import src.visualization.Metrics as metrics
+from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 
 
 class TestableEstimator:

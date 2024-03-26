@@ -1,5 +1,33 @@
-﻿# data processing
+# data processing
 The following will exemplify how we process our data to obtain our desired values.
+
+# Overview
+The methods described in the main readme are implemented here
+
+Each method, the brute force and sampling method, are made into their own object (BruteForceEstimator and SampleEstimator respectively)
+
+Since the Sample method needs a test set in order to get meaningful results, the object SampleTester is needed.
+
+Both BruteForceEstimator and SampleTester have inheritance from TestableEstimator, which is done so the same visualization functions can be used on both later.
+
+## BruteForceEstimator
+After the initialization function is called, it carries out the following 
+1. Generate images set using ImageGenerators based on the imageType
+2. Filters the images set using Filters based on the filters
+3. Uses the filtered image set to generate the image product matrix (matrix G)
+4. Applies the embedding method based on embeddingType to find the nearest correlation matrix (matrix G') and the embedding matrix (matrix A)
+## SampleEstimator
+After the initialization function is called, it carries out the following
+1. Uses the input image set to generate an image product matrix (TAKE NOTE: This is NOT the matrix G used in visualization, as this is the training set. The data from the test set should be the one used in visualization)
+2. Applies the embedding method based on embeddingType to find the nearest correlation matrix (matrix G') and the embedding matrix (matrix A)
+
+SampleEstimators have a function get_embedding_estimate() which takes in an input image (of the same dimensions as images in the training set) and uses the sample images to calculate an image embedding for the input image
+
+## SampleTester
+After the initialization function is called, it carries out the following
+1. Uses the test image set to generate the image product matrix (matrix G)
+2. Uses the input sampleEstimator to generate vector embeddings for each of the test images. This generates the embedding matrix (matrix A)
+3. Matrix G' is obtained by A.T A
 
 ## ImageProducts
 There are many different types of Image products such as the normalised cross correlation [(NCC)](https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/ell2.12516#ell212516-bib-0003), the mutual information [(MI)](https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/ell2.12516#ell212516-bib-0004) and the structural similarity [(SSIM)](https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/ell2.12516#ell212516-bib-0005) that we can employ to quantify similarities between different images. So far only NCC has been implemented under [ImageProducts.py](ImageProducts.py). 
@@ -9,8 +37,6 @@ We can also obtain an image product vector, known as $b$, which is essentially j
 
 ![Matrix and vector representations](../../assets/Matrix_and_vector.png)
 
-## Embedding Functoins
-The code allows us to find the vectoring embedding of the a randomly chosen image, derived from a sample subset of images (does not have to include the randomly chosen image), using the Lagrangian Method described in the first page.
 
 ## Sampling Method
 Allows us to sample a population of images. 

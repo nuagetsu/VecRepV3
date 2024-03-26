@@ -1,8 +1,8 @@
 from typing import Callable
 
-import numpy as np
 import cv2
-from numpy._typing import NDArray
+import numpy as np
+from numpy.typing import NDArray
 
 
 def get_image_product(imageProductType: str):

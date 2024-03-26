@@ -1,14 +1,14 @@
-
-import numpy as np
-from matplotlib import pyplot as plt
 import logging
 import sys
 
-from numpy._typing import NDArray
+from matplotlib import pyplot as plt
+from numpy.typing import NDArray
+
+import src.visualization.Metrics as metrics
 from src.data_processing.SampleEstimator import SampleEstimator
 from src.data_processing.SampleTester import SampleTester
 from visualization import GraphEstimates
-import src.visualization.Metrics as metrics
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -17,7 +17,7 @@ logging.basicConfig(
 
 
 def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: str, sampleSize: int, testSize: int,
-                                       testName: str, startingConstr: int, endingConstr: int, increment=1, specifiedKArr=None, plotFrob=True):
+                                       testPrefix: str, startingConstr: int, endingConstr: int, increment=1, specifiedKArr=None, plotFrob=True):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
@@ -26,7 +26,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
     :param startingConstr: Starting lowest rank constraint to start the sweep inclusive
     :param endingConstr: Final largest rank constraint to end the sweep inclusive
     :param increment: Increment in the rank constraint sweep
-    :param testName: Used as a prefix to all the test names
+    :param testPrefix: Used as a prefix to all the test names
     :param testSize: Size of the test set
     :param sampleSize: Size of the sample set
     :param plotFrob: If True, also plots frob error against rank
@@ -51,8 +51,8 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + " of " + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        sampleName = testName + "_sample_" + str(rank) + " of " + str(endingConstr)
-        testName = testName + "_test_" + str(rank) + " of " + str(endingConstr)
+        sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
+        testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
         # Taking training samples from the front of the image array
         trainingSample = imageSet[:sampleSize]
@@ -84,9 +84,9 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
 
 
 
-def investigate_sample_size(*, imageSet: NDArray, imageProductType: str, embeddingType:str, startingTrainingSize: int,
-                            endingTrainingSize: int, increment=50, testSize: int,
-                            testName: str, specifiedKArr=None, plotFrob=True):
+def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embeddingType:str, startingTrainingSize: int,
+                              endingTrainingSize: int, increment=50, testSize: int,
+                              testPrefix: str, specifiedKArr=None, plotFrob=True):
     """
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
     of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
@@ -96,7 +96,7 @@ def investigate_sample_size(*, imageSet: NDArray, imageProductType: str, embeddi
     :param endingTrainingSize: Ending point for the sweep
     :param increment: Increment in the sweep
     :param testSize: Size of the test set
-    :param testName: Prefix to the test names
+    :param testPrefix: Prefix to the test names
     :param specifiedKArr: Specified k to plot for the neighbour graphs
     :param plotFrob: If true, also plot the frob error against sample size
     :return: Generates a graph for the k neighbour score against the size of the test sample.
@@ -105,16 +105,15 @@ def investigate_sample_size(*, imageSet: NDArray, imageProductType: str, embeddi
     """
     if startingTrainingSize > endingTrainingSize:
         raise ValueError("Starting sample size must be lower than ending")
-    sampleSizeArr = []
+    sampleSizeArr = list(range(startingTrainingSize, endingTrainingSize, increment))
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[] for i in specifiedKArr]
     aveFrobDistanceArr = []
-
-    for sampleSizeTested in range(startingTrainingSize, endingTrainingSize, increment):
+    for sampleSizeTested in sampleSizeArr:
         logging.info("Investigating sample size " + str(sampleSizeTested) + " of " + str(endingTrainingSize))
 
-        sampleName = testName + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
-        testName = testName + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
+        sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
+        testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
 
 
         # Taking training samples from the front of the image array
@@ -134,14 +133,13 @@ def investigate_sample_size(*, imageSet: NDArray, imageProductType: str, embeddi
                                                                                sampleTester.matrixGprime, k))
         aveFrobDistanceArr.append(sampleTester.aveFrobDistance)
 
-
     if plotFrob:
         trainingFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
         frobAx = axArr[-1]
         neighAx = axArr[:-1]
-        GraphEstimates.plot_error_against_sample_size(frobAx, rankConstraints, aveFrobDistanceArr)
+        GraphEstimates.plot_frob_error_against_training_size(frobAx, sampleSizeArr, aveFrobDistanceArr)
     else:
-        rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
-    GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)
+        trainingFig, neighAx = plt.subplots(1, len(specifiedKArr))
+    GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr)
 
 

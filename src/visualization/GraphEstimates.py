@@ -1,15 +1,8 @@
-import os.path
-import random
-from statistics import median
 from typing import List
 
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from numpy._typing import NDArray
-from src.data_processing.BruteForceEstimator import BruteForceTestableEstimator
-from data_processing import FilepathUtils
-import visualization.Metrics as metrics
 
 
 def plot_eigenvalues(ax1: Axes, ax2: Axes, initialEigenvalues: NDArray, finalEigenvalues: NDArray):
@@ -69,7 +62,9 @@ def plot_k_histogram(ax: Axes, kNeighScores: List, kVal: int):
     ax.set_ylabel("Frequency")
     ax.set_xlabel("Value of K score")
 
-def plot_single_image_k_neighbours(imageAx: Axes, neighAx: Axes, image: NDArray, imageTitle:str, kArr: List[float], imageKNeighScore: List[float]):
+
+def plot_single_image_k_neighbours(imageAx: Axes, neighAx: Axes, image: NDArray, imageTitle: str, kArr: List[float],
+                                   imageKNeighScore: List[float]):
     """
     :param imageAx: Axes to plot the image itself
     :param neighAx: Axes to plot the nieghbour graph for the image
@@ -111,10 +106,8 @@ def plot_key_stats_text(ax: Axes, frobDistance: float, aveFrobDistance: float, m
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
 
 
-
-
 def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
-                                       specifiedKArr: List):
+                                   specifiedKArr: List):
     """
     :param neighbourAxArr: Axes to plot the neighbour graph
     :param sampleSizeArr: array of sample size values to plot (x axis for both graphs)
@@ -146,6 +139,13 @@ def plot_frob_error_against_rank_constraint(frobAx: Axes, rankArr: List[int], fr
     frobAx.set_title("Average frobenius error against rank constraint")
     frobAx.set_xlabel("Rank Constraint")
     frobAx.set_ylabel("Average frobenius error")
+
+def plot_frob_error_against_training_size(frobAx: Axes, trainingArr: List[int], frobArr: List[float]):
+    frobAx.plot(trainingArr, frobArr)
+    frobAx.set_title("Average frobenius error against training size")
+    frobAx.set_xlabel("Training size")
+    frobAx.set_ylabel("Average frobenius error")
+
 
 def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List, fullNeighArr: List,
                                        specifiedKArr: List):

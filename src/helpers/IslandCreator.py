@@ -1,8 +1,5 @@
 import random
 
-import numpy as np
-
-
 """
 Given an 3x3 dimensional grid,
 [0,0,0]

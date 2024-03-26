@@ -1,15 +1,14 @@
+import logging
 import math
 import random
-from typing import List
-from src.data_processing.TestableEstimator import TestableEstimator
+import sys
+
 import matplotlib.pyplot as plt
 
-import data_processing.Utilities
-from visualization import Metrics, GraphEstimates
 import visualization.Metrics as metrics
-from src.data_processing.BruteForceEstimator import BruteForceTestableEstimator
-import logging
-import sys
+from src.data_processing.BruteForceEstimator import BruteForceEstimator
+from src.data_processing.TestableEstimator import TestableEstimator
+from visualization import GraphEstimates
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,7 +54,7 @@ def investigate_k(estimator: TestableEstimator, kArr=None, numK=16):
     fig.suptitle("K neighbour score histograms for " + estimator.to_string())
 
 
-def investigate_estimator(estimator: TestableEstimator, numK: int, plottedImagesIndex=None, numSample=2):
+def investigate_estimator(estimator: TestableEstimator, numK=16, plottedImagesIndex=None, numSample=2):
     """
     :param numK: Values of k to plot for the k neighbour graphs. k will sweep from 1 to numK
     :param estimator: Testable Estimator to investigate
@@ -146,9 +145,9 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        bfEstimator = BruteForceTestableEstimator(imageType=imageType, filters=filters,
-                                                  imageProductType=imageProductType,
-                                                  embeddingType=embType)
+        bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
+                                          imageProductType=imageProductType,
+                                          embeddingType=embType)
 
         # For each k to be investigated, append the respective k neighbour score
         for i in range(len(specifiedKArr)):

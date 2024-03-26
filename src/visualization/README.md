@@ -1,4 +1,14 @@
-﻿# Plotted Graphs
+# Code overview
+## BFmethod
+Functions which graph out the performance of a BruteForceEstimator. Some functions can be applied to a TestableEstimator, so performance of a SampleEstimator can also be found (by passing it in a SampleTester)
+
+## SampleMethod
+Functions which sweep parameters for a SampleTester.
+
+## GraphEstimates
+Functions which take in data and make a matlabplot on the input axes. Only formats the plot, no additional data processing is done.
+
+# Plotted Graphs
 The following will be a detailed explanation on the graphs plotted in GraphEstimates.py and the metrics we use to detect any trends between different data distributions.
 
 ## Plot Eigenvalues
