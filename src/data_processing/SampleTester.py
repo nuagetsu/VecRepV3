@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from src.data_processing import FilepathUtils
+from helpers import FilepathUtils
 from src.data_processing.ImageProducts import calculate_image_product_matrix
 from src.data_processing.SampleEstimator import SampleEstimator
 from src.data_processing.TestableEstimator import TestableEstimator

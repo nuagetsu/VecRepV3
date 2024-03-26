@@ -6,7 +6,7 @@ import sys
 import matplotlib.pyplot as plt
 
 import visualization.Metrics as metrics
-from src.data_processing.BruteForceEstimator import BruteForceTestableEstimator
+from src.data_processing.BruteForceEstimator import BruteForceEstimator
 from src.data_processing.TestableEstimator import TestableEstimator
 from visualization import GraphEstimates
 
@@ -145,9 +145,9 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        bfEstimator = BruteForceTestableEstimator(imageType=imageType, filters=filters,
-                                                  imageProductType=imageProductType,
-                                                  embeddingType=embType)
+        bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
+                                          imageProductType=imageProductType,
+                                          embeddingType=embType)
 
         # For each k to be investigated, append the respective k neighbour score
         for i in range(len(specifiedKArr)):

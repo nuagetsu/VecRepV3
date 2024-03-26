@@ -9,10 +9,8 @@ IMAGE_TYPES = ["NbinMmax_ones", "Nbin"]
 
 """
 Nbin: N by N matrix of 1s and 0s
-Sample inputs: 2bin, 3bin, 10bin
 
 NbinMmax_ones: N by N matrix of 1s and 0s, with only M percentage of squares being 1s
-Sample input: 2bin50max_ones, 5bin40max_ones
 """
 
 IMAGE_FILTERS = ["unique", "Nmax_ones", "one_island"]
@@ -28,6 +26,10 @@ unique: Outputs a set of images such that each image is NOT a simple translation
 in the set
 """
 IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
+"""
+ncc: Normal ncc score. Range of [0,1]
+ncc_scaled: Normal ncc score, with range scaled to [-1,1]
+"""
 
 EMBEDDING_TYPES = ["pencorr_D"]
 
@@ -46,20 +48,23 @@ overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
 
-
-
 # Example to investigate k histograms
-# bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
-#                                                       embeddingType=embeddingType, overwrite=overwrite)
-# graphing.investigate_k(bruteForceEstimator)
+"""
+bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                                      embeddingType=embeddingType, overwrite=overwrite)
+graphing.investigate_k(bruteForceEstimator)
+"""
 
 # Example to investigate a specific set of parameters for BF estimator
+"""
 bruteForceEstimator = bfEstimator.BruteForceTestableEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                                               embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_estimator(bruteForceEstimator, 16)
-
+"""
 
 # Example to investigate rank constraint
-# graphing.investigate_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-#                                     startingConstr=5, endingConstr=10, specifiedKArr=[1, 3, 5], plotFrob=False)
+"""
+graphing.investigate_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                    startingConstr=5, endingConstr=10, specifiedKArr=[1, 3, 5], plotFrob=False)
+"""
 plt.show()
