@@ -9,8 +9,6 @@ We can also obtain an image product vector, known as $b$, which is essentially j
 
 ![Matrix and vector representations](../../assets/Matrix_and_vector.png)
 
-## Embedding Functoins
-The code allows us to find the vectoring embedding of the a randomly chosen image, derived from a sample subset of images (does not have to include the randomly chosen image), using the Lagrangian Method described in the first page.
 
 ## Sampling Method
 Allows us to sample a population of images. 
