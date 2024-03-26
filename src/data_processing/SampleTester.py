@@ -1,14 +1,15 @@
 import os.path
 import pickle
 from pathlib import Path
-
+from src.data_processing.TestableEstimator import TestableEstimator
 import numpy as np
 from data_processing import SampleEstimator, FilepathUtils
 from data_processing.SampleEstimator import SampleEstimator
 from src.data_processing.ImageProducts import calculate_image_product_matrix, get_image_product
 import logging
 
-class SampleTester:
+
+class SampleTester(TestableEstimator):
     """
     An object which contains an array of test images
     and a SampleEstimator object (which itself has its own set of sample images)
@@ -33,23 +34,33 @@ class SampleTester:
 
         # Loading/saving test images
         logging.info("Loading test images...")
-        self.testImagesFilepath = FilepathUtils.get_test_images_filepath(sampleEstimator.sampleDirectory, testName)
-        if not os.path.isfile(self.testImagesFilepath) or overwrite['imgSet']:
+        testImagesFilepath = FilepathUtils.get_test_images_filepath(sampleEstimator.sampleDirectory, testName)
+        if not os.path.isfile(testImagesFilepath) or overwrite['imgSet']:
             if testImages is None:
                 raise ValueError("Test images must be given, unless test has already been previously created")
             logging.info("Test images not found, saving test images...")
-            Path(self.testImagesFilepath).parent.mkdir(parents=True, exist_ok=True)
-            np.save(self.testImagesFilepath, testImages)
-            self.testImages = testImages
+            Path(testImagesFilepath).parent.mkdir(parents=True, exist_ok=True)
+            np.save(testImagesFilepath, testImages)
+            testImages = testImages
         else:
-            self.testImages = np.load(self.testImagesFilepath)
+            testImages = np.load(testImagesFilepath)
+
+        logging.info("Calculating test image product table...")
+        testIptFilepath = FilepathUtils.get_test_ipm_filepath(sampleEstimator.sampleDirectory, testName)
+        if not os.path.isfile(testIptFilepath) or overwrite['imgProd']:
+            testImageProductMatrix = calculate_image_product_matrix(testImages, sampleEstimator.imageProduct)
+            Path(testIptFilepath).parent.mkdir(parents=True, exist_ok=True)
+            np.savetxt(testIptFilepath, testImageProductMatrix)
+        else:
+            testImageProductMatrix = np.loadtxt(testIptFilepath)
 
         logging.info("Generating test embeddings...")
-        self.testEmbeddingsFilepath = FilepathUtils.get_test_embeddings_filepath(sampleEstimator.sampleDirectory, testName)
+        self.testEmbeddingsFilepath = FilepathUtils.get_test_embeddings_filepath(sampleEstimator.sampleDirectory,
+                                                                                 testName)
         if not os.path.isfile(self.testEmbeddingsFilepath) or overwrite['embedding']:
             logging.info("Embeddings not found, calculating embeddings images...")
             testEmbeddingMatrix = []
-            for image in self.testImages:
+            for image in testImages:
                 testEmbeddingMatrix.append(sampleEstimator.get_embedding_estimate(image))
             testEmbeddingMatrix = np.array(testEmbeddingMatrix)
             testEmbeddingMatrix = testEmbeddingMatrix.T  # Embedding matrix has vectors in columns instead of rows
@@ -57,6 +68,12 @@ class SampleTester:
             # Creating directory if it doesn't exist
             Path(self.testEmbeddingsFilepath).parent.mkdir(parents=True, exist_ok=True)
             np.savetxt(self.testEmbeddingsFilepath, testEmbeddingMatrix)
-            self.testEmbeddingMatrix = testEmbeddingMatrix
+            testEmbeddingMatrix = testEmbeddingMatrix
         else:
-            self.testEmbeddingMatrix = np.loadtxt(self.testEmbeddingsFilepath)
+            testEmbeddingMatrix = np.loadtxt(self.testEmbeddingsFilepath)
+
+        super().__init__(testImages, testImagesFilepath, sampleEstimator.imageProductType,
+                         sampleEstimator.embeddingType, testEmbeddingMatrix, testImageProductMatrix)
+
+    def to_string(self):
+        return self.testName + ", " + self.sampleEstimator.to_string()

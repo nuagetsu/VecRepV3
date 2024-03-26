@@ -52,9 +52,9 @@ overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 # graphing.investigate_k(bruteForceEstimator)
 
 # Example to investigate a specific set of parameters for BF estimator
-bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                                      embeddingType=embeddingType, overwrite=overwrite)
-graphing.investigate_BF_method(bruteForceEstimator, 16)
+bruteForceEstimator = bfEstimator.BruteForceTestableEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                                              embeddingType=embeddingType, overwrite=overwrite)
+graphing.investigate_estimator(bruteForceEstimator, 16)
 
 
 # Example to investigate rank constraint

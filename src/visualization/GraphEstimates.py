@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from numpy._typing import NDArray
-from src.data_processing.BruteForceEstimator import BruteForceEstimator
+from src.data_processing.BruteForceEstimator import BruteForceTestableEstimator
 from data_processing import FilepathUtils
 import visualization.Metrics as metrics
 
@@ -93,13 +93,20 @@ def plot_single_image_k_neighbours(imageAx: Axes, neighAx: Axes, image: NDArray,
     neighAx.legend(loc="lower right")
 
 
-def plot_key_stats_text(ax: Axes, bfEstimator: BruteForceEstimator):
+def plot_key_stats_text(ax: Axes, frobDistance: float, aveFrobDistance: float, maxDiff: float):
+    """
+    :param ax: Axes to plot graph
+    :param frobDistance: Frobinus distance between matrices
+    :param aveFrobDistance: Average Frobinus distance
+    :param maxDiff: Max diff between an element in matrices
+    :return: Plots a graph with a textbox containing some ket stats
+    """
     displayText = ("Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
-        bfEstimator.frobDistance) + "\n" +
+        frobDistance) + "\n" +
                    "Average Frobenius norm of difference between imageProductMatrix and A^tA: " + "{:.3E}".format(
-                bfEstimator.aveFrobDistance) + "\n" +
+                aveFrobDistance) + "\n" +
                    "Greatest single element difference between imageProductMatrix and A^tA: " + "{:.2f}".format(
-                bfEstimator.maxDifference) + "\n")
+                maxDiff) + "\n")
     ax.text(0.5, 0.5, displayText, color='black',
             bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'), ha='center', va='center')
 
@@ -108,14 +115,22 @@ def plot_key_stats_text(ax: Axes, bfEstimator: BruteForceEstimator):
 
 def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
                                        specifiedKArr: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param sampleSizeArr: array of sample size values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return: Plots a graph of error against samplesize for all the values of k in specifiedKArr
+
+    """
 
     for count in range(len(specifiedKArr)):
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]
-        neighArr = [arr[count] for arr in fullNeighArr]
+        neighArr = fullNeighArr[count]
 
-        # for plotting the max possible score
-        neighbourAx.plot(sampleSizeArr, [1 for i in range(len(neighArr))], color='b', linestyle=':', label="Ideal")
+        idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
+        neighbourAx.plot(sampleSizeArr, idealPlot, color='b', linestyle=':', label="Ideal")
         neighbourAx.plot(sampleSizeArr, neighArr, color='r', label="Real")
         neighbourAx.set_title(
             "Mean norm k neighbour score against sample size (k = " + str(
@@ -123,7 +138,7 @@ def plot_error_against_sample_size(neighbourAxArr: List[Axes], sampleSizeArr: Li
         neighbourAx.set_xlabel("Sample size")
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
-        neighbourAx.legend(loc="upper left")
+        neighbourAx.legend(loc="lower right")
 
 
 def plot_frob_error_against_rank_constraint(frobAx: Axes, rankArr: List[int], frobArr: List[float]):
@@ -139,7 +154,7 @@ def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List
     :param rankArr: array of rank constrain values to plot (x axis for both graphs)
     :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
     :param specifiedKArr: The list k neighbour scores to be used
-    :return:
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
     """
 
     for count in range(len(specifiedKArr)):

@@ -11,6 +11,7 @@ from data_processing import FilepathUtils
 from data_processing.ImageProducts import calculate_image_product_vector, get_image_product
 from data_processing.Utilities import generate_filtered_image_set, generate_image_product_matrix, \
     generate_embedding_matrix
+from src.data_processing.TestableEstimator import TestableEstimator
 from helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 import logging
@@ -31,14 +32,14 @@ class SampleEstimator:
     If so, it will simply load the files, if not it will generate them as required
     """
 
-    def __init__(self, *, sampleName: str, sampleImageSet=None, embeddingType: str,
+    def __init__(self, *, sampleName: str, trainingImageSet=None, embeddingType: str,
                  imageProductType: str, overwrite=None):
         """
         :param sampleName: Name of the sample (must be unique for each sample)
         :param embeddingType:
         :param imageProductType:
         :param overwrite:
-        :param sampleImageSet: An array of images that is used as the sample set.
+        :param trainingImageSet: An array of images that is used as the sample set.
         The embeddings for these images will be calculated. future images can then be made
         into vector embeddings using the sample images as reference
         """
@@ -48,26 +49,27 @@ class SampleEstimator:
         self.sampleName = sampleName
         self.imageProductType = imageProductType
         self.sampleDirectory = FilepathUtils.get_sample_directory(self.sampleName)
+        self.embeddingType = embeddingType
 
         # Loading/saving sample image set based on if the file exists
-        self.sampleImageSetFilepath = FilepathUtils.get_sample_images_filepath(self.sampleDirectory)
+        self.trainingImageSetFilepath = FilepathUtils.get_sample_images_filepath(self.sampleDirectory)
 
-        if not os.path.isfile(self.sampleImageSetFilepath) or overwrite['imgSet']:
+        if not os.path.isfile(self.trainingImageSetFilepath) or overwrite['imgSet']:
             logging.info("Saving sample images....")
-            if sampleImageSet is None:
+            if trainingImageSet is None:
                 raise ValueError("Image samples must be give if sample estimator has not been previously initialized")
-            self.sampleImageSet = sampleImageSet
+            self.trainingImageSet = trainingImageSet
 
             # Making directory if it doesn't exist
-            Path(self.sampleImageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
-            np.save(self.sampleImageSetFilepath, self.sampleImageSet)
+            Path(self.trainingImageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
+            np.save(self.trainingImageSetFilepath, self.trainingImageSet)
         else:
             logging.info("Previous sample images  loaded....")
-            self.sampleImageSet = np.load(self.sampleImageSetFilepath)
+            self.trainingImageSet = np.load(self.trainingImageSetFilepath)
 
         logging.info("Generating image product matrix....")
         imageProductFilepath = FilepathUtils.get_sample_ipm_filepath(self.sampleDirectory)
-        self.imageProductMatrix = generate_image_product_matrix(self.sampleImageSet, imageProductType,
+        self.imageProductMatrix = generate_image_product_matrix(self.trainingImageSet, imageProductType,
                                                                 imageProductFilepath, overwrite=overwrite['imgProd'])
         self.imageProduct = get_image_product(imageProductType)
 
@@ -76,12 +78,15 @@ class SampleEstimator:
         self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingFilepath,
                                                          overwrite=overwrite['embedding'])
 
-    def get_embedding_estimate(self, imageInput)->NDArray:
+    def get_embedding_estimate(self, imageInput) -> NDArray:
         """
         :param imageInput: Takes in an image with the same dimensions as images in the image sample
         :return: A vector embedding of the input image generated using the image sample. Method used is by minimizing
         the error between the dot product results and the image product vector.
         """
-        imageProductVector = calculate_image_product_vector(imageInput, self.sampleImageSet, self.imageProduct)
+        imageProductVector = calculate_image_product_vector(imageInput, self.trainingImageSet, self.imageProduct)
         estimateVector = Lagrangian_Method2(self.embeddingMatrix, imageProductVector)[0]
         return estimateVector
+
+    def to_string(self):
+        return self.sampleName + ", " + self.imageProductType + ", " + self.embeddingType
