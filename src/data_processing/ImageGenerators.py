@@ -37,7 +37,7 @@ def get_island_image_set(imageType, numImages):
     :param imageLength: side length of image grid
     :param percentOnes: Percent of ones
     :param numImages: number of images to generate
-    :return:
+    :return: An image set of randomly generated islands with no repeats
     """
     if re.search('[0-9]?[0-9]island[0-9]?[0-9]max_ones$', imageType) is not None:  # Searching if image type follows the
         # format of 3bin40max_ones

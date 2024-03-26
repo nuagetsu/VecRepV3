@@ -54,7 +54,7 @@ def investigate_k(estimator: TestableEstimator, kArr=None, numK=16):
     fig.suptitle("K neighbour score histograms for " + estimator.to_string())
 
 
-def investigate_estimator(estimator: TestableEstimator, numK: int, plottedImagesIndex=None, numSample=2):
+def investigate_estimator(estimator: TestableEstimator, numK=16, plottedImagesIndex=None, numSample=2):
     """
     :param numK: Values of k to plot for the k neighbour graphs. k will sweep from 1 to numK
     :param estimator: Testable Estimator to investigate

@@ -4,7 +4,6 @@ from sympy import *
 
 
 # The following method was written by Lim Cheng Ze Jed
-
 def Lagrangian_Method2(A, b):
     """
     :INPUTS:
@@ -36,31 +35,35 @@ def Lagrangian_Method2(A, b):
     for j in range(len(lst_of_eigenvalues)):  # to find the roots in between the peaks
         lst_of_eigenvalues[j] = -lst_of_eigenvalues[j]
 
-    initial_point_lst = []
-    if len(lst_of_eigenvalues) == 1:
-        initial_point_lst.append(lst_of_eigenvalues[0] - 0.5)
-        initial_point_lst.append(lst_of_eigenvalues[0] + 0.5)
-    else:
-        initial_point_lst.append(lst_of_eigenvalues[0] - 0.5)
-        initial_point_lst.append(lst_of_eigenvalues[-1] + 0.5)
-        for i in range(1, len(lst_of_eigenvalues)):
-            mid_point = (lst_of_eigenvalues[i] + lst_of_eigenvalues[i - 1]) / 2
-            first_quar = (lst_of_eigenvalues[i - 1] + mid_point) / 2
-            last_quar = (lst_of_eigenvalues[i] + mid_point) / 2
-            initial_point_lst.append(first_quar)
-            initial_point_lst.append(mid_point)
-            initial_point_lst.append(last_quar)
-
     # ADD THE MINUS ONE!!!
     equation = H[0] - 1  # use the sympy equation to find the absolute best lambda value
-
     f = lambdify(lamda, equation, 'numpy')
-    z = set()  # solution set (lagrange multipliers)
 
+    initial_point_lst = []
+    if len(lst_of_eigenvalues) == 1:
+        initial_point_lst.append(lst_of_eigenvalues[0] - 100)  # negative
+        initial_point_lst.append(lst_of_eigenvalues[0] - 0.1)  # positive
+        initial_point_lst.append(lst_of_eigenvalues[0] + 100)  # negative
+        initial_point_lst.append(lst_of_eigenvalues[-1] + 0.1)  # positive
+    else:
+        initial_point_lst.append(lst_of_eigenvalues[0] - 100)  # negative
+        initial_point_lst.append(lst_of_eigenvalues[0] - 0.1)  # positive
+        initial_point_lst.append(lst_of_eigenvalues[0] + 100)  # negative
+        initial_point_lst.append(lst_of_eigenvalues[-1] + 0.1)  # positive
+        for i in range(1, len(lst_of_eigenvalues)):
+            mid_point = (lst_of_eigenvalues[i] + lst_of_eigenvalues[i - 1]) / 2
+            left_of_eigenvalue = lst_of_eigenvalues[i] - 0.1
+            right_of_eigenvalue = lst_of_eigenvalues[i - 1] + 0.1
+            if f(mid_point) < 0:
+                initial_point_lst.append(right_of_eigenvalue)
+                initial_point_lst.append(mid_point)
+                initial_point_lst.append(left_of_eigenvalue)
+    z = set()  # solution set (lagrange multipliers)
     # sets different initial points throughout the entire graph
-    for initial_point in initial_point_lst:
-        solution = optimize.root_scalar(f, x0=initial_point)
-        z.add(solution.root)
+    for i in range(1, len(initial_point_lst)):
+        if (initial_point_lst[i - 1] < 0 and initial_point_lst[i] > 0) or (initial_point_lst[i - 1] > 0 and initial_point_lst[i] < 0):
+            solution = optimize.root_scalar(f, bracket=[initial_point_lst[i - 1], initial_point_lst[i]])
+            z.add(solution.root)
     # Cleaning data for any -lambda values
     lagrangian_lst = []
     for ga in z:
@@ -82,4 +85,5 @@ def Lagrangian_Method2(A, b):
             x_final = x
             final_dist = dist
             selected_lambda = lamda
+
     return x_final, final_dist, selected_lambda
