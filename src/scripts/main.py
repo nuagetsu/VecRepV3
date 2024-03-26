@@ -1,6 +1,8 @@
+import matplotlib.pyplot as plt
+
 import src.data_processing.BruteForceEstimator as bfEstimator
 import src.visualization.BFmethod as graphing
-import matplotlib.pyplot as plt
+
 # -----Possible options-----
 
 IMAGE_TYPES = ["NbinMmax_ones", "Nbin"]

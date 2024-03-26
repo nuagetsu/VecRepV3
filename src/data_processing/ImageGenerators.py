@@ -1,8 +1,11 @@
 import itertools
 import re
+
 import numpy as np
 from numpy.typing import NDArray
+
 from src.helpers.IslandCreator import grid_creation
+
 
 def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int]:
     if maxOnesPercentage > 100:

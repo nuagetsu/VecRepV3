@@ -1,14 +1,14 @@
-
-import numpy as np
-from matplotlib import pyplot as plt
 import logging
 import sys
 
-from numpy._typing import NDArray
+from matplotlib import pyplot as plt
+from numpy.typing import NDArray
+
+import src.visualization.Metrics as metrics
 from src.data_processing.SampleEstimator import SampleEstimator
 from src.data_processing.SampleTester import SampleTester
 from visualization import GraphEstimates
-import src.visualization.Metrics as metrics
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",

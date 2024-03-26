@@ -1,12 +1,13 @@
-import os.path
-import pickle
-from pathlib import Path
-from src.data_processing.TestableEstimator import TestableEstimator
-import numpy as np
-from data_processing import SampleEstimator, FilepathUtils
-from data_processing.SampleEstimator import SampleEstimator
-from src.data_processing.ImageProducts import calculate_image_product_matrix, get_image_product
 import logging
+import os.path
+from pathlib import Path
+
+import numpy as np
+
+import FilepathUtils
+from ImageProducts import calculate_image_product_matrix
+from SampleEstimator import SampleEstimator
+from TestableEstimator import TestableEstimator
 
 
 class SampleTester(TestableEstimator):

@@ -1,6 +1,6 @@
 import numpy as np
-from sympy import *
 from scipy import optimize
+from sympy import *
 
 
 # The following method was written by Lim Cheng Ze Jed
@@ -59,7 +59,7 @@ def Lagrangian_Method2(A, b):
 
     # sets different initial points throughout the entire graph
     for initial_point in initial_point_lst:
-        solution = optimize.root_scalar(f, x0=initial_point, method="secant")
+        solution = optimize.root_scalar(f, x0=initial_point)
         z.add(solution.root)
     # Cleaning data for any -lambda values
     lagrangian_lst = []

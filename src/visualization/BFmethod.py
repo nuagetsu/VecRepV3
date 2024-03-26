@@ -1,15 +1,14 @@
+import logging
 import math
 import random
-from typing import List
-from src.data_processing.TestableEstimator import TestableEstimator
+import sys
+
 import matplotlib.pyplot as plt
 
-import data_processing.Utilities
-from visualization import Metrics, GraphEstimates
 import visualization.Metrics as metrics
 from src.data_processing.BruteForceEstimator import BruteForceTestableEstimator
-import logging
-import sys
+from src.data_processing.TestableEstimator import TestableEstimator
+from visualization import GraphEstimates
 
 logging.basicConfig(
     level=logging.INFO,

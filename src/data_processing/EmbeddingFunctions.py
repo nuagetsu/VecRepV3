@@ -1,10 +1,12 @@
 import math
 import re
+
 import numpy as np
 from numpy.typing import NDArray
-from sklearn.preprocessing import normalize
 from oct2py import octave
-from src.data_processing.FilepathUtils import get_matlab_dirpath
+from sklearn.preprocessing import normalize
+
+from FilepathUtils import get_matlab_dirpath
 
 
 class NonPositiveSemidefiniteError(Exception):
