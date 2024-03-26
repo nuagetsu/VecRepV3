@@ -1,8 +1,8 @@
 from typing import List
 
-import FilepathUtils as fpUtils
-import Utilities as utils
-from TestableEstimator import TestableEstimator
+import src.data_processing.FilepathUtils as fpUtils
+import src.data_processing.Utilities as utils
+from src.data_processing.TestableEstimator import TestableEstimator
 
 
 class BruteForceTestableEstimator(TestableEstimator):

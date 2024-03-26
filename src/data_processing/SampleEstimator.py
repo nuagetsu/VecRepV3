@@ -6,9 +6,9 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-import FilepathUtils
-from ImageProducts import calculate_image_product_vector, get_image_product
-from Utilities import generate_image_product_matrix, generate_embedding_matrix
+from src.data_processing import FilepathUtils
+from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
+from src.data_processing.Utilities import generate_image_product_matrix, generate_embedding_matrix
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 logging.basicConfig(

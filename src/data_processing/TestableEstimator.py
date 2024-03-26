@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 import src.visualization.Metrics as metrics
-from EmbeddingFunctions import get_eig_for_symmetric
+from src.data_processing.EmbeddingFunctions import get_eig_for_symmetric
 
 
 class TestableEstimator:

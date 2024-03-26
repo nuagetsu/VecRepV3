@@ -7,11 +7,11 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
-import EmbeddingFunctions
-import Filters
-import ImageGenerators
-import ImageProducts
-from ImageProducts import calculate_image_product_matrix
+from src.data_processing import EmbeddingFunctions
+from src.data_processing import Filters
+from src.data_processing import ImageGenerators
+from src.data_processing import ImageProducts
+from src.data_processing.ImageProducts import calculate_image_product_matrix
 
 logging.basicConfig(
     level=logging.INFO,

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import numpy as np
 
-import FilepathUtils
-from ImageProducts import calculate_image_product_matrix
-from SampleEstimator import SampleEstimator
-from TestableEstimator import TestableEstimator
+from src.data_processing import FilepathUtils
+from src.data_processing.ImageProducts import calculate_image_product_matrix
+from src.data_processing.SampleEstimator import SampleEstimator
+from src.data_processing.TestableEstimator import TestableEstimator
 
 
 class SampleTester(TestableEstimator):
