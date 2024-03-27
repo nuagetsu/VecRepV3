@@ -1,3 +1,17 @@
+# Message to new intern 
+
+HI THERE THIS IS JED
+
+IF YOU ARE SEEING THIS WE HAVE ALREADY RETIRED ON MARCH 29 
+
+I heard that you are a year 2 math major so this project should be fine for you
+however if you feel that you are lost or that you do not know what to do, it is okay
+
+Just make sure that you have fun and enjoy the learning experience.
+
+PEACE
+jed
+ 
 # General code overview
 ## Data processing
 All the code that involves calculating image embeddings is here
