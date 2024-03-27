@@ -276,10 +276,12 @@ From (2),
 We will thereafter solve for the lagrangian multipliers using numerical methods provided by scipy, and find the x that minimises $\frac{1}{2}||Ax-b||^2_2$. 
 
 ### Numerical methods
-The first numerical method tried was the Newton Raphson method 
-The second numerical method I tried was the brent method under scipy which resulted in the code being faster
+The first numerical method tried was the [Newton Raphson method](https://en.wikipedia.org/wiki/Newton%27s_method)
+The second numerical method I tried was the [brent method](https://en.wikipedia.org/wiki/Brent%27s_method) under scipy which resulted in the code being faster, and i do not that there is a trade off in accuracy.
 
 The jenkins traub method can be tried out to see if it provides a faster way to run the code more accurately
+
+As an example, for images in 40x40 dimensions, the numerical analysis method should take approximately 10 minutes to completely run.
 
 # Metrics for embeddings
 Since it is not possible to perfectly solve the problem, we would like to come up with metrics to compare different set of vector embeddings to choose the estimate that best satisfies our requirements.
