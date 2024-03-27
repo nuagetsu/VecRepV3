@@ -9,7 +9,8 @@ however if you feel that you are lost or that you do not know what to do, it is 
 
 Just make sure that you have fun and enjoy the learning experience.
 
-PEACE
+LOVE AND PEACE
+
 jed
  
 # General code overview
