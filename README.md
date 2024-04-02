@@ -4,7 +4,7 @@ Tools to convert images into vector representations in a vector space with speci
 This README serves as a general overview of what we are attempting to do and gives context to the code written. Specific instructions on how the code is structured and how to use it can be found README files in src
 
 # Quickstart
-To use the code, run the VecRep.py file with your choice of image type, image filters, image product, and embedding type.
+To use the code, run the BFMethodExample.py file with your choice of image type, image filters, image product, and embedding type.
 
 More detailed explanation of the options can be found under the "Generalised Problems" section. 
 
