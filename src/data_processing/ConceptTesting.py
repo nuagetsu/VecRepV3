@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+from sklearn.preprocessing import normalize
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -22,6 +23,18 @@ def produceG():
             row.append(ncc(mainImg, tempImg))
         G.append(row)
     return np.array(G)
+
+def produceA():
+    matrixG = produceG()
+    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
+    eigenvalues = eigenvalues[::-1]
+    eigenvalues[0 > eigenvalues] = 0
+    eigenvectors = eigenvectors.T[::-1].T
+    Droot = np.sqrt(np.diag(eigenvalues))
+    matrixA = np.matmul(Droot, eigenvectors.T)
+    matrixA = normalize(matrixA, norm='l2', axis=0)
+    return matrixA
+
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
