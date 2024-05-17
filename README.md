@@ -235,17 +235,15 @@ There are also methods to find the nearest correlation matrix with a rank constr
 
 The resulting matrix then can be decomposed using the reduced dimension decomposition
 
-# Lagrangian Method
-
-## Estimation of vector embedding
+# Estimation of vector embedding
 We wish to estimate a vector $x$, the reduced dimension vector embedding of one of the images not in $A$ that we randomly pick. This x will be the estimation of the vector embedding of the image.
  
- ## Obtaining $x$
+ ## Obtaining $x$ - Lagrangian Method
 Having decomposed the Matrix G' into 
 
 ![equation](https://latex.codecogs.com/svg.image?{A_{d,n}}^tA_{d,n}=G)
 
-and obtaining the value of $A_{d,n}$, we are able to minimise the error $\frac{1}{2}||A^tx-b||^2_2$ , 
+and obtaining the value of $A_{d,n}$ through the BF approach, we are able to minimise the error $\frac{1}{2}||A^tx-b||^2_2$ , 
 Define $b$ as the image products between the picked image and the images in A. We also need to ensure that $x^tx = 1$ as the image product of an image with itself should be 1.
 
 **The problem statement**
@@ -287,12 +285,14 @@ As an example, for images in 40x40 dimensions, the numerical analysis method sho
 Since it is not possible to perfectly solve the problem, we would like to come up with metrics to compare different set of vector embeddings to choose the estimate that best satisfies our requirements.
 
 
-## K neighbour score
+## Relative Position score
 Ideally, close neighbours of the vector embeddings should correspond to close neighbours the original image. The K neighbour score is the fraction of the K most similar images (i.e. highest image product) in K closest vector embeddings (i.e. highest dot product) for the corresponding vector. In an ideal case, the score would be one.
 
 Note that this score only cares how many of the original closest neighbours remain as the closest neighbours. The order within the closest neighbours does not matter (we can make it matter though).
 
-## K nearest neighbours algorithm 
+## Relative Position Algorithm (KNN Algorithm)
+Note that while similar to a KNN Classification algorithm, this score is not related to KNN Classification and only similar in that both inspect the K nearest neighbours of each point (or in this case, vector).
+
 Let the **image products** be b, and the **image product function** be f, 
 s is any random image that is chosen, and n is the total number of images.
 For example, for the image product table of 3x3 binary unique images, 

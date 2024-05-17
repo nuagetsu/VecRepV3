@@ -57,14 +57,14 @@ graphing.investigate_k(bruteForceEstimator)
 
 # Example to investigate a specific set of parameters for BF estimator
 """
-bruteForceEstimator = bfEstimator.BruteForceTestableEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                                               embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
 """
-graphing.investigate_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
+graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                     startingConstr=5, endingConstr=10, specifiedKArr=[1, 3, 5], plotFrob=False)
 """
 plt.show()
