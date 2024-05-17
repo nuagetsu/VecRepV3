@@ -54,6 +54,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
         sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
         testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
+        # TODO Start Random Sampling Here
         # Taking training samples from the front of the image array
         trainingSample = imageSet[:sampleSize]
 
@@ -115,7 +116,7 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
 
-
+        # TODO Start Random Sampling here
         # Taking training samples from the front of the image array
         trainingSample = imageSet[:sampleSizeTested]
 
