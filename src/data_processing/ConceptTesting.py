@@ -35,6 +35,41 @@ def produceA():
     matrixA = normalize(matrixA, norm='l2', axis=0)
     return matrixA
 
+def triangleCalcs():
+    smallestTriangle = [[1,0],
+                        [1,1]]
+    smallestTriangle = np.asarray(smallestTriangle, np.uint8)
+    smallTriangle = [[0,0,0,0],
+                     [0,0,0,0],
+                     [1,0,0,0],
+                     [1,1,0,0]]
+    smallTriangle = np.asarray(smallTriangle, np.uint8)
+    bigTriangle = [[1,0,0,0],
+                   [1,1,0,0],
+                   [1,1,1,0],
+                   [1,1,1,1]]
+    bigTriangle = np.asarray(bigTriangle, np.uint8)
+    smallTriangleMultiplied = [[0,0,0,0,0,0,0,0],
+                               [0,0,0,0,0,0,0,0],
+                               [0,0,0,0,0,0,0,0],
+                               [0,0,0,0,0,0,0,0],
+                               [0,0,1,0,0,0,0,0],
+                               [0,0,1,1,0,0,0,0],
+                               [0,0,0,0,0,0,0,0],
+                               [0,0,0,0,0,0,0,0]]
+    smallTriangleMultiplied = np.asarray(smallTriangleMultiplied, np.uint8)
+    bigTriangleMultiplied = [[0,0,0,0,0,0,0,0],
+                             [0,0,0,0,0,0,0,0],
+                             [0,0,1,0,0,0,0,0],
+                             [0,0,1,1,0,0,0,0],
+                             [0,0,1,1,1,0,0,0],
+                             [0,0,1,1,1,1,0,0],
+                             [0,0,0,0,0,0,0,0],
+                             [0,0,0,0,0,0,0,0]]
+    bigTriangleMultiplied = np.asarray(bigTriangleMultiplied, np.uint8)
+    return (ncc(bigTriangleMultiplied, smallTriangle), ncc(smallTriangleMultiplied, bigTriangle),
+            ncc(smallTriangleMultiplied, smallestTriangle), ncc(bigTriangleMultiplied, smallestTriangle))
+
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
