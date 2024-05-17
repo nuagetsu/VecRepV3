@@ -24,11 +24,10 @@ specifiedKArr = [5]
 sampleName = "Bigger example sample"
 testName = "Bigger example test"
 
-# Loading image dataset. Training set takes from the front of the image set and test set takes from the end
+# Loading image dataset. Training set takes from random samples of the image set.
 imageSet = get_island_image_set(imageType, 500)
 imageSet = np.array(imageSet)
-trainingSample = imageSet[trainingSize:]
-testSample = imageSet[-testSize:]
+testSample, trainingSample = SamplingMethod.generate_random_sample(imageSet, testSize, trainingSize)
 
 # -----Creating graphs-----
 

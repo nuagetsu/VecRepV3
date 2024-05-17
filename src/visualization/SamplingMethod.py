@@ -1,6 +1,7 @@
 import logging
 import sys
 
+import numpy as np
 from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 
@@ -143,4 +144,9 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         trainingFig, neighAx = plt.subplots(1, len(specifiedKArr))
     GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr)
 
+def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampleSize:int):
+    rng = np.random.default_rng()
+    testSample = rng.choice(imageSet, testSampleSize, replace=False)
+    trainingSample = rng.choice(imageSet, trainingSampleSize, replace=False)
 
+    return testSample, trainingSample
