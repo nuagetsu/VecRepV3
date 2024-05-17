@@ -56,11 +56,8 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
         testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
         # TODO Start Random Sampling Here
-        # Taking training samples from the front of the image array
-        trainingSample = imageSet[:sampleSize]
-
-        # Taking testing samples from the back of the image array
-        testSample = imageSet[-testSize:]
+        # Taking training and testing samples as random samples of the image set
+        testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
 
         # Generating a sampleEstimator and SampleTester with the input parameters
         sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample, embeddingType=embType,
@@ -118,11 +115,8 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
 
         # TODO Start Random Sampling here
-        # Taking training samples from the front of the image array
-        trainingSample = imageSet[:sampleSizeTested]
-
-        # Taking testing samples from the back of the image array
-        testSample = imageSet[-testSize:]
+        # Taking random training and testing samples
+        testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
 
         sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample,
                                           embeddingType=embeddingType, imageProductType=imageProductType)
