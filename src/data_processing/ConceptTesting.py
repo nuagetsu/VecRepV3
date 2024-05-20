@@ -35,6 +35,13 @@ def produceA():
     matrixA = normalize(matrixA, norm='l2', axis=0)
     return matrixA
 
+"""
+Task 2: Consider the following toy problem:
+
+We wish to do similar image comparisons on triangles represented in a matrix. The triangles each fit into a 4x4 matrix
+and are compared to an 8x8 main image which consists of another similar 4x4 triangle somewhere in the image (might be
+in the middle).
+"""
 def triangleCalcs():
     smallestTriangle = [[1,0],
                         [1,1]]
@@ -70,6 +77,21 @@ def triangleCalcs():
     return (ncc(bigTriangleMultiplied, smallTriangle), ncc(smallTriangleMultiplied, bigTriangle),
             ncc(smallTriangleMultiplied, smallestTriangle), ncc(bigTriangleMultiplied, smallestTriangle))
 
+"""
+Findings from task 2:
+If the triangle is indeed in the middle of the matrix, then there is a finite number of triangles that we have to
+compare the template images to (either way, there will be a finite number, but the finite number is much smaller
+for the case of the triangle being in the middle). This number is 64, so the dimension of our embedding matrix is at
+most 64. Then, we can use our usual sampling method to create matrix G or G'. However, also note the problem of finding
+smaller triangles.
+
+Some smaller triangles can be found within larger triangles, as shown above, this is further exemplified if the main
+image triangles are in the middle of the image. Then, when trying to match these smaller triangles, note that the NCC
+score will be 1. So, we may be able to find new constraints for the sake of the Lagrangian method.
+
+Since more comparisons will result in an NCC score of 1, it is possible that the training set may have to be larger to 
+ensure that the G created will be more reliable. 
+"""
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
