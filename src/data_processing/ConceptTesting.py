@@ -147,7 +147,14 @@ def generateImageSet():
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
-    return imageSet
+    return np.asarray(imageSet)
+
+def calculateTriangleG(imageSet: NDArray):
+    G = []
+    for image1 in imageSet:
+        for image2 in imageSet:
+            G.append(ncc(image1, image2))
+    return np.reshape(G, (len(imageSet), len(imageSet)))
 
 def getRotationsAndPad(tri_image: NDArray):
     ls = [padToFour(tri_image)]
