@@ -91,7 +91,15 @@ score will be 1. So, we may be able to find new constraints for the sake of the 
 
 Since more comparisons will result in an NCC score of 1, it is possible that the training set may have to be larger to 
 ensure that the G created will be more reliable. 
+
+Subsequent task:
+Consider this toy problem and create code/carry out previous procedures on this set of all 4x4 triangles.
+
+From counting, there are 48x4=192 such triangles. This has been verified using combinatorics.
+Next, we implement the image set. Use the rotate function to rotate every rotationally unique triangle to get every
+triangle. Then, pad the surroundings with 2 rows of 0s.
 """
+
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
