@@ -99,7 +99,66 @@ From counting, there are 48x4=192 such triangles. This has been verified using c
 Next, we implement the image set. Use the rotate function to rotate every rotationally unique triangle to get every
 triangle. Then, pad the surroundings with 2 rows of 0s.
 """
+def generateImageSet():
+    unpaddedImageset = []
+    two_by_two = np.array([[[1, 0],[1, 1]]])
+    three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
+                             [[1, 0], [1, 0], [0, 1]], [[0, 1], [1, 0], [1, 0]]])
+    two_by_four = np.array([[[1, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 0, 0]], [[1, 1, 1, 1], [0, 0, 1, 0]],
+                            [[1, 1, 1, 1], [0, 0, 0, 1]], [[0, 0, 1, 1], [1, 0, 0, 0]], [[1, 1, 0, 0], [0, 0, 0, 1]],
+                            [[0, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 0], [0, 0, 0, 1]]])
+    three_by_three = np.array([[[1, 0, 0], [1, 1, 0], [1, 1, 1]], [[1, 0, 0], [1, 1, 1], [1, 0, 0]],
+                               [[1, 0, 0], [1, 1, 0], [0, 0, 1]], [[0, 0, 1], [1, 1, 0], [0, 0, 1]],
+                               [[0, 1, 0], [1, 1, 0], [0, 0, 1]]])
+    three_by_four = np.array([[[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 0]],
+                              [[1, 1, 1, 1], [0, 1, 1, 0], [0, 0, 1, 0]], [[1, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                              [[0, 0, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 1, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                              [[1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 0, 1], [0, 0, 1, 1], [1, 0, 0, 0]],
+                              [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 1]], [[0, 0, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]], [[0, 1, 0, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                              [[1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[0, 1, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[1, 1, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                              [[0, 0, 0, 1], [0, 1, 0, 0], [1, 0, 0, 0]]])
+    four_by_four = np.array([[[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [0, 0, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
 
+    for tri_image in two_by_two:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    for tri_image in three_by_two:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    for tri_image in two_by_four:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    for tri_image in three_by_three:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    for tri_image in three_by_four:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    for tri_image in four_by_four:
+        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    imageSet = []
+    for tri_image in unpaddedImageset:
+        imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+    return imageSet
+
+def getRotationsAndPad(tri_image: NDArray):
+    ls = [padToFour(tri_image)]
+    for i in range(0, 3):
+        tri_image = np.rot90(tri_image)
+        ls.append(padToFour(tri_image))
+    return ls
+
+def padToFour(tri_image: NDArray):
+    shape = tri_image.shape
+    return np.pad(tri_image, ((4 - shape[0], 0), (0, 4 - shape[1])), constant_values=(0, 0))
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
