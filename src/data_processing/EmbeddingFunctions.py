@@ -56,7 +56,7 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     If none that means the nDim = length of image product matrix
     :return:
     """
-    if re.search('pencorr_[0-9]?[0-9]$', embeddingType) is not None:
+    if re.search('pencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime = pencorr(imageProductMatrix, nDim)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
