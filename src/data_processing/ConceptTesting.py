@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
+from src.data_processing.EmbeddingFunctions import pencorr
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -167,6 +168,15 @@ def padToFour(tri_image: NDArray):
     shape = tri_image.shape
     return np.pad(tri_image, ((4 - shape[0], 0), (0, 4 - shape[1])), constant_values=(0, 0))
 
+def calculateTriangleAWithBF():
+    G = calculateTriangleG(generateImageSet())
+    G_prime = pencorr(G, 192)
+    eigenvalues, eigenvectors = np.linalg.eigh(G_prime)
+    eigenvalues[eigenvalues < 0] = 0
+    D = np.diag(np.sqrt(eigenvalues))
+    A = np.matmul(D, eigenvectors.transpose())
+    return A
+
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
 
@@ -184,3 +194,14 @@ def ncc(mainImg: NDArray, tempImg: NDArray):
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
 
     return max_val
+
+"""
+Some useful links and ideas
+https://developers.google.com/machine-learning/clustering/similarity/measuring-similarity
+https://learn.microsoft.com/en-us/azure/search/vector-search-overview#approximate-nearest-neighbors
+
+Vector similarity can help to determine close images or similar images. Cosine similarity is equal to NCC score.
+Consider any image, then calculate the closest image?
+
+For similarity metric, consider developing relative positioning score with more specific metric calculations.
+"""
