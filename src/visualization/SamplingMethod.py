@@ -55,22 +55,28 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
         sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
         testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
+        aveNeighArr = [[]] * len(specifiedKArr)
+        frobDistanceArr = []
         # TODO Start Random Sampling Here
-        # Taking training and testing samples as random samples of the image set
-        testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
+        for j in range(10):
+            # Taking training and testing samples as random samples of the image set
+            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
 
-        # Generating a sampleEstimator and SampleTester with the input parameters
-        sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample, embeddingType=embType,
+            # Generating a sampleEstimator and SampleTester with the input parameters
+            sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample, embeddingType=embType,
                                           imageProductType=imageProductType)
-        sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
+            sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
 
-        # For each k to be investigated, append the respective k neighbour score
-        for i in range(len(specifiedKArr)):
-            k = specifiedKArr[i]
-            allAveNeighArr[i].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
-                                                                               sampleTester.matrixGprime, k))
-        aveFrobDistanceArr.append(sampleTester.aveFrobDistance)
+            # For each k to be investigated, append the respective k neighbour score
+            for i in range(len(specifiedKArr)):
+                k = specifiedKArr[i]
+                aveNeighArr[i].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
+                                                                                   sampleTester.matrixGprime, k))
+            frobDistanceArr.append(sampleTester.aveFrobDistance)
+        for l in range(len(specifiedKArr)):
+            allAveNeighArr[l].append(sum(aveNeighArr[l]) / len(aveNeighArr[l]))
+        aveFrobDistanceArr.append(sum(frobDistanceArr) / len(frobDistanceArr))
 
     if plotFrob:
         rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
