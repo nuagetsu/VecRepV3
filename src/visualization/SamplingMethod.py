@@ -55,7 +55,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
         sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
         testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
-        aveNeighArr = [[]] * len(specifiedKArr)
+        aveNeighArr = [[] for i in specifiedKArr]
         frobDistanceArr = []
         # TODO Start Random Sampling Here
         for j in range(10):
@@ -119,21 +119,27 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
 
         sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
+        frobDistanceArr = []
+        aveNeighArr = [[] for i in specifiedKArr]
 
         # TODO Start Random Sampling here
-        # Taking random training and testing samples
-        testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
+        for j in range(20):
+            # Taking random training and testing samples
+            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
 
-        sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample,
-                                          embeddingType=embeddingType, imageProductType=imageProductType)
-        sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
+            sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample,
+                                            embeddingType=embeddingType, imageProductType=imageProductType)
+            sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
-        # For each value of k, add the result to the array
-        for i in range(len(specifiedKArr)):
-            k = specifiedKArr[i]
-            allAveNeighArr[i].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
+            # For each value of k, add the result to the array
+            for i in range(len(specifiedKArr)):
+                k = specifiedKArr[i]
+                aveNeighArr[i].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
                                                                                sampleTester.matrixGprime, k))
-        aveFrobDistanceArr.append(sampleTester.aveFrobDistance)
+            frobDistanceArr.append(sampleTester.aveFrobDistance)
+        for l in range(len(specifiedKArr)):
+            allAveNeighArr[l].append(sum(aveNeighArr[l]) / len(aveNeighArr[l]))
+        aveFrobDistanceArr.append(sum(frobDistanceArr) / len(frobDistanceArr))
 
     if plotFrob:
         trainingFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)

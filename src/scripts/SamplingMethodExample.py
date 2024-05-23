@@ -47,7 +47,7 @@ BFmethod.investigate_k(sampleTester)
 BFmethod.investigate_estimator(sampleTester)
 """
 # Example of sweeping the size of the training data set
-"""
+
 startingTrainingSize = 48
 endingTrainingSize = 198
 increment = 10
@@ -56,8 +56,8 @@ SamplingMethod.investigate_training_size(imageSet=imageSet, imageProductType=ima
                                          embeddingType=embeddingType, startingTrainingSize=startingTrainingSize,
                                          endingTrainingSize=endingTrainingSize, increment=increment, testSize=testSize,
                                          testPrefix=testName, specifiedKArr=specifiedKArr)
-"""
 
+"""
 # Example of sweeping the rank constraint of the estimator
 
 max_size = len(imageSet)
@@ -68,5 +68,5 @@ if sampleSize > max_size:
 SamplingMethod.investigate_tester_rank_constraint(imageSet=imageSet, imageProductType=imageProductType,
                                                   sampleSize=sampleSize, testSize=testSize, testPrefix=testName,
                                                   startingConstr=5, endingConstr=50, increment=5)
-
+"""
 plt.show()
