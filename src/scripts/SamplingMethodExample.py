@@ -24,8 +24,8 @@ testSize = 100
 trainingSize = 100
 embeddingType = "pencorr_30"
 specifiedKArr = [5]
-sampleName = "Bigger example sample"
-testName = "Bigger example test"
+sampleName = "Triangle example sample"
+testName = "Triangle example test"
 
 # Loading image dataset. Training set takes from random samples of the image set.
 
@@ -39,24 +39,24 @@ testSample, trainingSample = SamplingMethod.generate_random_sample(imageSet, tes
 # -----Creating graphs-----
 
 # Example of investigating a specific set of parameters
-"""
+
 sampleEstimator = SampleEstimator(sampleName=sampleName, trainingImageSet=trainingSample, embeddingType=embeddingType,
                                   imageProductType=imageProductType)
 sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 BFmethod.investigate_k(sampleTester)
 BFmethod.investigate_estimator(sampleTester)
-"""
-# Example of sweeping the size of the training data set
 
-startingTrainingSize = 48
-endingTrainingSize = 198
-increment = 10
+# Example of sweeping the size of the training data set
+"""
+startingTrainingSize = 50
+endingTrainingSize = 150
+increment = 25
 
 SamplingMethod.investigate_training_size(imageSet=imageSet, imageProductType=imageProductType,
                                          embeddingType=embeddingType, startingTrainingSize=startingTrainingSize,
                                          endingTrainingSize=endingTrainingSize, increment=increment, testSize=testSize,
                                          testPrefix=testName, specifiedKArr=specifiedKArr)
-
+"""
 """
 # Example of sweeping the rank constraint of the estimator
 

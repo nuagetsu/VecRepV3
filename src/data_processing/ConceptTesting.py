@@ -1,4 +1,5 @@
 import cv2
+import random
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
@@ -177,6 +178,122 @@ def calculateTriangleAWithBF():
     A = np.matmul(D, eigenvectors.transpose())
     return A
 
+"""
+Task: Compare triangles that you think are "similar" and see if they get a high NCC score from both
+direct NCC calculation and through vector embedding.
+"""
+
+class TriangleImageSet:
+
+    def __init__(self):
+        self.fullSet = generateImageSet()
+        self.two_by_two = np.array([[[1, 0],[1, 1]]])
+        self.three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
+                             [[1, 0], [1, 0], [0, 1]], [[0, 1], [1, 0], [1, 0]]])
+        self.two_by_four = np.array([[[1, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 0, 0]], [[1, 1, 1, 1], [0, 0, 1, 0]],
+                            [[1, 1, 1, 1], [0, 0, 0, 1]], [[0, 0, 1, 1], [1, 0, 0, 0]], [[1, 1, 0, 0], [0, 0, 0, 1]],
+                            [[0, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 0], [0, 0, 0, 1]]])
+        self.three_by_three = np.array([[[1, 0, 0], [1, 1, 0], [1, 1, 1]], [[1, 0, 0], [1, 1, 1], [1, 0, 0]],
+                               [[1, 0, 0], [1, 1, 0], [0, 0, 1]], [[0, 0, 1], [1, 1, 0], [0, 0, 1]],
+                               [[0, 1, 0], [1, 1, 0], [0, 0, 1]]])
+        self.three_by_four = np.array([[[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 0]],
+                              [[1, 1, 1, 1], [0, 1, 1, 0], [0, 0, 1, 0]], [[1, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                              [[0, 0, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 1, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                              [[1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 0, 1], [0, 0, 1, 1], [1, 0, 0, 0]],
+                              [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 1]], [[0, 0, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]], [[0, 1, 0, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                              [[1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[0, 1, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[1, 1, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                              [[0, 0, 0, 1], [0, 1, 0, 0], [1, 0, 0, 0]]])
+        self.four_by_four = np.array([[[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [0, 0, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
+
+    def get2x2sample(self):
+        imageSet = getRotationsAndPad(self.two_by_two[0])
+        a = []
+        for tri_image in imageSet:
+            a.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+        return a
+
+    def get3x2sample(self):
+        list = []
+        sample = random.choice(self.three_by_two)
+        list.append(getRotationsAndPad(sample))
+        return list
+
+    def get4x2sample(self):
+        list = []
+        sample = random.choice(self.two_by_four)
+        list.append(getRotationsAndPad(sample))
+        return list
+
+    def get3x3sample(self):
+        list = []
+        sample = random.choice(self.three_by_three)
+        list.append(getRotationsAndPad(sample))
+        return list
+
+    def get4x4sample(self):
+        list = []
+        sample = random.choice(self.four_by_four)
+        list.append(getRotationsAndPad(sample))
+        return list
+
+    def get4x3sample(self):
+        list = []
+        sample = random.choice(self.three_by_four)
+        list.append(getRotationsAndPad(sample))
+        return list
+
+"""
+Sanity check 1: Are rotations of images similar to each other?
+    Interpretation: Not really. NCC score of rotations can go as low as 0.3.
+Sanity check 2: Are larger versions of the same triangle similar to smaller versions and vice versa?
+    Interpretation: No, although the two triangles are similar visually, the NCC scores are not particularly high.
+Sanity check 3: More triangle comparisons to visually similar triangles
+"""
+
+def triangleSanityTest1():
+    imageSet = TriangleImageSet()
+    sample = imageSet.get2x2sample()
+    firstImage = sample[0]
+    b = []
+    for i in sample:
+        b.append(ncc(i, firstImage))
+    return firstImage, b
+
+def triangleSanityTest2():
+    two = np.pad(padToFour(np.array([[1, 0],[1, 1]])), (2, 2), constant_values=(0, 0))
+    three = np.pad(padToFour(np.array([[1, 0, 0], [1, 1, 0], [1, 1, 1]])), (2, 2), constant_values=(0, 0))
+    four = np.pad(padToFour(np.array([[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]])), (2, 2), constant_values=(0, 0))
+
+    a = (ncc(two, two), ncc(two, three), ncc(two, four))
+    b = (ncc(four, two), ncc(four, three), ncc(four, four))
+    return a, b
+
+def triangleSanityTest3():
+    one = np.array([[1, 0], [1, 0], [1, 1]])
+    two = np.rot90(np.array([[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]]))
+    three = np.rot90(np.array([[1, 1], [1, 0], [1, 0]]))
+    four = np.array([[1, 0, 0], [1, 1, 0], [1, 1, 1]])
+
+    imageSet = [one, two, three, four]
+    imgSet = []
+    for tri_image in imageSet:
+        imgSet.append(np.pad(padToFour(tri_image), (2, 2), constant_values=(0, 0)))
+    return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[0], imgSet[2]),
+            ncc(imgSet[0], imgSet[2])), imgSet
+
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
 
@@ -204,4 +321,7 @@ Vector similarity can help to determine close images or similar images. Cosine s
 Consider any image, then calculate the closest image?
 
 For similarity metric, consider developing relative positioning score with more specific metric calculations.
+
+Properties of embeddings:
+Note that xtx = 1. So, arranging them into a diagonal matrix, we get Dx squared = ??
 """

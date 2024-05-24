@@ -42,8 +42,8 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "3bin"
-filters = ["unique"]
+imageType = "triangle"
+filters = []
 imageProductType = "ncc"
 embeddingType = "pencorr_15"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
@@ -67,6 +67,6 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 # Example to investigate rank constraint
 
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=20, endingConstr=30, specifiedKArr=[3, 5], plotFrob=False)
+                                    startingConstr=10, endingConstr=50, specifiedKArr=[3, 5], plotFrob=False)
 
 plt.show()
