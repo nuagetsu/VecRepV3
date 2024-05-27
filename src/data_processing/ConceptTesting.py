@@ -102,7 +102,7 @@ From counting, there are 48x4=192 such triangles. This has been verified using c
 Next, we implement the image set. Use the rotate function to rotate every rotationally unique triangle to get every
 triangle. Then, pad the surroundings with 2 rows of 0s.
 """
-def generateImageSet():
+def generateImageSet(mean_subtracted=False):
     unpaddedImageset = []
     two_by_two = np.array([[[1, 0],[1, 1]]])
     three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
@@ -134,19 +134,32 @@ def generateImageSet():
                              [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
                              [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
                              [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
-
-    for tri_image in two_by_two:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_two:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in two_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_three:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in four_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    if not mean_subtracted:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    else:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
@@ -164,6 +177,14 @@ def getRotationsAndPad(tri_image: NDArray):
     for i in range(0, 3):
         tri_image = np.rot90(tri_image)
         ls.append(padToFour(tri_image))
+    return ls
+
+def getRotationsAfterMeanSubtractAndPad(tri_image: NDArray):
+    mean_subtracted = mean_subtract(padToFour(tri_image))
+    ls = [mean_subtracted]
+    for i in range(0, 3):
+        mean_subtracted = np.rot90(mean_subtracted)
+        ls.append(mean_subtracted)
     return ls
 
 def padToFour(tri_image: NDArray):
@@ -389,6 +410,11 @@ def ncc(mainImg: NDArray, tempImg: NDArray):
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
 
     return max_val
+
+def mean_subtract(matrix: NDArray):
+    mean = np.mean(matrix)
+    return matrix - np.ones(matrix.shape) * mean
+
 
 """
 Some useful links and ideas

@@ -30,6 +30,8 @@ def get_image_set(imageType: str):
         image_set = get_binary_image_set(imageLength)
     elif imageType == "triangle":
         image_set = get_triangle_image_set()
+    elif imageType == "triangle_mean_subtracted":
+        image_set = get_triangle_image_set(mean_subtracted=True)
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
@@ -49,7 +51,7 @@ def get_island_image_set(imageType, numImages):
     else:
         raise ValueError("invalid image type")
 
-def get_triangle_image_set():
+def get_triangle_image_set(mean_subtracted=False):
     """
     :return: The image set of 4x4 triangles within an 8x8 matrix.
     """
@@ -84,19 +86,32 @@ def get_triangle_image_set():
                              [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
                              [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
                              [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
-
-    for tri_image in two_by_two:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
-    for tri_image in three_by_two:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
-    for tri_image in two_by_four:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
-    for tri_image in three_by_three:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
-    for tri_image in three_by_four:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
-    for tri_image in four_by_four:
-        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    if not mean_subtracted:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    else:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(get_rotations_of_mean_subtracted_and_padded(tri_image))
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
@@ -112,3 +127,12 @@ def get_rotations_and_pad(tri_image: NDArray):
 def pad_to_four(tri_image: NDArray):
     shape = tri_image.shape
     return np.pad(tri_image, ((4 - shape[0], 0), (0, 4 - shape[1])), constant_values=(0, 0))
+
+def get_rotations_of_mean_subtracted_and_padded(tri_image: NDArray):
+    tri_image = pad_to_four(tri_image)
+    mean_subtracted = tri_image - np.ones(tri_image.shape) * np.mean(tri_image)
+    ls = [mean_subtracted]
+    for i in range(0, 3):
+        mean_subtracted = np.rot90(mean_subtracted)
+        ls.append(mean_subtracted)
+    return ls
