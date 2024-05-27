@@ -5,7 +5,7 @@ import src.visualization.BFmethod as graphing
 
 # -----Possible options-----
 
-IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangle"]
+IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangle", "triangle_mean_subtracted"]
 
 """
 Nbin: N by N matrix of 1s and 0s
@@ -13,6 +13,8 @@ Nbin: N by N matrix of 1s and 0s
 NbinMmax_ones: N by N matrix of 1s and 0s, with only M percentage of squares being 1s
 
 triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within
+
+triangle_mean_subtracted: The triangle type above with the mean of all entries subtracted from each entry
 """
 
 IMAGE_FILTERS = ["unique", "Nmax_ones", "one_island"]
@@ -42,7 +44,7 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "triangle"
+imageType = "triangle_mean_subtracted"
 filters = []
 imageProductType = "ncc"
 embeddingType = "pencorr_15"

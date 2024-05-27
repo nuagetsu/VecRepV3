@@ -396,15 +396,15 @@ def get_embedding_estimate(image):
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
 
-    if np.sum(mainImg) == 0:
-        if np.sum(tempImg) == 0:
+    if np.count_nonzero(mainImg) == 0:
+        if np.count_nonzero(tempImg) == 0:
             return 1
         return 0
 
     mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])), 'wrap')
 
-    mainImg = np.asarray(mainImg, np.uint8)
-    tempImg = np.asarray(tempImg, np.uint8)
+    mainImg = np.asarray(mainImg, np.single)
+    tempImg = np.asarray(tempImg, np.single)
 
     corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
