@@ -32,5 +32,8 @@ class BruteForceEstimator(TestableEstimator):
         filterString = "["
         for f in self.filters:
             filterString = filterString + f + ", "
-        filterString = filterString[:-2] + "]"
+        if self.filters:
+            filterString = filterString[:-2] + "]"
+        else:
+            filterString = filterString + "]"
         return self.imageType + ", " + filterString + ", " + self.imageProductType + ", " + self.embeddingType

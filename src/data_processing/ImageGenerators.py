@@ -28,6 +28,8 @@ def get_image_set(imageType: str):
     elif re.search('[0-9]?[0-9]bin$', imageType) is not None:  # Searching if the image type follows the format 2bin
         imageLength = int(re.search(r'\d+', imageType).group())
         image_set = get_binary_image_set(imageLength)
+    elif imageType == "triangle":
+        image_set = get_triangle_image_set()
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
@@ -46,3 +48,67 @@ def get_island_image_set(imageType, numImages):
         return np.array(grid_creation(imageLength, numImages, int(maxOnesPercentage / 100 * (imageLength ** 2))))
     else:
         raise ValueError("invalid image type")
+
+def get_triangle_image_set():
+    """
+    :return: The image set of 4x4 triangles within an 8x8 matrix.
+    """
+    unpaddedImageset = []
+    two_by_two = np.array([[[1, 0], [1, 1]]])
+    three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
+                             [[1, 0], [1, 0], [0, 1]], [[0, 1], [1, 0], [1, 0]]])
+    two_by_four = np.array([[[1, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 0, 0]], [[1, 1, 1, 1], [0, 0, 1, 0]],
+                            [[1, 1, 1, 1], [0, 0, 0, 1]], [[0, 0, 1, 1], [1, 0, 0, 0]], [[1, 1, 0, 0], [0, 0, 0, 1]],
+                            [[0, 1, 1, 1], [1, 0, 0, 0]], [[1, 1, 1, 0], [0, 0, 0, 1]]])
+    three_by_three = np.array([[[1, 0, 0], [1, 1, 0], [1, 1, 1]], [[1, 0, 0], [1, 1, 1], [1, 0, 0]],
+                               [[1, 0, 0], [1, 1, 0], [0, 0, 1]], [[0, 0, 1], [1, 1, 0], [0, 0, 1]],
+                               [[0, 1, 0], [1, 1, 0], [0, 0, 1]]])
+    three_by_four = np.array([[[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]], [[1, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 0]],
+                              [[1, 1, 1, 1], [0, 1, 1, 0], [0, 0, 1, 0]], [[1, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                              [[0, 0, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 1, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                              [[1, 0, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]], [[0, 0, 0, 1], [0, 0, 1, 1], [1, 0, 0, 0]],
+                              [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 1]], [[0, 0, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]], [[0, 1, 0, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                              [[1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[0, 1, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]],
+                              [[1, 1, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                              [[0, 0, 0, 1], [0, 1, 0, 0], [1, 0, 0, 0]]])
+    four_by_four = np.array([[[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+                             [[0, 0, 0, 1], [0, 0, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [1, 1, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]],
+                             [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
+                             [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
+                             [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
+
+    for tri_image in two_by_two:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    for tri_image in three_by_two:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    for tri_image in two_by_four:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    for tri_image in three_by_three:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    for tri_image in three_by_four:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    for tri_image in four_by_four:
+        unpaddedImageset.extend(get_rotations_and_pad(tri_image))
+    imageSet = []
+    for tri_image in unpaddedImageset:
+        imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+    return np.asarray(imageSet)
+
+def get_rotations_and_pad(tri_image: NDArray):
+    ls = [pad_to_four(tri_image)]
+    for i in range(0, 3):
+        tri_image = np.rot90(tri_image)
+        ls.append(pad_to_four(tri_image))
+    return ls
+
+def pad_to_four(tri_image: NDArray):
+    shape = tri_image.shape
+    return np.pad(tri_image, ((4 - shape[0], 0), (0, 4 - shape[1])), constant_values=(0, 0))

@@ -5,12 +5,14 @@ import src.visualization.BFmethod as graphing
 
 # -----Possible options-----
 
-IMAGE_TYPES = ["NbinMmax_ones", "Nbin"]
+IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangle"]
 
 """
 Nbin: N by N matrix of 1s and 0s
 
 NbinMmax_ones: N by N matrix of 1s and 0s, with only M percentage of squares being 1s
+
+triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within
 """
 
 IMAGE_FILTERS = ["unique", "Nmax_ones", "one_island"]
@@ -40,8 +42,8 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "3bin"
-filters = ["unique"]
+imageType = "triangle"
+filters = []
 imageProductType = "ncc"
 embeddingType = "pencorr_15"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
@@ -63,8 +65,8 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-"""
+
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=5, endingConstr=10, specifiedKArr=[1, 3, 5], plotFrob=False)
-"""
+                                    startingConstr=10, endingConstr=50, specifiedKArr=[3, 5], plotFrob=False)
+
 plt.show()
