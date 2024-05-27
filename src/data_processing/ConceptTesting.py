@@ -4,6 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
 from src.data_processing.EmbeddingFunctions import pencorr
+from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
+from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -26,8 +28,7 @@ def produceG():
         G.append(row)
     return np.array(G)
 
-def produceA():
-    matrixG = produceG()
+def produceA(matrixG):
     eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
     eigenvalues = eigenvalues[::-1]
     eigenvalues[0 > eigenvalues] = 0
@@ -217,6 +218,9 @@ class TriangleImageSet:
                              [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
                              [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
                              [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
+        self.G = calculateTriangleG(self.fullSet)
+        self.Gprime = pencorr(self.G, 192)
+        self.A = produceA(self.Gprime)
 
     def get2x2sample(self):
         imageSet = getRotationsAndPad(self.two_by_two[0])
@@ -255,12 +259,31 @@ class TriangleImageSet:
         list.append(getRotationsAndPad(sample))
         return list
 
+    def getFullSet(self):
+        return self.fullSet
+
+    def getG(self):
+        return self.G
+
+    def getGprime(self):
+        return self.Gprime
+
+    def getA(self):
+        return self.A
+
+
 """
 Sanity check 1: Are rotations of images similar to each other?
     Interpretation: Not really. NCC score of rotations can go as low as 0.3.
 Sanity check 2: Are larger versions of the same triangle similar to smaller versions and vice versa?
-    Interpretation: No, although the two triangles are similar visually, the NCC scores are not particularly high.
+    Interpretation: Relatively, but as size differs, score differs more.
 Sanity check 3: More triangle comparisons to visually similar triangles
+    Interpretation: These triangles show a 0.75 or more NCC score.
+Sanity check 4: Flipped triangles
+    Interpretation: In the first test, the ncc score is high. However, when tested on the smaller triangle (4x3 size),
+    the NCC score is only 0.5 (for both). Smaller triangles are likely more sensitive to differences.
+Sanity check 5: Smaller triangles
+    Interpretation: Possibly confirms previous test. All matches have NCC score around 0.6.
 """
 
 def triangleSanityTest1():
@@ -270,6 +293,9 @@ def triangleSanityTest1():
     b = []
     for i in sample:
         b.append(ncc(i, firstImage))
+    x = get_embedding_estimate(firstImage)
+    for i in sample:
+        b.append((np.dot(get_embedding_estimate(i), x)))
     return firstImage, b
 
 def triangleSanityTest2():
@@ -279,7 +305,11 @@ def triangleSanityTest2():
 
     a = (ncc(two, two), ncc(two, three), ncc(two, four))
     b = (ncc(four, two), ncc(four, three), ncc(four, four))
-    return a, b
+    two2 = get_embedding_estimate(two)
+    three2 = get_embedding_estimate(three)
+    four2 = get_embedding_estimate(four)
+    c = (np.dot(two2, two2), np.dot(two2, three2), np.dot(two2, four2))
+    return a, b, c
 
 def triangleSanityTest3():
     one = np.array([[1, 0], [1, 0], [1, 1]])
@@ -291,8 +321,56 @@ def triangleSanityTest3():
     imgSet = []
     for tri_image in imageSet:
         imgSet.append(np.pad(padToFour(tri_image), (2, 2), constant_values=(0, 0)))
+    one2 = get_embedding_estimate(imgSet[0])
+    est = []
+    for tri_image in imgSet:
+        est.append(np.dot(one2, get_embedding_estimate(tri_image)))
     return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[0], imgSet[2]),
-            ncc(imgSet[0], imgSet[2])), imgSet
+            ncc(imgSet[0], imgSet[3]), est), imgSet
+
+def triangleSanityTest4():
+    one = np.array([[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1], [1, 0, 0, 0]])
+    two = np.array([[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]])
+    three = np.rot90(np.array([[0, 0, 0, 1], [0, 0, 1, 1], [1, 0, 0, 0]]))
+    four = np.rot90(np.array([[0, 0, 1, 1], [0, 1, 0, 0], [1, 0, 0, 0]]))
+    five = np.array([[1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+    imageSet = [one, two, three, four, five]
+    imgSet = []
+    for tri_image in imageSet:
+        imgSet.append(np.pad(padToFour(tri_image), (2, 2), constant_values=(0, 0)))
+    one2 = get_embedding_estimate(imgSet[0])
+    three2 = get_embedding_estimate(imgSet[2])
+    est = (np.dot(one2, get_embedding_estimate(imgSet[1])), np.dot(three2, get_embedding_estimate(imgSet[3])),
+           np.dot(three2, get_embedding_estimate(imgSet[4])))
+    return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[2], imgSet[2]),
+            ncc(imgSet[2], imgSet[3]), ncc(imgSet[2], imgSet[4]), est), imgSet
+
+def triangleSanityTest5():
+    one = np.array([[1, 0], [1, 0], [0, 1]])
+    two = np.array([[0, 1], [1, 0], [1, 0]])
+    three = np.array([[1, 0, 0], [1, 1, 0], [0, 0, 1]])
+    four = np.rot90(np.array([[0, 0, 1, 1], [1, 0, 0, 0]]))
+    five = np.rot90(two, k=-1)
+
+    imageSet = [one, two, three, four, five]
+    imgSet = []
+    for tri_image in imageSet:
+        imgSet.append(np.pad(padToFour(tri_image), (2, 2), constant_values=(0, 0)))
+    est = []
+    one2 = get_embedding_estimate(imgSet[0])
+    for tri_image in imgSet:
+        est.append(np.dot(one2, get_embedding_estimate(tri_image)))
+    return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[0], imgSet[2]),
+            ncc(imgSet[0], imgSet[3]), ncc(imgSet[0], imgSet[4]), est), imgSet
+
+# This estimate is using the Lagrangian method and is the same as the one in SampleEstimator.py
+def get_embedding_estimate(image):
+    triangleImageSet = TriangleImageSet()
+    trainingImageSet = triangleImageSet.getFullSet()
+    imageProductVector = calculate_image_product_vector(image, trainingImageSet, ncc)
+    estimateVector = Lagrangian_Method2(triangleImageSet.getA(), imageProductVector)[0]
+    return estimateVector
 
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
