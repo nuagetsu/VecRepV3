@@ -11,6 +11,8 @@ def get_image_product(imageProductType: str):
 
     if imageProductType == "ncc_scaled":
         return ncc_scaled
+    elif imageProductType == "ncc_squared":
+        return ncc_squared
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -21,6 +23,16 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     :return: Max value of the ncc, with scaled bounds of [-1,1]
     """
     return ncc(mainImg, tempImg) * 2 - 1
+
+def ncc_squared(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc, squared (to keep 1 to 1)
+
+    In theory, this should further separate close images with high NCC score that we care more about.
+    """
+    return ncc(mainImg, tempImg) ** 2
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """

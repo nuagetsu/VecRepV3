@@ -45,9 +45,9 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "triangle_mean_subtracted"
+imageType = "triangle"
 filters = []
-imageProductType = "ncc_scaled"
+imageProductType = "ncc_squared"
 embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
