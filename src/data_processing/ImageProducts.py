@@ -31,8 +31,8 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     Applies NCC of the template image over the main image and returns the max value obtained.
     When the template image kernel exceeds the bounds, wraps to the other side of the main image
     """
-    if np.sum(mainImg) == 0:
-        if np.sum(tempImg) == 0:
+    if np.count_nonzero(mainImg) == 0:
+        if np.count_nonzero(tempImg) == 0:
             return 1
         return 0
 

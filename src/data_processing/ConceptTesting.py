@@ -385,6 +385,13 @@ def triangleSanityTest5():
     return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[0], imgSet[2]),
             ncc(imgSet[0], imgSet[3]), ncc(imgSet[0], imgSet[4]), est), imgSet
 
+"""
+Mean subtracted tests: Mean subtracted triangles give a generally quite similar Relative Positioning Score as non
+mean subtracted triangles. At k=3, normal triangles win out, but at k=5, mean subtracted triangles give a slightly
+higher score.
+Next, try mean subtracting across the entire grid.
+"""
+
 # This estimate is using the Lagrangian method and is the same as the one in SampleEstimator.py
 def get_embedding_estimate(image):
     triangleImageSet = TriangleImageSet()
