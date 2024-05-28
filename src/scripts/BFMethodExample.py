@@ -47,7 +47,7 @@ Sample input: pencorr_20
 # -----Variables-----
 imageType = "triangle_mean_subtracted"
 filters = []
-imageProductType = "ncc"
+imageProductType = "ncc_scaled"
 embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
@@ -68,8 +68,8 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-"""
+
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=40, endingConstr=80, specifiedKArr=[3, 5], plotFrob=False)
-"""
+                                    startingConstr=30, endingConstr=60, specifiedKArr=[3, 5], plotFrob=False)
+
 plt.show()

@@ -32,6 +32,8 @@ def get_image_set(imageType: str):
         image_set = get_triangle_image_set()
     elif imageType == "triangle_mean_subtracted":
         image_set = get_triangle_image_set(mean_subtracted=True)
+    elif imageType == "triangle_gms":
+        image_set = get_triangle_image_set(gridwide=True)
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
@@ -51,7 +53,7 @@ def get_island_image_set(imageType, numImages):
     else:
         raise ValueError("invalid image type")
 
-def get_triangle_image_set(mean_subtracted=False):
+def get_triangle_image_set(mean_subtracted=False, gridwide=False):
     """
     :return: The image set of 4x4 triangles within an 8x8 matrix.
     """
@@ -115,6 +117,9 @@ def get_triangle_image_set(mean_subtracted=False):
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+    if gridwide:
+        for i in range(len(imageSet)):
+            imageSet[i] = imageSet[i] - np.ones(imageSet[i].shape) * np.mean(imageSet[i])
     return np.asarray(imageSet)
 
 def get_rotations_and_pad(tri_image: NDArray):

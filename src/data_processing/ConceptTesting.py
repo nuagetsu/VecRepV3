@@ -102,7 +102,7 @@ From counting, there are 48x4=192 such triangles. This has been verified using c
 Next, we implement the image set. Use the rotate function to rotate every rotationally unique triangle to get every
 triangle. Then, pad the surroundings with 2 rows of 0s.
 """
-def generateImageSet(mean_subtracted=False):
+def generateImageSet(mean_subtracted=False, gridwide=False):
     unpaddedImageset = []
     two_by_two = np.array([[[1, 0],[1, 1]]])
     three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
@@ -163,6 +163,9 @@ def generateImageSet(mean_subtracted=False):
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+    if gridwide:
+        for i in range(len(imageSet)):
+            imageSet[i] = mean_subtract(imageSet[i])
     return np.asarray(imageSet)
 
 def calculateTriangleG(imageSet: NDArray):
@@ -390,6 +393,8 @@ Mean subtracted tests: Mean subtracted triangles give a generally quite similar 
 mean subtracted triangles. At k=3, normal triangles win out, but at k=5, mean subtracted triangles give a slightly
 higher score.
 Next, try mean subtracting across the entire grid.
+
+When mean subtracting across the whole grid, Relative Positioning score is strictly worse for both k=3 and k=5
 """
 
 # This estimate is using the Lagrangian method and is the same as the one in SampleEstimator.py
