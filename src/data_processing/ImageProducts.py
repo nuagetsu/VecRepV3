@@ -39,8 +39,8 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])),
                      'wrap')  # Padding the main image with wrapped values to simulate wrapping
 
-    mainImg = np.asarray(mainImg, np.uint8)  # Setting data types of array
-    tempImg = np.asarray(tempImg, np.uint8)
+    mainImg = np.asarray(mainImg, np.single)  # Setting data types of array
+    tempImg = np.asarray(tempImg, np.single)
 
     corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
 

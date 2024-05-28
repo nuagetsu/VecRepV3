@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.data_processing.ImageGenerators import get_image_set, get_binary_image_set
+from src.data_processing.ImageGenerators import get_image_set, get_binary_image_set, get_triangle_image_set
 
 class TestImageGenerators(unittest.TestCase):
     def test_output_shape(self):
@@ -30,5 +30,13 @@ class TestImageGenerators(unittest.TestCase):
             with self.subTest(imageType=imageType):
                 with self.assertRaises(ValueError):
                     get_image_set(imageType)
+
+    def test_get_triangle_image_set(self):
+        triangle_set = get_triangle_image_set()
+        values, counts = np.unique(triangle_set, return_counts=True, axis=0)
+        self.assertEqual(len(counts), 192)
+        triangle_set_mean_subtracted = get_triangle_image_set(mean_subtracted=True)
+        values_mean_subtracted, mean_subtracted_counts = np.unique(triangle_set_mean_subtracted,return_counts=True, axis=0)
+        self.assertEqual(len(mean_subtracted_counts), 192)
 if __name__ == '__main__':
     unittest.main()

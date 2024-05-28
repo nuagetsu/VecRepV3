@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from oct2py import octave
 from sklearn.preprocessing import normalize
 
-from helpers.FilepathUtils import get_matlab_dirpath
+from src.helpers.FilepathUtils import get_matlab_dirpath
 
 
 class NonPositiveSemidefiniteError(Exception):
