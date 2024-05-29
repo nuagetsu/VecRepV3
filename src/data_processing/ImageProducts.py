@@ -1,3 +1,4 @@
+import re
 from typing import Callable
 
 import cv2
@@ -8,11 +9,15 @@ from numpy.typing import NDArray
 def get_image_product(imageProductType: str):
     if imageProductType == "ncc":
         return ncc
-
     if imageProductType == "ncc_scaled":
         return ncc_scaled
     elif imageProductType == "ncc_squared":
         return ncc_squared
+    elif imageProductType == "ncc_squared_scaled":
+        return ncc_squared_scaled
+    elif re.search("ncc_pow_[0-9]*[0-9]\.?\d*$", imageProductType) is not None:
+        power = float(re.search(r"[0-9]*[0-9]\.?\d*", imageProductType).group())
+        return ncc_pow(power)
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -33,6 +38,21 @@ def ncc_squared(mainImg: NDArray, tempImg: NDArray) -> float:
     In theory, this should further separate close images with high NCC score that we care more about.
     """
     return ncc(mainImg, tempImg) ** 2
+
+def ncc_squared_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc squared, with scaled bounds of [-1,1]
+    """
+    return ncc_squared(mainImg, tempImg) * 2 - 1
+
+def ncc_pow(power: float):
+    """
+    :param power: Power to raise NCC score by
+    :return: Image product method of ncc raised to the power of power
+    """
+    return lambda mainImg, tempImg: ncc(mainImg, tempImg) ** power
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """

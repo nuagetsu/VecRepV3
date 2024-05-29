@@ -109,7 +109,7 @@ def investigate_estimator(estimator: TestableEstimator, numK=16, plottedImagesIn
     aveAx = axArr[-1][1]
     GraphEstimates.plot_ave_k_neighbours(aveAx, aveKNeighArr, kArr)
 
-    # Set the bottom right subplot to be empty
+    # Set the bottom left subplot to be empty
     axArr[-1][0].set_axis_off()
 
 
@@ -165,3 +165,38 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     else:
         rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
     GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)
+
+def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
+                                   numK=16, plotFrob=True):
+    """
+    :param imageType: The image set to investigate
+    :param filters: Filters to apply to the image set
+    :param imageProductTypeArr: Image product types to investigate
+    :param plotFrob: If true, also displays the frobenius error
+    :return: Plots a graph of the relative positioning score against the number of neighbours analysed for each image
+        product type in the image product type array.
+    """
+    if imageProductTypeArr is None:
+        imageProductTypeArr = ["ncc"]
+
+    imgFig, axArr = plt.subplots(len(imageProductTypeArr), 1 + plotFrob)
+    imgFig.suptitle("Relative Positioning Score of image product types on " + imageType + ", " + embType)
+
+    count = 0
+    for imageProductType in imageProductTypeArr:
+        logging.info("Investigating image product " + imageProductType)
+        bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                          embeddingType=embType)
+        kArr = list(range(1, numK + 1))
+        aveKNeighArr = []
+        for k in kArr:
+            aveKNeighArr.append(metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG,
+                                                                          bfEstimator.matrixGprime, k))
+        plotPoint = axArr[count]
+        if plotFrob:
+            GraphEstimates.plot_key_stats_text(axArr[count][1], bfEstimator.frobDistance, bfEstimator.aveFrobDistance,
+                                               bfEstimator.maxDifference)
+            plotPoint = plotPoint[0]
+        GraphEstimates.plot_ave_k_neighbours(plotPoint, aveKNeighArr, kArr)
+        count += 1
+        plotPoint.set_title("Relative Positioning Score against number of neighbours analysed for " + imageProductType)

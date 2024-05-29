@@ -16,6 +16,8 @@ triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within. Values ar
 
 triangle_mean_subtracted: The triangle type above with the mean of all entries subtracted from each entry. Values are
                         not restricted.
+                        
+triangle_gms: Triangle image set with mean subtracted across the whole image.
 """
 
 IMAGE_FILTERS = ["unique", "Nmax_ones", "one_island"]
@@ -34,6 +36,7 @@ IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
 """
 ncc: Normal ncc score. Range of [0,1]
 ncc_scaled: Normal ncc score, with range scaled to [-1,1]
+ncc_squared: Normal ncc score squared
 """
 
 EMBEDDING_TYPES = ["pencorr_D"]
@@ -47,7 +50,7 @@ Sample input: pencorr_20
 # -----Variables-----
 imageType = "triangle"
 filters = []
-imageProductType = "ncc_squared"
+imageProductType = "ncc"
 embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
@@ -68,8 +71,15 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-
+"""
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=30, endingConstr=60, specifiedKArr=[3, 5], plotFrob=False)
+                                    startingConstr=60, endingConstr=90, specifiedKArr=[3, 5], plotFrob=True)
+"""
+
+# Example to investigate changes in image product
+
+graphing.investigate_image_product_type(imageType=imageType, filters=filters,
+                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_pow_3"],
+                                        embType=embeddingType, plotFrob=False)
 
 plt.show()
