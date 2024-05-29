@@ -50,7 +50,7 @@ Sample input: pencorr_20
 # -----Variables-----
 imageType = "triangle"
 filters = []
-imageProductType = "ncc"
+imageProductType = "ncc_exp"
 embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
@@ -73,13 +73,13 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 # Example to investigate rank constraint
 """
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=60, endingConstr=90, specifiedKArr=[3, 5], plotFrob=True)
-"""
+                                    startingConstr=30, endingConstr=60, specifiedKArr=[3, 5], plotFrob=True)
 
+"""
 # Example to investigate changes in image product
 
 graphing.investigate_image_product_type(imageType=imageType, filters=filters,
-                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_pow_3"],
+                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_exp"],
                                         embType=embeddingType, plotFrob=False)
 
 plt.show()

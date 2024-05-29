@@ -52,6 +52,22 @@ def plot_ave_k_neighbours(ax, allAveKNeighbourScores: List, kArr: List):
     ax.set_ylim(0, 1.1)
     ax.legend(loc="lower right")
 
+def plot_ave_k_neighbours_for_type(ax, allAveKNeighbourScores: List, kArr: List, imageProductType: str):
+    """
+    :param ax: Axes to plot graph
+    :param allAveKNeighbourScores: The list af all ave k neighbour scores for all values of k
+    :param kArr: List of k values to plot
+    :return: Plots the graph of average k neighbour score for a range of k values but shortens the axes.
+    """
+    idealPlot = range(1, len(kArr) + 1)  # for plotting ideal score
+    ax.plot(idealPlot, [1 for count in range(len(idealPlot))], color='b', linestyle=':', label="Ideal")
+    ax.plot(kArr, allAveKNeighbourScores, color='r', label="Real")
+    ax.set_title("Relative Positioning Score against number of neighbours analysed for " + imageProductType)
+    ax.set_xlabel("Value of k")
+    ax.set_ylabel("Norm K neighbour score")
+    ax.set_ylim(0.5, 1.1)
+    ax.legend(loc="lower right")
+
 
 def plot_k_histogram(ax: Axes, kNeighScores: List, kVal: int):
     labels, counts = np.unique(kNeighScores, return_counts=True)

@@ -197,6 +197,6 @@ def investigate_image_product_type(*, imageType: str, filters=None, imageProduct
             GraphEstimates.plot_key_stats_text(axArr[count][1], bfEstimator.frobDistance, bfEstimator.aveFrobDistance,
                                                bfEstimator.maxDifference)
             plotPoint = plotPoint[0]
-        GraphEstimates.plot_ave_k_neighbours(plotPoint, aveKNeighArr, kArr)
+        GraphEstimates.plot_ave_k_neighbours_for_type(plotPoint, aveKNeighArr, kArr, imageProductType)
         count += 1
         plotPoint.set_title("Relative Positioning Score against number of neighbours analysed for " + imageProductType)

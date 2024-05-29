@@ -4,6 +4,7 @@ from typing import Callable
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+import math
 
 
 def get_image_product(imageProductType: str):
@@ -18,6 +19,8 @@ def get_image_product(imageProductType: str):
     elif re.search("ncc_pow_[0-9]*[0-9]\.?\d*$", imageProductType) is not None:
         power = float(re.search(r"[0-9]*[0-9]\.?\d*", imageProductType).group())
         return ncc_pow(power)
+    elif imageProductType == "ncc_exp":
+        return ncc_exp
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -53,6 +56,14 @@ def ncc_pow(power: float):
     :return: Image product method of ncc raised to the power of power
     """
     return lambda mainImg, tempImg: ncc(mainImg, tempImg) ** power
+
+def ncc_exp(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Value of e raised to the power of n - 1
+    """
+    return math.exp(ncc(mainImg, tempImg) - 1)
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """

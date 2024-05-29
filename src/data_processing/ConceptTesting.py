@@ -168,11 +168,11 @@ def generateImageSet(mean_subtracted=False, gridwide=False):
             imageSet[i] = mean_subtract(imageSet[i])
     return np.asarray(imageSet)
 
-def calculateTriangleG(imageSet: NDArray):
+def calculateTriangleG(imageSet: NDArray, imageProduct=lambda x, y: ncc(x, y)):
     G = []
     for image1 in imageSet:
         for image2 in imageSet:
-            G.append(ncc(image1, image2))
+            G.append(imageProduct(image1, image2))
     return np.reshape(G, (len(imageSet), len(imageSet)))
 
 def getRotationsAndPad(tri_image: NDArray):
