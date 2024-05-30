@@ -17,3 +17,725 @@
  Primal function value    ===== 2.85016419e-13 
  Computing time           ======= 0.4(secs) 
  ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.72e-12 
+ The infeasibility of X*  === 1.37865935e-08 
+ Final ||Ho(X-G)||        ===== 7.55594100e-07 
+ Primal function value    ===== 2.85461222e-13 
+ Computing time           ======= 0.3(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 65 
+ The rank error           === 0.00e+00 
+ The rel func error       === 7.15e-12 
+ The infeasibility of X*  === 3.11784944e-08 
+ Final ||Ho(X-G)||        ===== 1.51129199e-06 
+ Primal function value    ===== 1.14200174e-12 
+ Computing time           ======= 0.3(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 13 
+ The rank of  X*          === 65 
+ The rank error           === 0.00e+00 
+ The rel func error       === 7.76e-12 
+ The infeasibility of X*  === 3.29734880e-08 
+ Final ||Ho(X-G)||        ===== 1.51130220e-06 
+ Primal function value    ===== 1.14201718e-12 
+ Computing time           ======= 0.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 13 
+ The rank of  X*          === 49 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.44e-12 
+ The infeasibility of X*  === 9.14248167e-09 
+ Final ||Ho(X-G)||        ===== 7.54919416e-07 
+ Primal function value    ===== 2.84951663e-13 
+ Computing time           ======= 0.5(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 13 
+ The rank of  X*          === 58 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.38e-12 
+ The infeasibility of X*  === 1.52683467e-08 
+ Final ||Ho(X-G)||        ===== 7.55397820e-07 
+ Primal function value    ===== 2.85312933e-13 
+ Computing time           ======= 0.5(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 50 
+ Total num of CG          = 27 
+ Total num of eigendecom  = 114 
+ The rank of  X*          === 53 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.89e-06 
+ The infeasibility of X*  === 3.45512034e-07 
+ Final ||Ho(X-G)||        ===== 2.37360533e-02 
+ Primal function value    ===== 2.81700113e-04 
+ Computing time           ======= 2.9(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 37 
+ Total num of CG          = 29 
+ Total num of eigendecom  = 88 
+ The rank of  X*          === 69 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.65e-06 
+ The infeasibility of X*  === 7.14579969e-08 
+ Final ||Ho(X-G)||        ===== 2.31584068e-02 
+ Primal function value    ===== 2.68155902e-04 
+ Computing time           ======= 1.8(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 28 
+ Total num of CG          = 29 
+ Total num of eigendecom  = 70 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.85e-06 
+ The infeasibility of X*  === 1.55163164e-07 
+ Final ||Ho(X-G)||        ===== 2.36330738e-02 
+ Primal function value    ===== 2.79261088e-04 
+ Computing time           ======= 1.8(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 8 
+ Total num of CG          = 42 
+ Total num of eigendecom  = 41 
+ The rank of  X*          === 50 
+ The rank error           === 0.00e+00 
+ The rel func error       === 5.13e-06 
+ The infeasibility of X*  === 1.31288181e-07 
+ Final ||Ho(X-G)||        ===== 4.17118485e+00 
+ Primal function value    ===== 8.69939152e+00 
+ Computing time           ======= 1.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 17 
+ Total num of CG          = 94 
+ Total num of eigendecom  = 77 
+ The rank of  X*          === 61 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.82e-06 
+ The infeasibility of X*  === 1.01065442e-08 
+ Final ||Ho(X-G)||        ===== 2.32499964e+00 
+ Primal function value    ===== 2.70281165e+00 
+ Computing time           ======= 2.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 4 
+ Total num of CG          = 26 
+ Total num of eigendecom  = 24 
+ The rank of  X*          === 57 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.52e-06 
+ The infeasibility of X*  === 1.26713652e-07 
+ Final ||Ho(X-G)||        ===== 2.66540694e+00 
+ Primal function value    ===== 3.55219708e+00 
+ Computing time           ======= 1.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 13 
+ Total num of CG          = 62 
+ Total num of eigendecom  = 61 
+ The rank of  X*          === 50 
+ The rank error           === 0.00e+00 
+ The rel func error       === 5.58e-06 
+ The infeasibility of X*  === 2.03135484e-08 
+ Final ||Ho(X-G)||        ===== 4.17063120e+02 
+ Primal function value    ===== 8.69708228e+04 
+ Computing time           ======= 2.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 58 
+ Total num of CG          = 227 
+ Total num of eigendecom  = 205 
+ The rank of  X*          === 61 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.47e-06 
+ The infeasibility of X*  === 1.23022322e-07 
+ Final ||Ho(X-G)||        ===== 2.31678881e+02 
+ Primal function value    ===== 2.68375520e+04 
+ Computing time           ======= 6.7(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 6 
+ Total num of CG          = 34 
+ Total num of eigendecom  = 32 
+ The rank of  X*          === 57 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.57e-06 
+ The infeasibility of X*  === 3.66007300e-08 
+ Final ||Ho(X-G)||        ===== 2.66536181e+02 
+ Primal function value    ===== 3.55207680e+04 
+ Computing time           ======= 1.0(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 21 
+ Total num of CG          = 124 
+ Total num of eigendecom  = 97 
+ The rank of  X*          === 49 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.53e-06 
+ The infeasibility of X*  === 1.31179218e-08 
+ Final ||Ho(X-G)||        ===== 2.41404411e+00 
+ Primal function value    ===== 2.91380449e+00 
+ Computing time           ======= 3.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 45 
+ Total num of CG          = 233 
+ Total num of eigendecom  = 180 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.63e-06 
+ The infeasibility of X*  === 6.07456143e-07 
+ Final ||Ho(X-G)||        ===== 9.48007059e-01 
+ Primal function value    ===== 4.49358692e-01 
+ Computing time           ======= 6.8(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 8 
+ Total num of CG          = 48 
+ Total num of eigendecom  = 40 
+ The rank of  X*          === 58 
+ The rank error           === 0.00e+00 
+ The rel func error       === 6.76e-06 
+ The infeasibility of X*  === 8.43332584e-08 
+ Final ||Ho(X-G)||        ===== 1.79836318e+00 
+ Primal function value    ===== 1.61705506e+00 
+ Computing time           ======= 1.8(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 8 
+ Total num of CG          = 42 
+ Total num of eigendecom  = 41 
+ The rank of  X*          === 50 
+ The rank error           === 0.00e+00 
+ The rel func error       === 5.13e-06 
+ The infeasibility of X*  === 1.31288181e-07 
+ Final ||Ho(X-G)||        ===== 4.17118485e+00 
+ Primal function value    ===== 8.69939152e+00 
+ Computing time           ======= 1.1(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 17 
+ Total num of CG          = 94 
+ Total num of eigendecom  = 77 
+ The rank of  X*          === 61 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.82e-06 
+ The infeasibility of X*  === 1.01065442e-08 
+ Final ||Ho(X-G)||        ===== 2.32499964e+00 
+ Primal function value    ===== 2.70281165e+00 
+ Computing time           ======= 2.1(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 4 
+ Total num of CG          = 26 
+ Total num of eigendecom  = 24 
+ The rank of  X*          === 57 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.52e-06 
+ The infeasibility of X*  === 1.26713652e-07 
+ Final ||Ho(X-G)||        ===== 2.66540694e+00 
+ Primal function value    ===== 3.55219708e+00 
+ Computing time           ======= 0.7(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 21 
+ Total num of CG          = 124 
+ Total num of eigendecom  = 97 
+ The rank of  X*          === 49 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.53e-06 
+ The infeasibility of X*  === 1.31179218e-08 
+ Final ||Ho(X-G)||        ===== 2.41404411e+00 
+ Primal function value    ===== 2.91380449e+00 
+ Computing time           ======= 2.7(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 45 
+ Total num of CG          = 233 
+ Total num of eigendecom  = 180 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.63e-06 
+ The infeasibility of X*  === 6.07456143e-07 
+ Final ||Ho(X-G)||        ===== 9.48007059e-01 
+ Primal function value    ===== 4.49358692e-01 
+ Computing time           ======= 4.9(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 8 
+ Total num of CG          = 48 
+ Total num of eigendecom  = 40 
+ The rank of  X*          === 58 
+ The rank error           === 0.00e+00 
+ The rel func error       === 6.76e-06 
+ The infeasibility of X*  === 8.43332584e-08 
+ Final ||Ho(X-G)||        ===== 1.79836318e+00 
+ Primal function value    ===== 1.61705506e+00 
+ Computing time           ======= 1.7(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 51 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.34e-12 
+ The infeasibility of X*  === 1.10900447e-08 
+ Final ||Ho(X-G)||        ===== 7.55005191e-07 
+ Primal function value    ===== 2.85016419e-13 
+ Computing time           ======= 0.3(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 65 
+ The rank error           === 0.00e+00 
+ The rel func error       === 7.15e-12 
+ The infeasibility of X*  === 3.11784944e-08 
+ Final ||Ho(X-G)||        ===== 1.51129199e-06 
+ Primal function value    ===== 1.14200174e-12 
+ Computing time           ======= 0.5(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 10 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.72e-12 
+ The infeasibility of X*  === 1.37865935e-08 
+ Final ||Ho(X-G)||        ===== 7.55594100e-07 
+ Primal function value    ===== 2.85461222e-13 
+ Computing time           ======= 1.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 21 
+ Total num of CG          = 112 
+ Total num of eigendecom  = 88 
+ The rank of  X*          === 83 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.82e-06 
+ The infeasibility of X*  === 7.34622326e-07 
+ Final ||Ho(X-G)||        ===== 1.03524592e+00 
+ Primal function value    ===== 5.35867056e-01 
+ Computing time           ======= 2.5(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 40 
+ Total num of CG          = 191 
+ Total num of eigendecom  = 149 
+ The rank of  X*          === 82 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.84e-06 
+ The infeasibility of X*  === 3.33458033e-07 
+ Final ||Ho(X-G)||        ===== 3.54943522e-01 
+ Primal function value    ===== 6.29924519e-02 
+ Computing time           ======= 4.1(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 31 
+ Total num of CG          = 166 
+ Total num of eigendecom  = 129 
+ The rank of  X*          === 60 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.61e-06 
+ The infeasibility of X*  === 8.21322899e-07 
+ Final ||Ho(X-G)||        ===== 1.19992969e+00 
+ Primal function value    ===== 7.19915626e-01 
+ Computing time           ======= 4.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 37 
+ Total num of CG          = 146 
+ Total num of eigendecom  = 130 
+ The rank of  X*          === 99 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.92e-06 
+ The infeasibility of X*  === 1.91250933e-07 
+ Final ||Ho(X-G)||        ===== 1.95827794e-01 
+ Primal function value    ===== 1.91742625e-02 
+ Computing time           ======= 4.9(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 12 
+ Total num of CG          = 39 
+ Total num of eigendecom  = 45 
+ The rank of  X*          === 155 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.57e-06 
+ The infeasibility of X*  === 5.90425653e-07 
+ Final ||Ho(X-G)||        ===== 3.28810653e-02 
+ Primal function value    ===== 5.40582228e-04 
+ Computing time           ======= 1.6(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 9 
+ Total num of CG          = 48 
+ Total num of eigendecom  = 45 
+ The rank of  X*          === 62 
+ The rank error           === 0.00e+00 
+ The rel func error       === 8.28e-06 
+ The infeasibility of X*  === 1.76329740e-07 
+ Final ||Ho(X-G)||        ===== 2.62322293e+00 
+ Primal function value    ===== 3.44064928e+00 
+ Computing time           ======= 1.3(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 22 
+ Total num of CG          = 96 
+ Total num of eigendecom  = 93 
+ The rank of  X*          === 98 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.10e-06 
+ The infeasibility of X*  === 3.36483783e-08 
+ Final ||Ho(X-G)||        ===== 6.39978962e-01 
+ Primal function value    ===== 2.04786536e-01 
+ Computing time           ======= 3.2(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 14 
+ Total num of CG          = 57 
+ Total num of eigendecom  = 58 
+ The rank of  X*          === 154 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.70e-06 
+ The infeasibility of X*  === 2.84252240e-09 
+ Final ||Ho(X-G)||        ===== 7.87965055e-02 
+ Primal function value    ===== 3.10444464e-03 
+ Computing time           ======= 2.9(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 9 
+ The rank of  X*          === 68 
+ The rank error           === 0.00e+00 
+ The rel func error       === 5.25e-14 
+ The infeasibility of X*  === 3.32236021e-09 
+ Final ||Ho(X-G)||        ===== 1.14341492e-06 
+ Primal function value    ===== 6.53698837e-13 
+ Computing time           ======= 0.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 9 
+ The rank of  X*          === 106 
+ The rank error           === 0.00e+00 
+ The rel func error       === 4.25e-13 
+ The infeasibility of X*  === 5.13335764e-09 
+ Final ||Ho(X-G)||        ===== 2.28597639e-06 
+ Primal function value    ===== 2.61284402e-12 
+ Computing time           ======= 0.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 9 
+ The rank of  X*          === 106 
+ The rank error           === 0.00e+00 
+ The rel func error       === 4.25e-13 
+ The infeasibility of X*  === 5.13335764e-09 
+ Final ||Ho(X-G)||        ===== 2.28597639e-06 
+ Primal function value    ===== 2.61284402e-12 
+ Computing time           ======= 0.4(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 9 
+ The rank of  X*          === 106 
+ The rank error           === 0.00e+00 
+ The rel func error       === 4.25e-13 
+ The infeasibility of X*  === 5.13335764e-09 
+ Final ||Ho(X-G)||        ===== 2.28597639e-06 
+ Primal function value    ===== 2.61284402e-12 
+ Computing time           ======= 0.3(secs) 
+ ********************************************************* 

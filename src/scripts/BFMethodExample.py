@@ -45,13 +45,17 @@ EMBEDDING_TYPES = ["pencorr_D"]
 pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
 Then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: pencorr_20
+
+pencorr_D_weight_I: Find the nearest correlation matrix using pencorr, subject to the rank constraint and weightings
+generated from index I.
+Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to use squared values of G as the weightings.
 """
 
 # -----Variables-----
-imageType = "triangle"
+imageType = "triangle_mean_subtracted"
 filters = []
-imageProductType = "ncc"
-embeddingType = "pencorr_weighted_192"
+imageProductType = "ncc_squared"
+embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
@@ -79,7 +83,7 @@ graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, im
 # Example to investigate changes in image product
 """
 graphing.investigate_image_product_type(imageType=imageType, filters=filters,
-                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_exp"],
-                                        embType=embeddingType, plotFrob=False)
+                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_pow_3"],
+                                        embType=embeddingType, plotFrob=True)
 """
 plt.show()
