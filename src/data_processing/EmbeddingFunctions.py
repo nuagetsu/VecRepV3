@@ -59,7 +59,6 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
     """
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
 
-    # TODO what if solver fails
     matlabDir = get_matlab_dirpath()
     _ = octave.addpath(matlabDir)
     octave.push("n", len(matrixG))
@@ -208,10 +207,18 @@ def generate_weightings(matrixG: NDArray, index: int) -> NDArray:
     :return: Weightings through which to run weighted pencorr
     """
     if index == 0:
-        return np.ones((192, 192))
+        return np.ones((len(matrixG), len(matrixG)))
     elif index == 1:
         return matrixG
     elif index == 2:
         return matrixG ** 2
+    elif index == 3:
+        return matrixG ** 3
+    elif index == 9:        #Testing
+        weight = np.ones((len(matrixG), len(matrixG)))
+        for i in range(len(matrixG)):
+            for j in range(len(matrixG)):
+                if matrixG[i][j] < 0.75:
+                    weight[i][j] = 0
     else:
         raise ValueError(str(index) + "is not a valid weighting index")

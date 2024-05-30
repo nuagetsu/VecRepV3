@@ -739,3 +739,60 @@
  Primal function value    ===== 2.61284402e-12 
  Computing time           ======= 0.3(secs) 
  ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 38 
+ Total num of CG          = 212 
+ Total num of eigendecom  = 161 
+ The rank of  X*          === 48 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.54e-06 
+ The infeasibility of X*  === 9.65562952e-07 
+ Final ||Ho(X-G)||        ===== 1.45380538e+00 
+ Primal function value    ===== 1.05677504e+00 
+ Computing time           ======= 5.1(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 59 
+ Total num of CG          = 274 
+ Total num of eigendecom  = 222 
+ The rank of  X*          === 58 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.78e-06 
+ The infeasibility of X*  === 5.53882228e-07 
+ Final ||Ho(X-G)||        ===== 4.72322152e-01 
+ Primal function value    ===== 1.11544107e-01 
+ Computing time           ======= 6.8(secs) 
+ ********************************************************* 
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 45 
+ Total num of CG          = 194 
+ Total num of eigendecom  = 165 
+ The rank of  X*          === 84 
+ The rank error           === 0.00e+00 
+ The rel func error       === 9.81e-06 
+ The infeasibility of X*  === 3.71974097e-07 
+ Final ||Ho(X-G)||        ===== 1.74857126e-01 
+ Primal function value    ===== 1.52875073e-02 
+ Computing time           ======= 4.6(secs) 
+ ********************************************************* 
