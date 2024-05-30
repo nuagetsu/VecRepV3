@@ -1,0 +1,19 @@
+
+ ***** result_PenCorr_HnormMajorDiag *************
+  The problem information: 
+ Dim.  of    sdp        constr  = 192 
+ Num. of fixed off-diag constr  = 192 
+ The required rank      constr  = 192 
+ ---------------------------------------------------- 
+ Num of pen level         = 1 
+ Num of calling CN        = 3 
+ Total num of CG          = 9 
+ Total num of eigendecom  = 10 
+ The rank of  X*          === 51 
+ The rank error           === 0.00e+00 
+ The rel func error       === 2.34e-12 
+ The infeasibility of X*  === 1.10900447e-08 
+ Final ||Ho(X-G)||        ===== 7.55005191e-07 
+ Primal function value    ===== 2.85016419e-13 
+ Computing time           ======= 0.4(secs) 
+ ********************************************************* 

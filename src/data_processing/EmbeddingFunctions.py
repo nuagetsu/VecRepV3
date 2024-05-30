@@ -47,8 +47,41 @@ def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     matrixGprime = octave.pull("X")
     return matrixGprime
 
+def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
+    """
+    :param matrixG: Symmetric square matrix
+    :param nDim: Number of non-zero eigenvalues in the output matrix
+    :param matrixH: Weight Matrix
+    :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
+    nDim non-zero eigenvalues
 
-def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=None):
+    Weighted version of the above code included in the same link.
+    """
+    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
+
+    # TODO what if solver fails
+    matlabDir = get_matlab_dirpath()
+    _ = octave.addpath(matlabDir)
+    octave.push("n", len(matrixG))
+    octave.push("r_rank", nDim)
+    octave.push("G", matrixG)
+    octave.push("H", matrixH)
+
+    # For fixed diagonal constraint
+    octave.eval("I_e = [1:1:n]'; J_e = I_e; k_e = length(I_e);")
+
+    # To generate the bound e,l & u
+    octave.eval("e = ones(n,1);  ConstrA.e = e; ConstrA.Ie = I_e; ConstrA.Je = J_e;")
+
+    # Set options
+    octave.eval("OPTIONS.tau    = 0; OPTIONS.tolrel = 1.0e-5;")
+
+    # Execute function
+    octave.eval("[X,INFOS] = PenCorr_HnormMajorDiag(G,H,ConstrA,r_rank,OPTIONS);", verbose=False)
+    matrixGprime = octave.pull("X")
+    return matrixGprime
+
+def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=None, weight=None):
     """
     :param imageProductMatrix: Image product matrix to generate vectors
     :param embeddingType: Type of method to generate vector embeddings
@@ -59,6 +92,12 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     if re.search('pencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime = pencorr(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
+    elif re.search('pencorr_weighted_[0-9]*[0-9]$', embeddingType) is not None:
+        nDim = int(re.search(r'\d+', embeddingType).group())
+        if weight is None:
+            weight = np.identity(len(imageProductMatrix))
+        matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")

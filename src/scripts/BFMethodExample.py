@@ -50,8 +50,8 @@ Sample input: pencorr_20
 # -----Variables-----
 imageType = "triangle"
 filters = []
-imageProductType = "ncc_exp"
-embeddingType = "pencorr_192"
+imageProductType = "ncc"
+embeddingType = "pencorr_weighted_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
@@ -64,11 +64,11 @@ graphing.investigate_k(bruteForceEstimator)
 """
 
 # Example to investigate a specific set of parameters for BF estimator
-"""
+
 bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                                               embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_estimator(bruteForceEstimator, 16)
-"""
+
 
 # Example to investigate rank constraint
 """
@@ -77,9 +77,9 @@ graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, im
 
 """
 # Example to investigate changes in image product
-
+"""
 graphing.investigate_image_product_type(imageType=imageType, filters=filters,
                                         imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_exp"],
                                         embType=embeddingType, plotFrob=False)
-
+"""
 plt.show()
