@@ -215,10 +215,9 @@ def generate_weightings(matrixG: NDArray, index: int) -> NDArray:
     elif index == 3:
         return matrixG ** 3
     elif index == 9:        #Testing
-        weight = np.ones((len(matrixG), len(matrixG)))
+        weight = matrixG
         for i in range(len(matrixG)):
-            for j in range(len(matrixG)):
-                if matrixG[i][j] < 0.75:
-                    weight[i][j] = 0
+            weight[i][i] = 0
+        return weight
     else:
         raise ValueError(str(index) + "is not a valid weighting index")

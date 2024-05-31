@@ -54,8 +54,8 @@ Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to u
 # -----Variables-----
 imageType = "triangle"
 filters = []
-imageProductType = "ncc"
-embeddingType = "pencorr_192"
+imageProductType = "ncc_pow_2"
+embeddingType = "pencorr_192_weight_3"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
@@ -75,16 +75,26 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-"""
+
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=30, endingConstr=60, specifiedKArr=[3, 5], plotFrob=True)
+                                    startingConstr=1, endingConstr=60, specifiedKArr=[3, 5],
+                                    plotFrob=False, weight=None)
 
-"""
+
 # Example to investigate changes in image product
-
+"""
 graphing.investigate_image_product_type(imageType=imageType, filters=filters,
                                         imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_pow_3"],
-                                        embType=embeddingType, plotFrob=False)
+                                        embType=embeddingType, plotFrob=False, overwrite=overwrite)
+"""
 
+# Investigate changes in rank constraint for different image products
+"""
+graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
+                                                        imageProductTypes=["ncc", "ncc_pow_7.5"],
+                                                        startingConstr=1, endingConstr=80, interval=1,
+                                                        specifiedKArr=[5],
+                                                        plotFrob=False, weight=None)
+"""
 
 plt.show()

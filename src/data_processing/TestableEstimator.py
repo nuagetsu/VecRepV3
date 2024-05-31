@@ -13,7 +13,7 @@ class TestableEstimator:
         self.embeddingType = embeddingType
         self.matrixA = matrixA
         self.matrixG = matrixG
-        self.matrixGprime = np.matmul(matrixA.T, matrixA)
+        self.matrixGprime = np.matmul(np.atleast_2d(matrixA).T, np.atleast_2d(matrixA))
         self.initialEigenvalues, vec = get_eig_for_symmetric(self.matrixG)
         self.finalEigenvalues, vec = get_eig_for_symmetric(self.matrixGprime)
         self.frobDistance = metrics.get_frob_distance(self.matrixG, self.matrixGprime)

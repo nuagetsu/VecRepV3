@@ -55,8 +55,9 @@ def plot_ave_k_neighbours(ax, allAveKNeighbourScores: List, kArr: List):
 def plot_ave_k_neighbours_for_type(ax, allAveKNeighbourScores: List, kArr: List, imageProductType: str):
     """
     :param ax: Axes to plot graph
-    :param allAveKNeighbourScores: The list af all ave k neighbour scores for all values of k
+    :param allAveKNeighbourScores: The list of all ave k neighbour scores for all values of k
     :param kArr: List of k values to plot
+    :param imageProductType: Image product type investigated
     :return: Plots the graph of average k neighbour score for a range of k values but shortens the axes.
     """
     idealPlot = range(1, len(kArr) + 1)  # for plotting ideal score
@@ -181,6 +182,37 @@ def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List
         idealPlot = [1 for i in range(len(neighArr))]  # for plotting the max possible score
         neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
         neighbourAx.plot(rankArr, neighArr, color='r', label="Real")
+        neighbourAx.set_title(
+            "Mean norm k neighbour score against the rank constraint (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Rank Constraint")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="lower right")
+
+def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: List, fullNeighArrList: List,
+                                          specifiedKArr: List, imageProductTypes: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
+    :param fullNeighArrList: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :param imageProductTypes: Image product types for which we are plotting
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
+        and all image product types
+    """
+    colours = ['r', 'g', 'c', 'm', 'y']
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+        idealPlot = [1 for i in range(len(fullNeighArrList[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for imageProductIndex in range(len(imageProductTypes)):
+            neighArr = fullNeighArrList[count][imageProductIndex]
+            neighbourAx.plot(rankArr, neighArr, color=colours[imageProductIndex],
+                             label=imageProductTypes[imageProductIndex])
+
         neighbourAx.set_title(
             "Mean norm k neighbour score against the rank constraint (k = " + str(
                 specifiedK) + ")")
