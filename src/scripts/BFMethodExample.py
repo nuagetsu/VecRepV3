@@ -75,11 +75,11 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-
+"""
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                     startingConstr=1, endingConstr=60, specifiedKArr=[3, 5],
                                     plotFrob=False, weight=None)
-
+"""
 
 # Example to investigate changes in image product
 """
@@ -89,12 +89,12 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for different image products
-"""
+
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_7.5"],
-                                                        startingConstr=1, endingConstr=80, interval=1,
+                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_8", "ncc_pow_12"],
+                                                        startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         plotFrob=False, weight=None)
-"""
+
 
 plt.show()
