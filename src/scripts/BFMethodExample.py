@@ -88,7 +88,7 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
                                         embType=embeddingType, plotFrob=False, overwrite=overwrite)
 """
 
-# Investigate changes in rank constraint for different image products
+# Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
                                                         imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_8", "ncc_pow_12"],
