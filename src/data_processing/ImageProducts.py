@@ -23,6 +23,11 @@ def get_image_product(imageProductType: str):
     elif re.search("ncc_exp_rep_[0-9]+$", imageProductType) is not None:
         reps = int(re.search(r"[0-9]+", imageProductType).group())
         return image_product_exp_repeated(ncc, reps)
+    elif imageProductType == "ncc_log":
+        return image_product_log_base_2(ncc, 1)
+    elif re.search(r"ncc_log_rep_[0-9]+$", imageProductType) is not None:
+        reps = int(re.search(r"[0-9]+", imageProductType).group())
+        return image_product_log_base_2(ncc, reps)
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -36,6 +41,7 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
 
 def image_product_pow(image_product, power: float):
     """
+    :param image_product: Image product to be modified
     :param power: Power to raise the image product by
     :return: Image product method of initial image product raised to the power of power
 
@@ -45,7 +51,7 @@ def image_product_pow(image_product, power: float):
 
 def image_product_exp_repeated(image_product, reps: int):
     """
-    :param image_product: Image product to be used
+    :param image_product: Image product to be modified
     :param reps: Number of times to repeat the function
     :return: Value of e raised to the power of n - 1, repeated the number of times indicated
     """
@@ -53,6 +59,19 @@ def image_product_exp_repeated(image_product, reps: int):
         func = image_product(mainImage, tempImg)
         for i in range(0, reps):
             func = math.exp(func - 1)
+        return func
+    return res
+
+def image_product_log_base_2(image_product, reps: int):
+    """
+    :param image_product: Image product to be modified
+    :param reps: Number of times the modification should be repeated
+    :return: Value of log base 2 of 1 + result of image product, repeated the number of times indicated
+    """
+    def res(mainImage, tempImg):
+        func = image_product(mainImage, tempImg)
+        for i in range(0, reps):
+            func = math.log2(1 + func)
         return func
     return res
 

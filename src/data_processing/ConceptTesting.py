@@ -439,6 +439,20 @@ def mean_subtract(matrix: NDArray):
     return matrix - np.ones(matrix.shape) * mean
 
 def generate_diagnostics(image_set, image_product):
+    """
+    :param image_set: Image Set to investigate
+    :param image_product: Image Product to investigate
+    :return: Returns several metric which we may want to observe. To be updated over time.
+    :returns G: The Image Product Matrix
+    :returns G_prime: The Nearest Correlation Matrix found using Pencorr
+    :returns A: The embedding matrix found by decomposition
+    :returns x: An array of tuples containing the minimum and maximum values found in corresponding rows of A
+    :returns r: The range of values from x
+    :returns s: The sum of all ranges. Rough estimator of area of hypersphere occupied by embeddings
+    :returns prod: The product of all elements of r. Another rough estimator of proportion of Hypersphere occupied
+    :returns nonzero: Number of non-zero elements of r. Indicates the number of dimensions the embeddings occupy
+    :returns eigenvalues/eigenvectors: Eigenvalues and eigenvectors of G_prime
+    """
     G = calculateTriangleG(image_set, imageProduct=image_product)
     G_prime = pencorr(G, len(image_set))
     A = calculateAfromG(G)
@@ -446,8 +460,9 @@ def generate_diagnostics(image_set, image_product):
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
+    prod = np.prod(s)
     eigenvalues, eigenvectors = np.linalg.eigh(G_prime)
-    return G, G_prime, A, x, r, s, nonzero, eigenvalues, eigenvectors
+    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors
 
 """
 Some useful links and ideas
