@@ -12,21 +12,17 @@ def get_image_product(imageProductType: str):
         return ncc
     if imageProductType == "ncc_scaled":
         return ncc_scaled
-    elif imageProductType == "ncc_squared":
-        return ncc_squared
-    elif imageProductType == "ncc_squared_scaled":
-        return ncc_squared_scaled
-    elif re.search("ncc_pow_[0-9]+\.?\d*$", imageProductType) is not None:
+    elif re.search(r"ncc_pow_[0-9]+\.?\d*$", imageProductType) is not None:
         power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
-        return ncc_pow(power)
+        return image_product_pow(ncc, power)
     elif imageProductType == "ncc_exp":
-        return ncc_exp
-    elif re.search("ncc_exp_[0-9]+\.?\d*$", imageProductType) is not None:
+        return image_product_exp_repeated(ncc, 1)
+    elif re.search(r"ncc_exp_pow_[0-9]+\.?\d*$", imageProductType) is not None:
         power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
-        return ncc_exp_pow(power)
+        return image_product_pow(image_product_exp_repeated(ncc, 1), power)
     elif re.search("ncc_exp_rep_[0-9]+$", imageProductType) is not None:
         reps = int(re.search(r"[0-9]+", imageProductType).group())
-        return ncc_exp_repeated(reps)
+        return image_product_exp_repeated(ncc, reps)
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -38,53 +34,27 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     return ncc(mainImg, tempImg) * 2 - 1
 
-def ncc_squared(mainImg: NDArray, tempImg: NDArray) -> float:
+def image_product_pow(image_product, power: float):
     """
-    :param mainImg: Main image to be scanned
-    :param tempImg: Template image to be scanned over the main
-    :return: Max value of the ncc, squared (to keep 1 to 1)
+    :param power: Power to raise the image product by
+    :return: Image product method of initial image product raised to the power of power
 
     In theory, this should further separate close images with high NCC score that we care more about.
     """
-    return ncc(mainImg, tempImg) ** 2
+    return lambda mainImg, tempImg: image_product(mainImg, tempImg) ** power
 
-def ncc_squared_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
+def image_product_exp_repeated(image_product, reps: int):
     """
-    :param mainImg: Main image to be scanned
-    :param tempImg: Template image to be scanned over the main
-    :return: Max value of the ncc squared, with scaled bounds of [-1,1]
+    :param image_product: Image product to be used
+    :param reps: Number of times to repeat the function
+    :return: Value of e raised to the power of n - 1, repeated the number of times indicated
     """
-    return ncc_squared(mainImg, tempImg) * 2 - 1
-
-def ncc_pow(power: float):
-    """
-    :param power: Power to raise NCC score by
-    :return: Image product method of ncc raised to the power of power
-    """
-    return lambda mainImg, tempImg: ncc(mainImg, tempImg) ** power
-
-def ncc_exp(mainImg: NDArray, tempImg: NDArray) -> float:
-    """
-    :param mainImg: Main image to be scanned
-    :param tempImg: Template image to be scanned over the main
-    :return: Value of e raised to the power of n - 1
-    """
-    return math.exp(ncc(mainImg, tempImg) - 1)
-
-def ncc_exp_repeated(reps: int):
     def res(mainImage, tempImg):
-        func = ncc(mainImage, tempImg)
-        for i in range (0, reps):
+        func = image_product(mainImage, tempImg)
+        for i in range(0, reps):
             func = math.exp(func - 1)
         return func
     return res
-
-def ncc_exp_pow(power: float):
-    """
-    :param power: Power to raise the ncc exp score by
-    :return: Image product method of ncc_exp raised to the power of power
-    """
-    return lambda mainImg, tempImg: ncc_exp(mainImg, tempImg) ** power
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
