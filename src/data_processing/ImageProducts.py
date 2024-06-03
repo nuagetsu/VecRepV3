@@ -16,8 +16,8 @@ def get_image_product(imageProductType: str):
         return ncc_squared
     elif imageProductType == "ncc_squared_scaled":
         return ncc_squared_scaled
-    elif re.search("ncc_pow_[0-9]*[0-9]\.?\d*$", imageProductType) is not None:
-        power = float(re.search(r"[0-9]*[0-9]\.?\d*", imageProductType).group())
+    elif re.search("ncc_pow_[0-9]+\.?\d*$", imageProductType) is not None:
+        power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
         return ncc_pow(power)
     elif imageProductType == "ncc_exp":
         return ncc_exp
