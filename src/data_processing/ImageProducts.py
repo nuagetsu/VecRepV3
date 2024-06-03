@@ -21,6 +21,12 @@ def get_image_product(imageProductType: str):
         return ncc_pow(power)
     elif imageProductType == "ncc_exp":
         return ncc_exp
+    elif re.search("ncc_exp_[0-9]+\.?\d*$", imageProductType) is not None:
+        power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
+        return ncc_exp_pow(power)
+    elif re.search("ncc_exp_rep_[0-9]+$", imageProductType) is not None:
+        reps = int(re.search(r"[0-9]+", imageProductType).group())
+        return ncc_exp_repeated(reps)
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -64,6 +70,21 @@ def ncc_exp(mainImg: NDArray, tempImg: NDArray) -> float:
     :return: Value of e raised to the power of n - 1
     """
     return math.exp(ncc(mainImg, tempImg) - 1)
+
+def ncc_exp_repeated(reps: int):
+    def res(mainImage, tempImg):
+        func = ncc(mainImage, tempImg)
+        for i in range (0, reps):
+            func = math.exp(func - 1)
+        return func
+    return res
+
+def ncc_exp_pow(power: float):
+    """
+    :param power: Power to raise the ncc exp score by
+    :return: Image product method of ncc_exp raised to the power of power
+    """
+    return lambda mainImg, tempImg: ncc_exp(mainImg, tempImg) ** power
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """

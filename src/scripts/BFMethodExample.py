@@ -91,8 +91,8 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_8", "ncc_pow_12"],
-                                                        startingConstr=1, endingConstr=10, interval=1,
+                                                        imageProductTypes=["ncc", "ncc_exp", "ncc_exp_rep_2", "ncc_exp_rep_3", "ncc_pow_2", "ncc_pow_3"],
+                                                        startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         plotFrob=False, weight=None)
 

@@ -201,7 +201,7 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
     :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
         and all image product types
     """
-    colours = ['r', 'g', 'c', 'm', 'y']
+    colours = ['r', 'g', 'c', 'm', 'y', 'k']
     for count in range(len(specifiedKArr)):
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]

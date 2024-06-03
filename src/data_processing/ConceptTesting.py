@@ -4,8 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
 from src.data_processing.EmbeddingFunctions import pencorr
-from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
+import src.data_processing.ImageProducts as ip
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -203,6 +203,14 @@ def calculateTriangleAWithBF():
     A = np.matmul(D, eigenvectors.transpose())
     return A
 
+def calculateAfromG(G):
+    G_prime = pencorr(G, 192)
+    eigenvalues, eigenvectors = np.linalg.eigh(G_prime)
+    eigenvalues[eigenvalues < 0] = 0
+    D = np.diag(np.sqrt(eigenvalues))
+    A = np.matmul(D, eigenvectors.transpose())
+    return A
+
 """
 Task: Compare triangles that you think are "similar" and see if they get a high NCC score from both
 direct NCC calculation and through vector embedding.
@@ -294,6 +302,9 @@ class TriangleImageSet:
 
     def getA(self):
         return self.A
+
+    def generate_new_G(self, imageProduct):
+        return calculateTriangleG(self.fullSet, imageProduct=imageProduct)
 
 
 """
@@ -401,7 +412,7 @@ When mean subtracting across the whole grid, Relative Positioning score is stric
 def get_embedding_estimate(image):
     triangleImageSet = TriangleImageSet()
     trainingImageSet = triangleImageSet.getFullSet()
-    imageProductVector = calculate_image_product_vector(image, trainingImageSet, ncc)
+    imageProductVector = ip.calculate_image_product_vector(image, trainingImageSet, ncc)
     estimateVector = Lagrangian_Method2(triangleImageSet.getA(), imageProductVector)[0]
     return estimateVector
 
@@ -427,6 +438,16 @@ def mean_subtract(matrix: NDArray):
     mean = np.mean(matrix)
     return matrix - np.ones(matrix.shape) * mean
 
+def generate_diagnostics(image_set, image_product):
+    G = calculateTriangleG(image_set, imageProduct=image_product)
+    G_prime = pencorr(G, len(image_set))
+    A = calculateAfromG(G)
+    x = np.array([(np.min(b), np.max(b)) for b in A])   # Range of values which the embeddings take in each dimension
+    r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
+    s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
+    nonzero = np.count_nonzero(r)                       # Number of dimensions used
+    eigenvalues, eigenvectors = np.linalg.eigh(G_prime)
+    return G, G_prime, A, x, r, s, nonzero, eigenvalues, eigenvectors
 
 """
 Some useful links and ideas
