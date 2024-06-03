@@ -1,16 +1,26 @@
+import re
 from typing import Callable
 
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+import math
 
 
 def get_image_product(imageProductType: str):
     if imageProductType == "ncc":
         return ncc
-
     if imageProductType == "ncc_scaled":
         return ncc_scaled
+    elif imageProductType == "ncc_squared":
+        return ncc_squared
+    elif imageProductType == "ncc_squared_scaled":
+        return ncc_squared_scaled
+    elif re.search("ncc_pow_[0-9]+\.?\d*$", imageProductType) is not None:
+        power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
+        return ncc_pow(power)
+    elif imageProductType == "ncc_exp":
+        return ncc_exp
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -22,6 +32,39 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     return ncc(mainImg, tempImg) * 2 - 1
 
+def ncc_squared(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc, squared (to keep 1 to 1)
+
+    In theory, this should further separate close images with high NCC score that we care more about.
+    """
+    return ncc(mainImg, tempImg) ** 2
+
+def ncc_squared_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc squared, with scaled bounds of [-1,1]
+    """
+    return ncc_squared(mainImg, tempImg) * 2 - 1
+
+def ncc_pow(power: float):
+    """
+    :param power: Power to raise NCC score by
+    :return: Image product method of ncc raised to the power of power
+    """
+    return lambda mainImg, tempImg: ncc(mainImg, tempImg) ** power
+
+def ncc_exp(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Value of e raised to the power of n - 1
+    """
+    return math.exp(ncc(mainImg, tempImg) - 1)
+
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     :param mainImg: Main image to be scanned
@@ -31,16 +74,16 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     Applies NCC of the template image over the main image and returns the max value obtained.
     When the template image kernel exceeds the bounds, wraps to the other side of the main image
     """
-    if np.sum(mainImg) == 0:
-        if np.sum(tempImg) == 0:
+    if np.count_nonzero(mainImg) == 0:
+        if np.count_nonzero(tempImg) == 0:
             return 1
         return 0
 
     mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])),
                      'wrap')  # Padding the main image with wrapped values to simulate wrapping
 
-    mainImg = np.asarray(mainImg, np.uint8)  # Setting data types of array
-    tempImg = np.asarray(tempImg, np.uint8)
+    mainImg = np.asarray(mainImg, np.single)  # Setting data types of array
+    tempImg = np.asarray(tempImg, np.single)
 
     corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
 

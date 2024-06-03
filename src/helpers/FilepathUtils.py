@@ -12,7 +12,7 @@ def get_filepath(*, imageType: str, filters=None, imageProductType=None, embeddi
     :return: The path of the directory where this information should be saved.
     """
     dirName = imageType
-    if filters is not None:
+    if filters is not None and filters:
         filterName = ""
         for filter in filters:
             filterName = filterName + filter + "--"

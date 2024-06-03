@@ -5,14 +5,19 @@ import src.visualization.BFmethod as graphing
 
 # -----Possible options-----
 
-IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangle"]
+IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangle", "triangle_mean_subtracted"]
 
 """
 Nbin: N by N matrix of 1s and 0s
 
 NbinMmax_ones: N by N matrix of 1s and 0s, with only M percentage of squares being 1s
 
-triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within
+triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within. Values are restricted to 0s and 1s.
+
+triangle_mean_subtracted: The triangle type above with the mean of all entries subtracted from each entry. Values are
+                        not restricted.
+                        
+triangle_gms: Triangle image set with mean subtracted across the whole image.
 """
 
 IMAGE_FILTERS = ["unique", "Nmax_ones", "one_island"]
@@ -31,6 +36,7 @@ IMAGE_PRODUCT_TYPES = ["ncc", "ncc_scaled"]
 """
 ncc: Normal ncc score. Range of [0,1]
 ncc_scaled: Normal ncc score, with range scaled to [-1,1]
+ncc_squared: Normal ncc score squared
 """
 
 EMBEDDING_TYPES = ["pencorr_D"]
@@ -39,13 +45,17 @@ EMBEDDING_TYPES = ["pencorr_D"]
 pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
 Then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: pencorr_20
+
+pencorr_D_weight_I: Find the nearest correlation matrix using pencorr, subject to the rank constraint and weightings
+generated from index I.
+Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to use squared values of G as the weightings.
 """
 
 # -----Variables-----
 imageType = "triangle"
 filters = []
-imageProductType = "ncc"
-embeddingType = "pencorr_15"
+imageProductType = "ncc_pow_2"
+embeddingType = "pencorr_192_weight_3"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 
 # -----Execution-----
@@ -65,8 +75,26 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 """
 
 # Example to investigate rank constraint
-
+"""
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=10, endingConstr=50, specifiedKArr=[3, 5], plotFrob=False)
+                                    startingConstr=1, endingConstr=60, specifiedKArr=[3, 5],
+                                    plotFrob=False, weight=None)
+"""
+
+# Example to investigate changes in image product
+"""
+graphing.investigate_image_product_type(imageType=imageType, filters=filters,
+                                        imageProductTypeArr=["ncc", "ncc_pow_2", "ncc_pow_3"],
+                                        embType=embeddingType, plotFrob=False, overwrite=overwrite)
+"""
+
+# Investigate changes in rank constraint for up to 5 different image products
+
+graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
+                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_8", "ncc_pow_12"],
+                                                        startingConstr=1, endingConstr=10, interval=1,
+                                                        specifiedKArr=[5],
+                                                        plotFrob=False, weight=None)
+
 
 plt.show()

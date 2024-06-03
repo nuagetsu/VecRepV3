@@ -16,7 +16,9 @@ imageType = "triangle"
 """
 N island M max_ones: Generates a random island in a N by N matrix with up to M max ones, e.g. 10island30max_ones
 
-triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within
+triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within.
+
+triangle_mean_subtracted: triangle image set with mean subtracted from each triangle.
 """
 
 imageProductType = "ncc"
@@ -24,13 +26,15 @@ testSize = 100
 trainingSize = 100
 embeddingType = "pencorr_30"
 specifiedKArr = [5]
-sampleName = "Triangle example sample"
-testName = "Triangle example test"
+sampleName = "Triangle mean example sample"
+testName = "Triangle mean example test"
 
 # Loading image dataset. Training set takes from random samples of the image set.
 
 if imageType == "triangle":
     imageSet = get_triangle_image_set()
+elif imageType == "triangle_mean_subtracted":
+    imageSet = get_triangle_image_set(mean_subtracted=True)
 else:
     imageSet = get_island_image_set(imageType, 500)
 imageSet = np.array(imageSet)

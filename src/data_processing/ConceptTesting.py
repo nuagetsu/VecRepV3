@@ -102,7 +102,7 @@ From counting, there are 48x4=192 such triangles. This has been verified using c
 Next, we implement the image set. Use the rotate function to rotate every rotationally unique triangle to get every
 triangle. Then, pad the surroundings with 2 rows of 0s.
 """
-def generateImageSet():
+def generateImageSet(mean_subtracted=False, gridwide=False):
     unpaddedImageset = []
     two_by_two = np.array([[[1, 0],[1, 1]]])
     three_by_two = np.array([[[1, 0], [1, 0], [1, 1]], [[1, 0], [1, 1], [1, 0]], [[1, 1], [1, 0], [1, 0]],
@@ -134,29 +134,45 @@ def generateImageSet():
                              [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 1]],
                              [[0, 1, 0, 0], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0]],
                              [[0, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]])
-
-    for tri_image in two_by_two:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_two:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in two_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_three:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in three_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
-    for tri_image in four_by_four:
-        unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    if not mean_subtracted:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(getRotationsAndPad(tri_image))
+    else:
+        for tri_image in two_by_two:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_two:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in two_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_three:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in three_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
+        for tri_image in four_by_four:
+            unpaddedImageset.extend(getRotationsAfterMeanSubtractAndPad(tri_image))
     imageSet = []
     for tri_image in unpaddedImageset:
         imageSet.append(np.pad(tri_image, (2, 2), constant_values=(0, 0)))
+    if gridwide:
+        for i in range(len(imageSet)):
+            imageSet[i] = mean_subtract(imageSet[i])
     return np.asarray(imageSet)
 
-def calculateTriangleG(imageSet: NDArray):
+def calculateTriangleG(imageSet: NDArray, imageProduct=lambda x, y: ncc(x, y)):
     G = []
     for image1 in imageSet:
         for image2 in imageSet:
-            G.append(ncc(image1, image2))
+            G.append(imageProduct(image1, image2))
     return np.reshape(G, (len(imageSet), len(imageSet)))
 
 def getRotationsAndPad(tri_image: NDArray):
@@ -164,6 +180,14 @@ def getRotationsAndPad(tri_image: NDArray):
     for i in range(0, 3):
         tri_image = np.rot90(tri_image)
         ls.append(padToFour(tri_image))
+    return ls
+
+def getRotationsAfterMeanSubtractAndPad(tri_image: NDArray):
+    mean_subtracted = mean_subtract(padToFour(tri_image))
+    ls = [mean_subtracted]
+    for i in range(0, 3):
+        mean_subtracted = np.rot90(mean_subtracted)
+        ls.append(mean_subtracted)
     return ls
 
 def padToFour(tri_image: NDArray):
@@ -364,6 +388,15 @@ def triangleSanityTest5():
     return (ncc(imgSet[0], imgSet[0]), ncc(imgSet[0], imgSet[1]), ncc(imgSet[0], imgSet[2]),
             ncc(imgSet[0], imgSet[3]), ncc(imgSet[0], imgSet[4]), est), imgSet
 
+"""
+Mean subtracted tests: Mean subtracted triangles give a generally quite similar Relative Positioning Score as non
+mean subtracted triangles. At k=3, normal triangles win out, but at k=5, mean subtracted triangles give a slightly
+higher score.
+Next, try mean subtracting across the entire grid.
+
+When mean subtracting across the whole grid, Relative Positioning score is strictly worse for both k=3 and k=5
+"""
+
 # This estimate is using the Lagrangian method and is the same as the one in SampleEstimator.py
 def get_embedding_estimate(image):
     triangleImageSet = TriangleImageSet()
@@ -375,20 +408,25 @@ def get_embedding_estimate(image):
 # This NCC calculation is the same as the one in ImageProducts.py
 def ncc(mainImg: NDArray, tempImg: NDArray):
 
-    if np.sum(mainImg) == 0:
-        if np.sum(tempImg) == 0:
+    if np.count_nonzero(mainImg) == 0:
+        if np.count_nonzero(tempImg) == 0:
             return 1
         return 0
 
     mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])), 'wrap')
 
-    mainImg = np.asarray(mainImg, np.uint8)
-    tempImg = np.asarray(tempImg, np.uint8)
+    mainImg = np.asarray(mainImg, np.single)
+    tempImg = np.asarray(tempImg, np.single)
 
     corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
 
     return max_val
+
+def mean_subtract(matrix: NDArray):
+    mean = np.mean(matrix)
+    return matrix - np.ones(matrix.shape) * mean
+
 
 """
 Some useful links and ideas

@@ -109,12 +109,12 @@ def investigate_estimator(estimator: TestableEstimator, numK=16, plottedImagesIn
     aveAx = axArr[-1][1]
     GraphEstimates.plot_ave_k_neighbours(aveAx, aveKNeighArr, kArr)
 
-    # Set the bottom right subplot to be empty
+    # Set the bottom left subplot to be empty
     axArr[-1][0].set_axis_off()
 
 
 def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                   endingConstr: int, interval=1, specifiedKArr=None, plotFrob=True):
+                                   endingConstr: int, interval=1, specifiedKArr=None, plotFrob=True, weight=None):
     """
     :param specifiedKArr: value of k for the k neighbour score graph
     :param imageType:
@@ -145,6 +145,8 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
+        if weight is not None:
+            embType += "_weight_" + str(weight)
         bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
                                           imageProductType=imageProductType,
                                           embeddingType=embType)
@@ -164,4 +166,90 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
         GraphEstimates.plot_frob_error_against_rank_constraint(frobAx, rankConstraints, aveFrobDistanceArr)
     else:
         rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
+    if type(neighAx) is not list:
+        neighAx = [neighAx]
     GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)
+
+def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=None, imageProductTypes: list,
+                                                   startingConstr: int, endingConstr: int, interval=1,
+                                                   specifiedKArr=None, plotFrob=False, weight=None):
+    """
+    :param imageType: Image set to be tested
+    :param filters: Filters to produce the image set
+    :param imageProductTypes: Image product types to plot
+    :param startingConstr: Starting lowest rank constraint to start the sweep inclusive
+    :param endingConstr: Final largest rank constraint to end the sweep inclusive
+    :param interval: Interval for the rank sweep
+    :param specifiedKArr: value of k for the k neighbour score graph
+    :param plotFrob: If true, also plots the frob error against rank
+    :param weight: Weight matrix to be used in pencorr method
+    :return: Uses the penncorr method to generate embeddings for different rank constraints and image product types
+    Makes a graph of the average neighbour score against rank_constraint and
+    average frobenius distance against rank_constraint
+    Remember to use plt.show() to display plots
+    """
+    if startingConstr >= endingConstr:
+        raise ValueError("Starting rank constraint must be lower than ending constraint")
+    if specifiedKArr is None:
+        specifiedKArr = [5]
+
+    # A list of k neighbour plotting data, for each of the k in specified K array
+    allAveNeighArr = [[[] for imageProductType in imageProductTypes] for k in specifiedKArr]
+    rankConstraints = list(range(startingConstr, endingConstr + 1, interval))
+
+    for i in range(len(rankConstraints)):
+        rank = rankConstraints[i]
+        logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
+        embType = "pencorr_" + str(rank)
+        if weight is not None:
+            embType += "_weight_" + str(weight)
+        for imageProductTypeIndex in range(len(imageProductTypes)):
+            imageProductType = imageProductTypes[imageProductTypeIndex]
+            logging.info("Investigating image product " + imageProductType +
+                         " for rank " + str(rank) + "/" + str(endingConstr))
+            bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
+                                              imageProductType=imageProductType, embeddingType=embType)
+            # For each k to be investigated, append the respective k neighbour score
+            for kIndex in range(len(specifiedKArr)):
+                k = specifiedKArr[kIndex]
+                allAveNeighArr[kIndex][imageProductTypeIndex].append(
+                    metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG, bfEstimator.matrixGprime, k))
+    rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
+    if type(neighAx) is not list:
+        neighAx = [neighAx]
+    GraphEstimates.plot_ave_k_neighbours_for_type_in_one(neighAx, rankConstraints, allAveNeighArr,
+                                                         specifiedKArr, imageProductTypes)
+
+def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
+                                   numK=16, plotFrob=True, overwrite=None):
+    """
+    :param imageType: The image set to investigate
+    :param filters: Filters to apply to the image set
+    :param imageProductTypeArr: Image product types to investigate
+    :param plotFrob: If true, also displays the frobenius error
+    :return: Plots a graph of the relative positioning score against the number of neighbours analysed for each image
+        product type in the image product type array.
+    """
+    if imageProductTypeArr is None:
+        imageProductTypeArr = ["ncc"]
+
+    imgFig, axArr = plt.subplots(len(imageProductTypeArr), 1 + plotFrob)
+    imgFig.suptitle("Relative Positioning Score of image product types on " + imageType + ", " + embType)
+
+    count = 0
+    for imageProductType in imageProductTypeArr:
+        logging.info("Investigating image product " + imageProductType)
+        bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                          embeddingType=embType, overwrite=overwrite)
+        kArr = list(range(1, numK + 1))
+        aveKNeighArr = []
+        for k in kArr:
+            aveKNeighArr.append(metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG,
+                                                                          bfEstimator.matrixGprime, k))
+        plotPoint = axArr[count]
+        if plotFrob:
+            GraphEstimates.plot_key_stats_text(axArr[count][1], bfEstimator.frobDistance, bfEstimator.aveFrobDistance,
+                                               bfEstimator.maxDifference)
+            plotPoint = plotPoint[0]
+        GraphEstimates.plot_ave_k_neighbours_for_type(plotPoint, aveKNeighArr, kArr, imageProductType)
+        count += 1
