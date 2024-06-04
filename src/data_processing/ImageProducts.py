@@ -28,6 +28,14 @@ def get_image_product(imageProductType: str):
     elif re.search(r"ncc_log_rep_[0-9]+$", imageProductType) is not None:
         reps = int(re.search(r"[0-9]+", imageProductType).group())
         return image_product_log_base_2(ncc, reps)
+    elif re.search(r"ncc_base_[0-9]+\.?\d*$", imageProductType) is not None:
+        base = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
+        return image_product_as_power(ncc, base, 1)
+    elif re.search(r"ncc_base_[0-9]+\.?\d*_rep_[0-9]+$", imageProductType) is not None:
+        matches = re.findall(r"[0-9]+\.?\d*", imageProductType)
+        base = float(matches[0])
+        reps = int(matches[1])
+        return image_product_as_power(ncc, base, reps)
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
 
@@ -72,6 +80,20 @@ def image_product_log_base_2(image_product, reps: int):
         func = image_product(mainImage, tempImg)
         for i in range(0, reps):
             func = math.log2(1 + func)
+        return func
+    return res
+
+def image_product_as_power(image_product, base: float, reps: int):
+    """
+    :param image_product: Image product to be modified
+    :param base: Base to which will be raised by (image product - 1)
+    :param reps: Number of times the modification should be repeated
+    :return: Base raised by (image product - 1)
+    """
+    def res(mainImage, tempImg):
+        func = image_product(mainImage, tempImg)
+        for i in range(0, reps):
+            func = base ** (func - 1)
         return func
     return res
 

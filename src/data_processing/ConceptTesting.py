@@ -6,6 +6,8 @@ from sklearn.preprocessing import normalize
 from src.data_processing.EmbeddingFunctions import pencorr
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 import src.data_processing.ImageProducts as ip
+import src.data_processing.ImageGenerators as ig
+import pandas as pd
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -460,9 +462,27 @@ def generate_diagnostics(image_set, image_product):
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
-    prod = np.prod(s)
-    eigenvalues, eigenvectors = np.linalg.eigh(G_prime)
+    prod = np.prod(r)
+    eigenvalues, eigenvectors = np.linalg.eigh(G)
     return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors
+
+def compare_image_products(image_set, image_product_list):
+    index = image_product_list
+    image_product_list2 = [ip.get_image_product(x) for x in image_product_list]
+    data = {
+        "sum": [],
+        "product": [],
+        "non_zero": [],
+        "non_negative": []
+    }
+    for image_product in image_product_list2:
+        G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors = generate_diagnostics(image_set, image_product)
+        data["sum"].append(s)
+        data["product"].append(prod)
+        data["non_zero"].append(nonzero)
+        data["non_negative"].append(np.sum([eigenvalues >= 0]))
+    df = pd.DataFrame(data, index)
+    return df
 
 """
 Some useful links and ideas

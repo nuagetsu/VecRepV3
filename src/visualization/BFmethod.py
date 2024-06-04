@@ -4,6 +4,7 @@ import random
 import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import visualization.Metrics as metrics
 from src.data_processing.BruteForceEstimator import BruteForceEstimator
@@ -215,10 +216,10 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
                 allAveNeighArr[kIndex][imageProductTypeIndex].append(
                     metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG, bfEstimator.matrixGprime, k))
     rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
-    if type(neighAx) is not list:
+    if type(neighAx) is not np.ndarray:
         neighAx = [neighAx]
     GraphEstimates.plot_ave_k_neighbours_for_type_in_one(neighAx, rankConstraints, allAveNeighArr,
-                                                         specifiedKArr, imageProductTypes)
+                                                         specifiedKArr, imageProductTypes, imageSet=imageType)
 
 def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
                                    numK=16, plotFrob=True, overwrite=None):
