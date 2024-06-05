@@ -173,7 +173,7 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
 
 def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=None, imageProductTypes: list,
                                                    startingConstr: int, endingConstr: int, interval=1,
-                                                   specifiedKArr=None, plotFrob=False, weight=None):
+                                                   specifiedKArr=None, plotFrob=False, weights=None):
     """
     :param imageType: Image set to be tested
     :param filters: Filters to produce the image set
@@ -193,6 +193,8 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
         raise ValueError("Starting rank constraint must be lower than ending constraint")
     if specifiedKArr is None:
         specifiedKArr = [5]
+    if weights is None:
+        weights = ["" for image_product_type in imageProductTypes]
 
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[[] for imageProductType in imageProductTypes] for k in specifiedKArr]
@@ -201,13 +203,16 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
     for i in range(len(rankConstraints)):
         rank = rankConstraints[i]
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
-        embType = "pencorr_" + str(rank)
-        if weight is not None:
-            embType += "_weight_" + str(weight)
         for imageProductTypeIndex in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[imageProductTypeIndex]
-            logging.info("Investigating image product " + imageProductType +
-                         " for rank " + str(rank) + "/" + str(endingConstr))
+            weight = weights[imageProductTypeIndex]
+            embType = "pencorr_" + str(rank)
+            log_string = "Investigating image product " + imageProductType
+
+            if weight is not "":
+                log_string += " with weight of index " + weight
+                embType += "_weight_" + str(weight)
+            logging.info(log_string + " for rank " + str(rank) + "/" + str(endingConstr))
             bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
                                               imageProductType=imageProductType, embeddingType=embType)
             # For each k to be investigated, append the respective k neighbour score
@@ -219,7 +224,8 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
     if type(neighAx) is not np.ndarray:
         neighAx = [neighAx]
     GraphEstimates.plot_ave_k_neighbours_for_type_in_one(neighAx, rankConstraints, allAveNeighArr,
-                                                         specifiedKArr, imageProductTypes, imageSet=imageType)
+                                                         specifiedKArr, imageProductTypes,
+                                                         weights, imageSet=imageType)
 
 def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
                                    numK=16, plotFrob=True, overwrite=None):

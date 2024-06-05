@@ -201,7 +201,7 @@ def is_valid_matrix_g(matrixG: NDArray, nDim) -> (NDArray, int):
 
     return matrixG, nDim
 
-def generate_weightings(matrixG: NDArray, index: int) -> NDArray:
+def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
     """
     :param matrixG: Matrix G to be decomposed
     :return: Weightings through which to run weighted pencorr
@@ -214,6 +214,19 @@ def generate_weightings(matrixG: NDArray, index: int) -> NDArray:
         return matrixG ** 2
     elif index == 3:
         return matrixG ** 3
+    elif index == 4:
+        nbr_arr = matrixG.transpose()
+        k = k + 1
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = 1
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
     elif index == 9:        #Testing
         weight = matrixG
         for i in range(len(matrixG)):

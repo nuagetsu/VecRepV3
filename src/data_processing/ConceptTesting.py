@@ -7,7 +7,12 @@ from src.data_processing.EmbeddingFunctions import pencorr
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 import src.data_processing.ImageProducts as ip
 import src.data_processing.ImageGenerators as ig
+import src.visualization.Metrics as metrics
 import pandas as pd
+import matplotlib.pyplot as plt
+from src.data_processing.EmbeddingFunctions import get_embedding_matrix
+import src.data_processing.Utilities as utils
+import src.helpers.FilepathUtils as fputils
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -440,9 +445,9 @@ def mean_subtract(matrix: NDArray):
     mean = np.mean(matrix)
     return matrix - np.ones(matrix.shape) * mean
 
-def generate_diagnostics(image_set, image_product):
+def generate_diagnostics(image_type, image_product, k=5, embedding=None):
     """
-    :param image_set: Image Set to investigate
+    :param image_type: Image Set to investigate
     :param image_product: Image Product to investigate
     :return: Returns several metric which we may want to observe. To be updated over time.
     :returns G: The Image Product Matrix
@@ -455,34 +460,75 @@ def generate_diagnostics(image_set, image_product):
     :returns nonzero: Number of non-zero elements of r. Indicates the number of dimensions the embeddings occupy
     :returns eigenvalues/eigenvectors: Eigenvalues and eigenvectors of G_prime
     """
-    G = calculateTriangleG(image_set, imageProduct=image_product)
-    G_prime = pencorr(G, len(image_set))
-    A = calculateAfromG(G)
+    image_set = ig.get_image_set(image_type)
+    G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, [], image_product))
+    if embedding is None:
+        embedding = "pencorr_" + str(len(image_set))
+    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, [], image_product, embedding))
+    G_prime = np.matmul(np.atleast_2d(A).T, np.atleast_2d(A))
     x = np.array([(np.min(b), np.max(b)) for b in A])   # Range of values which the embeddings take in each dimension
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
     prod = np.prod(r)
     eigenvalues, eigenvectors = np.linalg.eigh(G)
-    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors
+    k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
+    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding
 
-def compare_image_products(image_set, image_product_list):
-    index = image_product_list
-    image_product_list2 = [ip.get_image_product(x) for x in image_product_list]
+def compare_image_products(image_set, image_product_list, embeddings=None):
+    if embeddings is None:
+        embeddings = [("pencorr_" + str(len(image_set)))]
     data = {
+        "image_product": [],
+        "embedding": [],
         "sum": [],
-        "product": [],
         "non_zero": [],
-        "non_negative": []
+        "non_negative": [],
+        "k_scores": []
     }
-    for image_product in image_product_list2:
-        G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors = generate_diagnostics(image_set, image_product)
-        data["sum"].append(s)
-        data["product"].append(prod)
-        data["non_zero"].append(nonzero)
-        data["non_negative"].append(np.sum([eigenvalues >= 0]))
-    df = pd.DataFrame(data, index)
+    for image_product in image_product_list:
+        img_prod = ip.get_image_product(image_product)
+        for embedding in embeddings:
+            G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb = (
+                generate_diagnostics(image_set, img_prod, embedding=embedding))
+            data["image_product"].append(image_product)
+            data["embedding"].append(emb)
+            data["sum"].append(s)
+            data["non_zero"].append(nonzero)
+            data["non_negative"].append(np.sum([eigenvalues >= 0]))
+            data["k_scores"].append(k_score)
+    df = pd.DataFrame(data)
     return df
+
+def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=None, embeddings=None):
+    if embeddings is None:
+        embeddings = [("pencorr_" + str(len(ig.get_image_set(image_type))))]
+    data = {
+        "image_product": [],
+        "embedding": [],
+        "sum": [],
+        "non_zero": [],
+        "non_negative": [],
+        "k_scores": []
+    }
+    for image_product in image_product_list:
+
+        for embedding in embeddings:
+            G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, red = (
+                generate_diagnostics(image_type, image_product, k=k, embedding=embedding))
+            data["image_product"].append(image_product)
+            data["embedding"].append(embedding)
+            data["sum"].append(s)
+            data["non_zero"].append(nonzero)
+            data["non_negative"].append(np.sum([eigenvalues >= 0]))
+            data["k_scores"].append(k_score)
+    if plot is None:
+        plot = "non_zero"
+    plt.plot(data[plot], data["k_scores"], "r+")
+    plt.show()
+    df = pd.DataFrame(data)
+    return df
+
 
 """
 Some useful links and ideas
