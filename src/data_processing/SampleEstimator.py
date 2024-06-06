@@ -44,6 +44,7 @@ class SampleEstimator:
         self.imageProductType = imageProductType
         self.sampleDirectory = FilepathUtils.get_sample_directory(self.sampleName)
         self.embeddingType = embeddingType
+        self.imageProduct = get_image_product(imageProductType)
 
         # Loading/saving sample image set based on if the file exists
         self.trainingImageSetFilepath = FilepathUtils.get_sample_images_filepath(self.sampleDirectory)
@@ -58,17 +59,21 @@ class SampleEstimator:
             Path(self.trainingImageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
             np.save(self.trainingImageSetFilepath, self.trainingImageSet)
         else:
-            logging.info("Previous sample images  loaded....")
+            logging.info("Previous sample images loaded....")
             self.trainingImageSet = np.load(self.trainingImageSetFilepath)
 
+        self.imageProductFilepath = os.path.join(self.sampleDirectory, imageProductType)
+        if not os.path.isfile(self.imageProductFilepath):
+            Path(self.imageProductFilepath).parent.mkdir(parents=True, exist_ok=True)
+
         logging.info("Generating image product matrix....")
-        imageProductFilepath = FilepathUtils.get_sample_ipm_filepath(self.sampleDirectory)
+        imageProductMatrixFilepath = FilepathUtils.get_sample_ipm_filepath(self.imageProductFilepath)
         self.imageProductMatrix = generate_image_product_matrix(self.trainingImageSet, imageProductType,
-                                                                imageProductFilepath, overwrite=overwrite['imgProd'])
-        self.imageProduct = get_image_product(imageProductType)
+                                                                imageProductMatrixFilepath, overwrite=overwrite['imgProd'])
+
 
         logging.info("Generating embeddings....")
-        embeddingFilepath = FilepathUtils.get_sample_embedding_filepath(self.sampleDirectory)
+        embeddingFilepath = FilepathUtils.get_sample_embedding_filepath(self.imageProductFilepath)
         self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingFilepath,
                                                          overwrite=overwrite['embedding'])
 

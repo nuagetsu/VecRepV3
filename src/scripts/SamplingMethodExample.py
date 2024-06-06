@@ -21,7 +21,7 @@ triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within.
 triangle_mean_subtracted: triangle image set with mean subtracted from each triangle.
 """
 
-imageProductType = "ncc_pow_2"
+imageProductType = "ncc_base_10_rep_2"
 testSize = 42
 trainingSize = 150
 embeddingType = "pencorr_30"
@@ -63,7 +63,7 @@ SamplingMethod.investigate_training_size(imageSet=imageSet, imageProductType=ima
 """
 
 # Example of sweeping the rank constraint of the estimator
-
+"""
 max_size = len(imageSet)
 sampleSize = 200
 if sampleSize > max_size:
@@ -72,5 +72,21 @@ if sampleSize > max_size:
 SamplingMethod.investigate_tester_rank_constraint(imageSet=imageSet, imageProductType=imageProductType,
                                                   sampleSize=sampleSize, testSize=testSize, testPrefix=testName,
                                                   startingConstr=5, endingConstr=50, increment=5)
+"""
+# Example of sweeping the size of the training data set for multiple image product types
+
+startingTrainingSize = 100
+endingTrainingSize = 190
+increment = 10
+
+SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
+                                                            imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
+                                                            embeddingType=embeddingType,
+                                                            startingTrainingSize=startingTrainingSize,
+                                                            endingTrainingSize=endingTrainingSize, increment=increment,
+                                                            testSize=testSize,
+                                                            testPrefix=testName, specifiedKArr=specifiedKArr, trials=5,
+                                                            weights=["", "", ""])
+
 
 plt.show()

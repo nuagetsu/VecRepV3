@@ -155,13 +155,14 @@ def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampl
 
     return testSample, trainingSample
 
-def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProductType: str, embeddingType:str, startingTrainingSize: int,
-                              endingTrainingSize: int, increment=50, testSize: int,
-                              testPrefix: str, specifiedKArr=None, plotFrob=True, trials=5):
+def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProductTypes: list, embeddingType:str,
+                                                 startingTrainingSize: int, endingTrainingSize: int, increment=50,
+                                                 testSize: int, testPrefix: str, specifiedKArr=None, plotFrob=False,
+                                                 weights=None, trials=5):
     """
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
     of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
-    :param imageProductType: Image product type to investigate
+    :param imageProductTypes: Image product types to investigate
     :param embeddingType: Embedding type to investigate
     :param startingTrainingSize: Starting point for the sweep (inclusive)
     :param endingTrainingSize: Ending point for the sweep
@@ -177,41 +178,121 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
     if startingTrainingSize > endingTrainingSize:
         raise ValueError("Starting sample size must be lower than ending")
     sampleSizeArr = list(range(startingTrainingSize, endingTrainingSize, increment))
+    if weights is None:
+        weights = ["" for image_product_type in imageProductTypes]
     # A list of k neighbour plotting data, for each of the k in specified K array
-    allAveNeighArr = [[] for i in specifiedKArr]
-    aveFrobDistanceArr = []
+    allAveNeighArr = [[[] for imageProductType in imageProductTypes] for i in specifiedKArr]
+    aveFrobDistanceArr = [[] for imageProductType in imageProductTypes]
     for sampleSizeTested in sampleSizeArr:
         logging.info("Investigating sample size " + str(sampleSizeTested) + " of " + str(endingTrainingSize))
 
         sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
-        frobDistanceArr = []
-        aveNeighArr = [[] for i in specifiedKArr]
-
         # TODO Start Random Sampling here
-        for j in range(trials):
-            # Taking random training and testing samples
-            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
+        frobDistanceArr = [[] for imageProductType in imageProductTypes]
+        aveNeighArr = [[[] for imageProductType in imageProductTypes] for i in specifiedKArr]
 
-            sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
-                                            embeddingType=embeddingType, imageProductType=imageProductType)
+        for index in range(len(imageProductTypes)):
+            imageProductType = imageProductTypes[index]
+            # TODO Start Random Sampling here
+            for j in range(trials):
+                # Taking random training and testing samples
+                testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
+
+                sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
+                                                  embeddingType=embeddingType, imageProductType=imageProductType)
+                sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
+
+                # For each value of k, add the result to the array
+                for i in range(len(specifiedKArr)):
+                    k = specifiedKArr[i]
+                    aveNeighArr[i][index].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
+                                                                                    sampleTester.matrixGprime, k))
+                frobDistanceArr[index].append(sampleTester.aveFrobDistance)
+            for l in range(len(specifiedKArr)):
+                allAveNeighArr[l][index].append(sum(aveNeighArr[l][index]) / len(aveNeighArr[l][index]))
+            aveFrobDistanceArr[index].append(sum(frobDistanceArr[index]) / len(frobDistanceArr[index]))
+
+    if plotFrob:
+        trainingFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
+        frobAx = axArr[-1]
+        neighAx = axArr[:-1]
+        #GraphEstimates.plot_frob_error_against_training_size(frobAx, sampleSizeArr, aveFrobDistanceArr)
+    else:
+        trainingFig, neighAx = plt.subplots(1, len(specifiedKArr))
+    if type(neighAx) is not list:
+        neighAx = [neighAx]
+    GraphEstimates.plot_error_against_sample_size_for_image_types(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr,
+                                                                  imageProductTypes, weights)
+
+def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, imageProductTypes: list, sampleSize: int,
+                                                          testSize: int, testPrefix: str, startingConstr: int,
+                                                          endingConstr: int, increment=1, specifiedKArr=None,
+                                                          plotFrob=False):
+    """
+    :param specifiedKArr: value of k for the k neighbour score
+    :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
+    of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
+    :param imageProductType: Image product type to investigate
+    :param startingConstr: Starting lowest rank constraint to start the sweep inclusive
+    :param endingConstr: Final largest rank constraint to end the sweep inclusive
+    :param increment: Increment in the rank constraint sweep
+    :param testPrefix: Used as a prefix to all the test names
+    :param testSize: Size of the test set
+    :param sampleSize: Size of the sample set
+    :param plotFrob: If True, also plots frob error against rank
+    :return: Uses the penncorr method to generate embeddings for different rank constraints
+    Makes a graph of the average neighbour score against rank_constraint and
+    average frobenius distance against rank_constraint
+    Remember to use plt.show() to display plots
+
+    Aims to answer the question: How does the rank constraint affect the error of the embeddings generated by penncorr?
+    """
+    if startingConstr >= endingConstr:
+        raise ValueError("Starting rank constraint must be lower than ending constraint")
+    if specifiedKArr is None:
+        specifiedKArr = [5]
+
+    aveFrobDistanceArr = [[] for imageProductType in imageProductTypes]
+    # A list of k neighbour plotting data, for each of the k in specified K array
+    allAveNeighArr = [[[] for imageProductType in imageProductTypes] for i in specifiedKArr]
+    rankConstraints = list(range(startingConstr, endingConstr + 1, increment))
+
+    # For each rank in the sweep, generate a SampleTester and add its results to the array
+    for rank in rankConstraints:
+        logging.info("Investigating rank " + str(rank) + " of " + str(endingConstr))
+        embType = "pencorr_" + str(rank)
+        sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
+        testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
+
+        aveNeighArr = [[] for i in specifiedKArr]
+        frobDistanceArr = []
+        # TODO Start Random Sampling Here
+        for j in range(5):
+            # Taking training and testing samples as random samples of the image set
+            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
+
+            # Generating a sampleEstimator and SampleTester with the input parameters
+            sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
+                                          imageProductType=imageProductType)
             sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
-            # For each value of k, add the result to the array
+
+            # For each k to be investigated, append the respective k neighbour score
             for i in range(len(specifiedKArr)):
                 k = specifiedKArr[i]
                 aveNeighArr[i].append(metrics.get_mean_normed_k_neighbour_score(sampleTester.matrixG,
-                                                                               sampleTester.matrixGprime, k))
+                                                                                   sampleTester.matrixGprime, k))
             frobDistanceArr.append(sampleTester.aveFrobDistance)
         for l in range(len(specifiedKArr)):
             allAveNeighArr[l].append(sum(aveNeighArr[l]) / len(aveNeighArr[l]))
         aveFrobDistanceArr.append(sum(frobDistanceArr) / len(frobDistanceArr))
 
     if plotFrob:
-        trainingFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
+        rankFig, axArr = plt.subplots(1, len(specifiedKArr) + 1)
         frobAx = axArr[-1]
         neighAx = axArr[:-1]
-        GraphEstimates.plot_frob_error_against_training_size(frobAx, sampleSizeArr, aveFrobDistanceArr)
+        GraphEstimates.plot_frob_error_against_rank_constraint(frobAx, rankConstraints, aveFrobDistanceArr)
     else:
-        trainingFig, neighAx = plt.subplots(1, len(specifiedKArr))
-    GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr)
+        rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
+    GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)

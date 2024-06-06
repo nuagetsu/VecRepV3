@@ -227,3 +227,52 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="lower right")
+
+def plot_error_against_sample_size_for_image_types(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
+                                   specifiedKArr: List, imageProductTypes: List, weights: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param sampleSizeArr: array of sample size values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return: Plots a graph of error against samplesize for all the values of k in specifiedKArr
+
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+
+        idealPlot = [1 for i in range(len(fullNeighArr[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(sampleSizeArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for imageProductIndex in range(len(imageProductTypes)):
+            neighArr = fullNeighArr[count][imageProductIndex]
+            weight = weights[imageProductIndex]
+            label = imageProductTypes[imageProductIndex]
+            if weight != "":
+                label += "_weight_" + weight
+            neighbourAx.plot(sampleSizeArr, neighArr, color=colours[imageProductIndex],
+                             label=label)
+
+        neighbourAx.set_title(
+            "Mean norm k neighbour score against sample size (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Sample size")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="lower right")
+
+def plot_frob_error_against_rank_constraint_for_image_products(frobAx: Axes, rankArr: List[int], frobArr: List,
+                                                               imageProducts: List, weights=None):
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for index in range(len(imageProducts)):
+        weight = weights[index]
+        label = imageProducts[index]
+        if weight != "":
+            label += "_weight_" + weight
+        frobAx.plot(rankArr, frobArr[index], color=colours[index], label=label)
+    frobAx.set_title("Average frobenius error against rank constraint")
+    frobAx.set_xlabel("Rank Constraint")
+    frobAx.set_ylabel("Average frobenius error")
+    frobAx.legend(loc="lower right")
