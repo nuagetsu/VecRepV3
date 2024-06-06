@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import random
 import numpy as np
@@ -470,7 +472,8 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None):
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
-    prod = np.prod(r)
+    prod = np.prod(r[r != 0], dtype=np.longdouble)
+    prod = prod / ((math.pi ** (nonzero / 2)) / math.gamma(1 + nonzero / 2))
     eigenvalues, eigenvectors = np.linalg.eigh(G)
     k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
     return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding
@@ -484,6 +487,7 @@ def compare_image_products(image_set, image_product_list, embeddings=None):
         "sum": [],
         "non_zero": [],
         "non_negative": [],
+        "prod": [],
         "k_scores": []
     }
     for image_product in image_product_list:
@@ -496,6 +500,7 @@ def compare_image_products(image_set, image_product_list, embeddings=None):
             data["sum"].append(s)
             data["non_zero"].append(nonzero)
             data["non_negative"].append(np.sum([eigenvalues >= 0]))
+            data["prod"].append(prod)
             data["k_scores"].append(k_score)
     df = pd.DataFrame(data)
     return df
@@ -509,6 +514,7 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
         "sum": [],
         "non_zero": [],
         "non_negative": [],
+        "prod": [],
         "k_scores": []
     }
     for image_product in image_product_list:
@@ -525,6 +531,9 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
     if plot is None:
         plot = "non_zero"
     plt.plot(data[plot], data["k_scores"], "r+")
+    plt.plot(np.unique(data[plot]), np.poly1d(np.polyfit(data[plot], data["k_scores"], 1))(np.unique(data[plot])))
+    idealPlot = [1 for i in range(len(data[plot]))]  # for plotting the max possible score
+    plt.plot(data[plot], idealPlot, color='b', linestyle=':', label="Ideal")
     plt.show()
     df = pd.DataFrame(data)
     return df

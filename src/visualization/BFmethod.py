@@ -209,7 +209,7 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
             embType = "pencorr_" + str(rank)
             log_string = "Investigating image product " + imageProductType
 
-            if weight is not "":
+            if weight != "":
                 log_string += " with weight of index " + weight
                 embType += "_weight_" + str(weight)
             logging.info(log_string + " for rank " + str(rank) + "/" + str(endingConstr))

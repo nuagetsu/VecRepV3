@@ -224,13 +224,54 @@ def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
             kth_element = np.where(nbr_arr[row] == kth_largest)
             max_index = np.union1d(max_index, kth_element)
             for n in max_index:
+                weight_arr[row][n] = nbr_arr[row][n]
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 5:
+        nbr_arr = matrixG.transpose()
+        k = k + 5
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
                 weight_arr[row][n] = 1
         weight_arr = np.asarray(weight_arr)
         return weight_arr.transpose()
+    elif index == 6:
+        nbr_arr = matrixG.transpose()
+        k = k + 5
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = nbr_arr[row][n]
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 7:
+        return matrixG ** 5
     elif index == 9:        #Testing
         weight = matrixG
         for i in range(len(matrixG)):
             weight[i][i] = 0
         return weight
+    elif index == 10:
+        nbr_arr = matrixG.transpose()
+        k = k + 1
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = 1
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
     else:
         raise ValueError(str(index) + "is not a valid weighting index")
