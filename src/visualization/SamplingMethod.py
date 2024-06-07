@@ -153,7 +153,7 @@ def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampl
         raise ValueError("Training and test sample size too large! Use size less than " + str(len(imageSet)) + ".")
     rng = np.random.default_rng()
     trainingSample = rng.choice(imageSet, trainingSampleSize, replace=False)
-    remaining = np.asarray([image for image in imageSet if image not in trainingSample])
+    remaining = np.asarray([image for image in imageSet.tolist() if image not in trainingSample.tolist()])
     testSample = rng.choice(remaining, testSampleSize, replace=False)
     return testSample, trainingSample
 
@@ -309,4 +309,5 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
         rankFig, neighAx = plt.subplots(1, len(specifiedKArr))
     if type(neighAx) is not list:
         neighAx = [neighAx]
-    GraphEstimates.plot_error_against_rank_constraint(neighAx, rankConstraints, allAveNeighArr, specifiedKArr)
+    GraphEstimates.plot_error_against_rank_constraint_for_image_products(neighAx, rankConstraints, allAveNeighArr, specifiedKArr,
+                                                                         imageProducts=imageProductTypes, weights=weights)

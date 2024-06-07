@@ -292,7 +292,7 @@ def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[A
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]
 
-        idealPlot = [1 for i in range(len(neighbourAxArr[0][0]))]  # for plotting the max possible score
+        idealPlot = [1 for i in range(len(fullNeighArr[0][0]))]  # for plotting the max possible score
         neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
 
         for index in range(len(imageProducts)):

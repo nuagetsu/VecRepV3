@@ -61,7 +61,7 @@ def Lagrangian_Method2(A, b):
     z = set()  # solution set (lagrange multipliers)
     # sets different initial points throughout the entire graph
     for i in range(1, len(initial_point_lst)):
-        if (initial_point_lst[i - 1] < 0 and initial_point_lst[i] > 0) or (initial_point_lst[i - 1] > 0 and initial_point_lst[i] < 0):
+        if (f(initial_point_lst[i - 1]) < 0 and f(initial_point_lst[i]) > 0) or (f(initial_point_lst[i - 1]) > 0 and f(initial_point_lst[i]) < 0):
             solution = optimize.root_scalar(f, bracket=[initial_point_lst[i - 1], initial_point_lst[i]])
             z.add(solution.root)
     # Cleaning data for any -lambda values

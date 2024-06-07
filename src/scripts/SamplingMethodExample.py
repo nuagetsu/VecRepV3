@@ -38,7 +38,7 @@ elif imageType == "triangle_mean_subtracted":
 else:
     imageSet = get_island_image_set(imageType, 500)
 imageSet = np.array(imageSet)
-testSample, trainingSample = SamplingMethod.generate_random_sample(imageSet, testSize, trainingSize)
+# testSample, trainingSample = SamplingMethod.generate_random_sample(imageSet, testSize, trainingSize)
 
 # -----Creating graphs-----
 """
@@ -91,7 +91,7 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
 # Example of sweeping the rank constraint of the estimator with multiple image products
 
 max_size = len(imageSet)
-sampleSize = 200
+sampleSize = 150
 if sampleSize > max_size:
     sampleSize = max_size
 testSize = 42
@@ -100,8 +100,8 @@ SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=im
                                                                      imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
                                                                      sampleSize=sampleSize, testSize=testSize,
                                                                      testPrefix=testName, startingConstr=5,
-                                                                     endingConstr=100, increment=5,
-                                                                     weights=None)
+                                                                     endingConstr=150, increment=5,
+                                                                     weights=None, trials=1)
 
 
 plt.show()
