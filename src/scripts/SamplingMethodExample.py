@@ -24,7 +24,7 @@ triangle_mean_subtracted: triangle image set with mean subtracted from each tria
 imageProductType = "ncc_base_10_rep_2"
 testSize = 42
 trainingSize = 150
-embeddingType = "pencorr_30"
+embeddingType = "pencorr_50"
 specifiedKArr = [5]
 sampleName = "Triangle mean example sample"
 testName = "Triangle mean example test"
@@ -74,19 +74,34 @@ SamplingMethod.investigate_tester_rank_constraint(imageSet=imageSet, imageProduc
                                                   startingConstr=5, endingConstr=50, increment=5)
 """
 # Example of sweeping the size of the training data set for multiple image product types
-
+"""
 startingTrainingSize = 100
 endingTrainingSize = 190
 increment = 10
 
 SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
-                                                            imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
+                                                            imageProductTypes=["ncc", "ncc_base_10", "ncc_base_10_rep_2"],
                                                             embeddingType=embeddingType,
                                                             startingTrainingSize=startingTrainingSize,
                                                             endingTrainingSize=endingTrainingSize, increment=increment,
                                                             testSize=testSize,
                                                             testPrefix=testName, specifiedKArr=specifiedKArr, trials=5,
                                                             weights=["", "", ""])
+"""
+# Example of sweeping the rank constraint of the estimator with multiple image products
+
+max_size = len(imageSet)
+sampleSize = 200
+if sampleSize > max_size:
+    sampleSize = max_size
+testSize = 42
+
+SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
+                                                                     imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
+                                                                     sampleSize=sampleSize, testSize=testSize,
+                                                                     testPrefix=testName, startingConstr=5,
+                                                                     endingConstr=100, increment=5,
+                                                                     weights=None)
 
 
 plt.show()

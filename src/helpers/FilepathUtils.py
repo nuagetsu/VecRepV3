@@ -60,7 +60,7 @@ def get_sample_directory(sampleName:str) -> str:
     return os.path.join(get_project_root(), "data", "samples", sampleName)
 
 
-def get_sample_embedding_filepath(sampleDirectory: str):
+def get_sample_embedding_matrix_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_embeddings")
 
 

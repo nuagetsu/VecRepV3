@@ -276,3 +276,36 @@ def plot_frob_error_against_rank_constraint_for_image_products(frobAx: Axes, ran
     frobAx.set_xlabel("Rank Constraint")
     frobAx.set_ylabel("Average frobenius error")
     frobAx.legend(loc="lower right")
+
+def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[Axes], rankArr: List, fullNeighArr: List,
+                                                          specifiedKArr: List, imageProducts: List, weights: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+
+        idealPlot = [1 for i in range(len(neighbourAxArr[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for index in range(len(imageProducts)):
+            neighArr = fullNeighArr[count][index]
+            weight = weights[index]
+            label = imageProducts[index]
+            if weight != "":
+                label += "_weight_" + weight
+            neighbourAx.plot(rankArr, neighArr, color=colours[index], label=label)
+        neighbourAx.set_title(
+            "Mean norm k neighbour score against the rank constraint (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Rank Constraint")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="lower right")

@@ -71,10 +71,13 @@ class SampleEstimator:
         self.imageProductMatrix = generate_image_product_matrix(self.trainingImageSet, imageProductType,
                                                                 imageProductMatrixFilepath, overwrite=overwrite['imgProd'])
 
+        self.embeddingFilepath = os.path.join(self.imageProductFilepath, embeddingType)
+        if not os.path.isfile(self.embeddingFilepath):
+            Path(self.embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
 
         logging.info("Generating embeddings....")
-        embeddingFilepath = FilepathUtils.get_sample_embedding_filepath(self.imageProductFilepath)
-        self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingFilepath,
+        embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(self.embeddingFilepath)
+        self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingMatrixFilepath,
                                                          overwrite=overwrite['embedding'])
 
     def get_embedding_estimate(self, imageInput) -> NDArray:
