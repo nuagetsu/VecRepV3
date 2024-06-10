@@ -91,16 +91,16 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
 # Example of sweeping the rank constraint of the estimator with multiple image products
 
 max_size = len(imageSet)
-sampleSize = 150
+sampleSize = 180
 if sampleSize > max_size:
     sampleSize = max_size
-testSize = 42
+testSize = 12
 
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
                                                                      imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
                                                                      sampleSize=sampleSize, testSize=testSize,
                                                                      testPrefix=testName, startingConstr=5,
-                                                                     endingConstr=150, increment=5,
+                                                                     endingConstr=180, increment=5,
                                                                      weights=None, trials=1)
 
 

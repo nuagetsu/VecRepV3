@@ -273,5 +273,11 @@ def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
                 weight_arr[row][n] = 1
         weight_arr = np.asarray(weight_arr)
         return weight_arr.transpose()
+    elif index == 11:
+        return 10 ** (matrixG - 1)
+    elif index == 12:
+        return 20 ** (matrixG - 1)
+    elif index == 13:
+        return 30 ** (matrixG - 1)
     else:
         raise ValueError(str(index) + "is not a valid weighting index")

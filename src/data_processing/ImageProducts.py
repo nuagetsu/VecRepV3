@@ -12,32 +12,44 @@ def get_image_product(imageProductType: str):
         return ncc
     if imageProductType == "ncc_scaled":
         return ncc_scaled
-    elif re.search(r"ncc_pow_[0-9]+\.?\d*$", imageProductType) is not None:
-        power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
-        return image_product_pow(ncc, power)
+
+    min_value = 0
+    if re.search(r"_scaled_", imageProductType) is not None:
+        min_value = float(re.search(r"-?[0-9]+\.?\d*$", imageProductType).group())
+
+
+    if re.search(r"ncc_pow_[0-9]+\.?\d*", imageProductType) is not None:
+        power = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
+        func = image_product_pow(ncc, power)
     elif imageProductType == "ncc_exp":
-        return image_product_exp_repeated(ncc, 1)
-    elif re.search(r"ncc_exp_pow_[0-9]+\.?\d*$", imageProductType) is not None:
-        power = float(re.search(r"[0-9]+?\.?\d*", imageProductType).group())
-        return image_product_pow(image_product_exp_repeated(ncc, 1), power)
-    elif re.search("ncc_exp_rep_[0-9]+$", imageProductType) is not None:
+        func = image_product_exp_repeated(ncc, 1)
+    elif re.search(r"ncc_exp_pow_[0-9]+\.?\d*", imageProductType) is not None:
+        power = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
+        func = image_product_pow(image_product_exp_repeated(ncc, 1), power)
+    elif re.search("ncc_exp_rep_[0-9]+", imageProductType) is not None:
         reps = int(re.search(r"[0-9]+", imageProductType).group())
-        return image_product_exp_repeated(ncc, reps)
+        func = image_product_exp_repeated(ncc, reps)
     elif imageProductType == "ncc_log":
-        return image_product_log_base_2(ncc, 1)
-    elif re.search(r"ncc_log_rep_[0-9]+$", imageProductType) is not None:
+        func = image_product_log_base_2(ncc, 1)
+    elif re.search(r"ncc_log_rep_[0-9]+", imageProductType) is not None:
         reps = int(re.search(r"[0-9]+", imageProductType).group())
-        return image_product_log_base_2(ncc, reps)
-    elif re.search(r"ncc_base_[0-9]+\.?\d*$", imageProductType) is not None:
+        func = image_product_log_base_2(ncc, reps)
+    elif re.search(r"ncc_base_[0-9]+\.?\d*", imageProductType) is not None:
         base = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
-        return image_product_as_power(ncc, base, 1)
-    elif re.search(r"ncc_base_[0-9]+\.?\d*_rep_[0-9]+$", imageProductType) is not None:
+        func = image_product_as_power(ncc, base, 1)
+    elif re.search(r"ncc_base_[0-9]+\.?\d*_rep_[0-9]+", imageProductType) is not None:
         matches = re.findall(r"[0-9]+\.?\d*", imageProductType)
         base = float(matches[0])
         reps = int(matches[1])
-        return image_product_as_power(ncc, base, reps)
+        func = image_product_as_power(ncc, base, reps)
+    elif re.search(r"ncc", imageProductType) is not None:
+        func = ncc
     else:
         raise ValueError(imageProductType + " is not a valid image product type")
+
+    if min_value != 0:
+        return scale_min(func, min_value)
+    return func
 
 def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     """
@@ -46,6 +58,17 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     :return: Max value of the ncc, with scaled bounds of [-1,1]
     """
     return ncc(mainImg, tempImg) * 2 - 1
+
+def scale_min(image_product, min_value: float):
+    """
+    :param image_product: Image product to be modified
+    :param min_value: Minimum value to scale
+    :return: Image product scaled from the minimum value to 1
+    """
+    if not -1 <= min_value < 1:
+        raise ValueError("Minimum value to scale must be in range [-1, 1)!")
+    factor = 1 - min_value
+    return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor + min_value
 
 def image_product_pow(image_product, power: float):
     """

@@ -473,9 +473,10 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None):
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
     prod = np.sum([math.log10(i) for i in r[r != 0]])
+    prod2 = prod - math.log10((math.pi ** (nonzero / 2)) / math.gamma(1 + nonzero / 2))
     eigenvalues, eigenvectors = np.linalg.eigh(G)
     k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
-    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding
+    return G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, embedding
 
 def compare_image_products(image_set, image_product_list, embeddings=None):
     if embeddings is None:
@@ -492,7 +493,7 @@ def compare_image_products(image_set, image_product_list, embeddings=None):
     for image_product in image_product_list:
         img_prod = ip.get_image_product(image_product)
         for embedding in embeddings:
-            G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb = (
+            G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, emb = (
                 generate_diagnostics(image_set, img_prod, embedding=embedding))
             data["image_product"].append(image_product)
             data["embedding"].append(emb)
@@ -514,12 +515,13 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
         "non_zero": [],
         "non_negative": [],
         "prod": [],
+        "prod2": [],
         "k_scores": []
     }
     for image_product in image_product_list:
 
         for embedding in embeddings:
-            G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, red = (
+            G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, red = (
                 generate_diagnostics(image_type, image_product, k=k, embedding=embedding))
             data["image_product"].append(image_product)
             data["embedding"].append(embedding)
@@ -527,6 +529,7 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
             data["non_zero"].append(nonzero)
             data["non_negative"].append(np.sum([eigenvalues >= 0]))
             data["prod"].append(prod)
+            data["prod2"].append(prod2)
             data["k_scores"].append(k_score)
     if plot is None:
         plot = "non_zero"

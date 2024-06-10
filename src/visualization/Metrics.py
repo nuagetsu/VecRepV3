@@ -30,7 +30,7 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
 
-    res = len(similar_neighbours) - 1  # Take into account that the closest neighbour is itself
+    res = max(len(similar_neighbours) - 1, 0)  # Take into account that the closest neighbour is itself
     return res
 
 
