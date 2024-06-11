@@ -8,6 +8,9 @@ from sklearn.preprocessing import normalize
 
 from src.helpers.FilepathUtils import get_matlab_dirpath
 
+import src.data_processing.Utilities as utils
+from src.data_processing.ImageGenerators import get_triangle_image_set
+import src.helpers.FilepathUtils as fpUtils
 
 class NonPositiveSemidefiniteError(Exception):
     pass
@@ -96,6 +99,12 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
         match = re.findall(r'\d+', embeddingType)
         nDim = int(match[0])
         weight = generate_weightings(imageProductMatrix, int(match[1]))
+        matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
+    elif re.search('pencorr_[0-9]*[0-9]_weight_pow_[0-9]*[0-9]$', embeddingType) is not None:
+        match = re.findall(r'\d+', embeddingType)
+        nDim = int(match[0])
+        weight = generate_weightings(imageProductMatrix, int(match[1]), base=True)
         matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
@@ -201,11 +210,17 @@ def is_valid_matrix_g(matrixG: NDArray, nDim) -> (NDArray, int):
 
     return matrixG, nDim
 
-def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
+def generate_weightings(matrixG: NDArray, index: int, k=5, base=False) -> NDArray:
     """
     :param matrixG: Matrix G to be decomposed
     :return: Weightings through which to run weighted pencorr
     """
+    if base:
+        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
+        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+                                                      False)
+        return matrixG ** index
+
     if index == 0:
         return np.ones((len(matrixG), len(matrixG)))
     elif index == 1:
@@ -255,11 +270,11 @@ def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
         return weight_arr.transpose()
     elif index == 7:
         return matrixG ** 5
-    elif index == 9:        #Testing
-        weight = matrixG
-        for i in range(len(matrixG)):
-            weight[i][i] = 0
-        return weight
+    elif index == 8:
+        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
+        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+                                                      False)
+        return matrixG ** 20
     elif index == 10:
         nbr_arr = matrixG.transpose()
         k = k + 1
@@ -279,5 +294,10 @@ def generate_weightings(matrixG: NDArray, index: int, k=5) -> NDArray:
         return 20 ** (matrixG - 1)
     elif index == 13:
         return 30 ** (matrixG - 1)
+    elif index == 20:
+        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
+        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+                                                      False)
+        return matrixG
     else:
         raise ValueError(str(index) + "is not a valid weighting index")

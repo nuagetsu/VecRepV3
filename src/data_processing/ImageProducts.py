@@ -8,48 +8,46 @@ import math
 
 
 def get_image_product(imageProductType: str):
+    """
+    Converts an image product type string into an image product function modified with monotonic transformations.
+    :param imageProductType: image product type string
+    :return: image product function
+    """
+    elems = imageProductType.split("_")
+    func = get_base_image_product(elems[0])
+    length = int((len(elems) - 1) / 2)
+    if len(elems) == 2:
+        raise ValueError(imageProductType + ' is of the incorrect format! Separate each modifier with a "_"!')
+    for i in range(0, length):
+        func = edit_image_product(func, elems[1 + 2 * i], float(elems[2 + 2 * i]))
+    return func
+
+def get_base_image_product(imageProductType: str):
+    """
+    :param imageProductType: Function to get the base image product to be further modified through monotonic
+    transformations.
+    :return: The base image product
+
+    Currently implemented image products: "ncc"
+    """
     if imageProductType == "ncc":
         return ncc
-    if imageProductType == "ncc_scaled":
-        return ncc_scaled
-
-    min_value = 0
-    if re.search(r"_scaled_", imageProductType) is not None:
-        min_value = float(re.search(r"-?[0-9]+\.?\d*$", imageProductType).group())
-
-
-    if re.search(r"ncc_pow_[0-9]+\.?\d*", imageProductType) is not None:
-        power = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
-        func = image_product_pow(ncc, power)
-    elif imageProductType == "ncc_exp":
-        func = image_product_exp_repeated(ncc, 1)
-    elif re.search(r"ncc_exp_pow_[0-9]+\.?\d*", imageProductType) is not None:
-        power = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
-        func = image_product_pow(image_product_exp_repeated(ncc, 1), power)
-    elif re.search("ncc_exp_rep_[0-9]+", imageProductType) is not None:
-        reps = int(re.search(r"[0-9]+", imageProductType).group())
-        func = image_product_exp_repeated(ncc, reps)
-    elif imageProductType == "ncc_log":
-        func = image_product_log_base_2(ncc, 1)
-    elif re.search(r"ncc_log_rep_[0-9]+", imageProductType) is not None:
-        reps = int(re.search(r"[0-9]+", imageProductType).group())
-        func = image_product_log_base_2(ncc, reps)
-    elif re.search(r"ncc_base_[0-9]+\.?\d*", imageProductType) is not None:
-        base = float(re.search(r"[0-9]+\.?\d*", imageProductType).group())
-        func = image_product_as_power(ncc, base, 1)
-    elif re.search(r"ncc_base_[0-9]+\.?\d*_rep_[0-9]+", imageProductType) is not None:
-        matches = re.findall(r"[0-9]+\.?\d*", imageProductType)
-        base = float(matches[0])
-        reps = int(matches[1])
-        func = image_product_as_power(ncc, base, reps)
-    elif re.search(r"ncc", imageProductType) is not None:
-        func = ncc
     else:
-        raise ValueError(imageProductType + " is not a valid image product type")
+        raise ValueError(imageProductType + " is not a valid image product type!")
 
-    if min_value != 0:
-        return scale_min(func, min_value)
-    return func
+def edit_image_product(imageProduct, mod: str, factor=None):
+    if mod == "scaled":
+        return scale_min(imageProduct, factor)
+    elif mod == "pow":
+        return image_product_pow(imageProduct, factor)
+    elif mod == "exp":
+        return image_product_exp_repeated(imageProduct, 1)
+    elif mod == "log":
+        return image_product_log(imageProduct, factor)
+    elif mod == "base":
+        return image_product_as_power(imageProduct, factor)
+    else:
+        raise ValueError(mod + " is not a valid modification!")
 
 def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     """
@@ -93,32 +91,21 @@ def image_product_exp_repeated(image_product, reps: int):
         return func
     return res
 
-def image_product_log_base_2(image_product, reps: int):
+def image_product_log(image_product, base: float):
     """
     :param image_product: Image product to be modified
-    :param reps: Number of times the modification should be repeated
-    :return: Value of log base 2 of 1 + result of image product, repeated the number of times indicated
+    :param base: base to which to take the log
+    :return: Value of log base x of x - 1 + result of image product, repeated the number of times indicated
     """
-    def res(mainImage, tempImg):
-        func = image_product(mainImage, tempImg)
-        for i in range(0, reps):
-            func = math.log2(1 + func)
-        return func
-    return res
+    return lambda mainImg, tempImg: math.log(image_product(mainImg, tempImg) + base - 1, base)
 
-def image_product_as_power(image_product, base: float, reps: int):
+def image_product_as_power(image_product, base: float):
     """
     :param image_product: Image product to be modified
     :param base: Base to which will be raised by (image product - 1)
-    :param reps: Number of times the modification should be repeated
     :return: Base raised by (image product - 1)
     """
-    def res(mainImage, tempImg):
-        func = image_product(mainImage, tempImg)
-        for i in range(0, reps):
-            func = base ** (func - 1)
-        return func
-    return res
+    return lambda mainImg, tempImg: base ** (image_product(mainImg, tempImg) - 1)
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """

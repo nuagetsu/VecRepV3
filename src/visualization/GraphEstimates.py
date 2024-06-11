@@ -190,6 +190,41 @@ def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="lower right")
 
+def plot_ave_k_neighbours_for_weights_in_one(neighbourAxArr: List[Axes], weightArr: List, fullNeighArrList: List,
+                                             specifiedKArr: List, imageProductTypes: List, imageSet=None):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param weightArr: array of rank constrain values to plot (x-axis for both graphs)
+    :param fullNeighArrList: List of all the data for the neighbour graphs (y-axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :param imageProductTypes: Image product types for which we are plotting
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
+        and all image product types
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+        idealPlot = [1 for i in range(len(fullNeighArrList[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(weightArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for imageProductIndex in range(len(imageProductTypes)):
+            neighArr = fullNeighArrList[count][imageProductIndex]
+            label = imageProductTypes[imageProductIndex]
+            neighbourAx.plot(weightArr, neighArr, color=colours[imageProductIndex],
+                             label=label)
+
+        title = "Mean norm k neighbour score against weight"
+        if imageSet is not None:
+            title += " for " + imageSet
+        title += " (k = " + str(specifiedK) + ")"
+
+        neighbourAx.set_title(title)
+        neighbourAx.set_xlabel("Weight")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0.6, 1.05)
+        neighbourAx.legend(loc="lower right")
+
 def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: List, fullNeighArrList: List,
                                           specifiedKArr: List, imageProductTypes: List, weights: List, imageSet=None):
     """
