@@ -65,7 +65,8 @@ def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imag
     return imageProductMatrix
 
 
-def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False):
+def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False,
+                              base=None, filters=None):
     """
     :param imageProductMatrix: The image product matrix used to generate the vector embeddings
     :param embeddingType: Method used to generate the vector embeddings
@@ -75,7 +76,8 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     """
     if not os.path.isfile(embeddingFilepath) or overwrite:
         logging.info("Embedding matrix not found/overwrite. Generating embedding matrix...")
-        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType)
+        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType,
+                                                                  base=base, filters=filters)
 
         # Creating the directory and saving the embedding matrix
         Path(embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)

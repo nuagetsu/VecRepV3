@@ -83,7 +83,8 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
     matrixGprime = octave.pull("X")
     return matrixGprime
 
-def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=None):
+def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str,
+                         base=None, filters=None):
     """
     :param imageProductMatrix: Image product matrix to generate vectors
     :param embeddingType: Type of method to generate vector embeddings
@@ -91,20 +92,20 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, nDim=N
     If none that means the nDim = length of image product matrix
     :return:
     """
-    if re.search('pencorr_[0-9]*[0-9]$', embeddingType) is not None:
+    if re.search(r'pencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime = pencorr(imageProductMatrix, nDim)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
-    elif re.search('pencorr_[0-9]*[0-9]_weight_[0-9]*[0-9]$', embeddingType) is not None:
+    elif re.search(r'pencorr_[0-9]*[0-9]_weight_[0-9]*[0-9]$', embeddingType) is not None:
         match = re.findall(r'\d+', embeddingType)
         nDim = int(match[0])
         weight = generate_weightings(imageProductMatrix, int(match[1]))
         matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
-    elif re.search('pencorr_[0-9]*[0-9]_weight_pow_[0-9]*[0-9]$', embeddingType) is not None:
+    elif re.search(r'pencorr_[0-9]*[0-9]_weight_pow_[0-9]*[0-9]\.?[0-9]*$', embeddingType) is not None:
         match = re.findall(r'\d+', embeddingType)
         nDim = int(match[0])
-        weight = generate_weightings(imageProductMatrix, int(match[1]), base=True)
+        weight = generate_weightings(imageProductMatrix, float(match[1]), base=base, filters=filters)
         matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
@@ -210,14 +211,17 @@ def is_valid_matrix_g(matrixG: NDArray, nDim) -> (NDArray, int):
 
     return matrixG, nDim
 
-def generate_weightings(matrixG: NDArray, index: int, k=5, base=False) -> NDArray:
+def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
     """
     :param matrixG: Matrix G to be decomposed
     :return: Weightings through which to run weighted pencorr
     """
-    if base:
-        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
-        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+    if filters is None:
+        filters = []
+    if base is not None:
+        filepath = fpUtils.get_image_product_filepath(base, filters, "ncc")
+        imageSet = utils.generate_filtered_image_set(base, filters, fpUtils.get_image_set_filepath(base, filters))
+        matrixG = utils.generate_image_product_matrix(imageSet, "ncc", filepath,
                                                       False)
         return matrixG ** index
 

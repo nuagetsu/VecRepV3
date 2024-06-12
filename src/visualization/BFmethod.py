@@ -182,7 +182,7 @@ def investigate_BF_weight_power(*, imageType: str, filters=None, imageProductTyp
 
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[[] for imageProductType in imageProductTypes] for k in specifiedKArr]
-    weightConstraints = list(range(startingConstr, endingConstr + 1, interval))
+    weightConstraints = np.arange(startingConstr, endingConstr + interval, interval).tolist()
 
     for i in range(len(weightConstraints)):
         weight = weightConstraints[i]

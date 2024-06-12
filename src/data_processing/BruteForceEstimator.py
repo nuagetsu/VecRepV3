@@ -24,7 +24,7 @@ class BruteForceEstimator(TestableEstimator):
         matrixG = utils.generate_image_product_matrix(imageSet, imageProductType, self.imgProductFilepath,
                                                       overwrite['imgProd'])
         matrixA = utils.generate_embedding_matrix(matrixG, embeddingType, self.embeddingFilepath,
-                                                  overwrite["embedding"])
+                                                  overwrite["embedding"], base=imageType, filters=filters)
 
         super().__init__(imageSet, imageFilepath, imageProductType, embeddingType, matrixA, matrixG)
 
