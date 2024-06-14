@@ -3,6 +3,7 @@ import numpy as np
 
 from src.data_processing.ImageGenerators import get_island_image_set
 from src.data_processing.ImageGenerators import get_triangle_image_set
+from src.data_processing.ImageGenerators import get_quadrilaterals_image_set
 from src.visualization import SamplingMethod, BFmethod
 from src.data_processing.SampleTester import SampleTester
 from src.data_processing.SampleEstimator import SampleEstimator
@@ -12,7 +13,7 @@ Some example graphs for the sampling method randomly generated image set
 """
 
 # -----Variables-----
-imageType = "triangle"
+imageType = "quadrilaterals"
 """
 N island M max_ones: Generates a random island in a N by N matrix with up to M max ones, e.g. 10island30max_ones
 
@@ -35,6 +36,8 @@ if imageType == "triangle":
     imageSet = get_triangle_image_set()
 elif imageType == "triangle_mean_subtracted":
     imageSet = get_triangle_image_set(mean_subtracted=True)
+elif imageType == "quadrilaterals":
+    imageSet = get_quadrilaterals_image_set()
 else:
     imageSet = get_island_image_set(imageType, 500)
 imageSet = np.array(imageSet)
@@ -91,17 +94,17 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
 # Example of sweeping the rank constraint of the estimator with multiple image products
 
 max_size = len(imageSet)
-sampleSize = 180
+sampleSize = 400
 if sampleSize > max_size:
     sampleSize = max_size
-testSize = 12
+testSize = 250
 
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
-                                                                     imageProductTypes=["ncc", "ncc_pow_2", "ncc_base_10"],
+                                                                     imageProductTypes=["ncc", "ncc_pow_2", "ncc"],
                                                                      sampleSize=sampleSize, testSize=testSize,
-                                                                     testPrefix=testName, startingConstr=5,
-                                                                     endingConstr=180, increment=5,
-                                                                     weights=None, trials=1)
+                                                                     testPrefix=testName, startingConstr=10,
+                                                                     endingConstr=250, increment=10,
+                                                                     weights=["", "", "pow_1"], trials=1)
 
 
 plt.show()

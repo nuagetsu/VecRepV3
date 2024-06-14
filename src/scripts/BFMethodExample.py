@@ -52,8 +52,8 @@ Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to u
 """
 
 # -----Variables-----
-imageType = "triangle"
-filters = []
+imageType = "quadrilaterals"
+filters = ["unique"]
 imageProductType = "ncc_pow_2"
 embeddingType = "pencorr_192_weight_4"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
@@ -89,19 +89,19 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for up to 5 different image products
-"""
+
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_3"],
-                                                        startingConstr=1, endingConstr=192, interval=1,
+                                                        imageProductTypes=["ncc", "ncc", "ncc_pow_2"],
+                                                        startingConstr=10, endingConstr=250, interval=10,
                                                         specifiedKArr=[5],
                                                         plotFrob=False,
-                                                        weights=["pow_2", "pow_2", "pow_1"])
-"""
-# Investigate changes in weight matrix for up to 9 different image products
+                                                        weights=["", "pow_1", ""])
 
+# Investigate changes in weight matrix for up to 9 different image products
+"""
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
                                      imageProductTypes=["ncc", "ncc_base_10", "ncc_base_30", "ncc_base_50", "ncc_base_100"],
                                      startingConstr=0, endingConstr=20, interval=1,
                                      specifiedKArr=[5], plotFrob=False, rank=50)
-
+"""
 plt.show()
