@@ -34,6 +34,8 @@ def get_image_set(imageType: str):
         image_set = get_triangle_image_set(mean_subtracted=True)
     elif imageType == "triangle_gms":
         image_set = get_triangle_image_set(gridwide=True)
+    elif imageType == "quadrilaterals":
+        image_set = get_quadrilaterals_image_set()
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
@@ -148,6 +150,9 @@ def get_rotations_of_mean_subtracted_and_padded(tri_image: NDArray):
     return ls
 
 
+
+
+
 def get_quadrilaterals_image_set():
     """
     :return: The image set of all 4x4 quadrilaterals and triangles.
@@ -157,28 +162,37 @@ def get_quadrilaterals_image_set():
     for comb in itertools.combinations(indexes, 4):
         combinations.append(comb)
     combinations = np.asarray(combinations)
-    combinations = np.delete(combinations, np.where(is_straight_line(combinations))[0])
-    image_set = []
+    straights = straight_lines()
+    combinations = np.asarray([combination for combination in combinations.tolist() if combination not in straights])
+    unpadded_image_set = []
 
     for combination in combinations:
         matrix = np.zeros((4, 4), dtype=int)
         for i in combination:
-            x = i / 4
+            x = i // 4
             y = i % 4
             matrix[x][y] = 1
         matrix = fill_shape(matrix)
-        image_set.append(matrix)
+        unpadded_image_set.append(matrix)
+
+    small_triangle = np.array([[1, 0], [1, 1]])
+    unpadded_image_set.extend(get_rotations_and_pad(small_triangle))
+
+    image_set = []
+    for image in unpadded_image_set:
+        image_set.append(np.pad(image, (2, 2), constant_values=(0, 0)))
 
     return np.asarray(image_set)
 
-def is_straight_line(combination: NDArray):
-    combination = combination.tolist()
+def straight_lines():
     vertical_lines = [[0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15]]
     horizontal_lines = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
     diagonal_lines = [[0, 5, 10, 15], [3, 6, 9, 12]]
-    if combination in horizontal_lines or combination in diagonal_lines or combination in vertical_lines:
-        return True
-    return True
+    straights = []
+    straights.extend(vertical_lines)
+    straights.extend(horizontal_lines)
+    straights.extend(diagonal_lines)
+    return straights
 
 def fill_shape(matrix: NDArray):
     change = True
@@ -196,6 +210,21 @@ def fill_shape(matrix: NDArray):
                 y_m2 = matrix[x][max(0, y - 2)]
                 y_p1 = matrix[x][min(y + 1, 3)]
                 y_p2 = matrix[x][min(y + 2, 3)]
+
+                # Horizontal check
+                left = y_m1 or y_m2
+                right = y_p1 or y_p2
+                if left and right:
+                    matrix[x][y] = 1
+                    continue
+
+                # Vertical check
+                up = x_m1 or x_m2
+                down = x_p1 or x_p2
+                if up and down:
+                    matrix[x][y] = 1
+                    continue
+
                 x_d1 = x - 1
                 x_d2 = x - 2
                 y_d1 = y - 1
@@ -216,28 +245,45 @@ def fill_shape(matrix: NDArray):
                 if x_d4 > 3 or y_d4 > 3:
                     x_d4 = x_d3
                     y_d4 = y_d3
-                # Horizontal check
-                left = y_m1 or y_m2
-                right = y_p1 or y_p2
-                # Vertical check
-                up = x_m1 or x_m2
-                down = x_p1 or x_p2
-                # Diagonal check
+                # Diagonal check for top left to bottom right
                 diag1 = matrix[x_d1][y_d1]
                 diag2 = matrix[x_d2][y_d2]
                 diag3 = matrix[x_d3][y_d3]
                 diag4 = matrix[x_d4][y_d4]
+                upleft = diag1 or diag2
+                downright = diag3 or diag4
+                if upleft and downright:
+                    matrix[x][y] = 1
+                    continue
+
+                x_d1 = x - 1
+                x_d2 = x - 2
+                y_d1 = y - 1
+                y_d2 = y - 2
+                x_d3 = x + 1
+                y_d3 = y + 1
+                x_d4 = x + 2
+                y_d4 = y + 2
+                if x_d1 < 0 or y_d3 > 3:
+                    x_d1 = x
+                    y_d3 = y
+                if x_d2 < 0 or y_d4 > 3:
+                    x_d2 = x_d1
+                    y_d4 = y_d3
+                if x_d3 > 3 or y_d1 < 0:
+                    x_d3 = x
+                    y_d1 = y
+                if x_d4 > 3 or y_d2 < 0:
+                    x_d4 = x_d3
+                    y_d2 = y_d1
                 diag5 = matrix[x_d3][y_d1]
                 diag6 = matrix[x_d4][y_d2]
                 diag7 = matrix[x_d1][y_d3]
                 diag8 = matrix[x_d2][y_d4]
-                upleft = diag1 or diag2
-                downright = diag3 or diag4
                 downleft = diag5 or diag6
                 upright = diag7 or diag8
-                if (left and right) or (up and down):
-                    matrix[x][y] = 1
-                elif (upleft and downright) or (downleft and upright):
+                # Diagonal check for bottom left to top right
+                if downleft and upright:
                     matrix[x][y] = 1
         if np.array_equal(before, matrix):
             change = False
