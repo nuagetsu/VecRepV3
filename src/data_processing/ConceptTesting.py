@@ -447,7 +447,7 @@ def mean_subtract(matrix: NDArray):
     mean = np.mean(matrix)
     return matrix - np.ones(matrix.shape) * mean
 
-def generate_diagnostics(image_type, image_product, k=5, embedding=None):
+def generate_diagnostics(image_type, image_product, k=5, embedding=None, filters=None):
     """
     :param image_type: Image Set to investigate
     :param image_product: Image Product to investigate
@@ -463,35 +463,39 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None):
     :returns eigenvalues/eigenvectors: Eigenvalues and eigenvectors of G_prime
     """
 
-    filters = []
-    if image_type != "triangle":
-        filters = ["unique"]
+    if filters is None:
+        filters = []
     image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
-    G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, [], image_product))
+    G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, filters, image_product))
     if embedding is None:
         embedding = "pencorr_" + str(len(image_set))
-    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, [], image_product, embedding))
+    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, filters, image_product, embedding))
     G_prime = np.matmul(np.atleast_2d(A).T, np.atleast_2d(A))
     x = np.array([(np.min(b), np.max(b)) for b in A])   # Range of values which the embeddings take in each dimension
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
     s = sum([np.max(b) - np.min(b) for b in A])         # Sum of all ranges, to gauge how much of the Hypersphere we are using
     nonzero = np.count_nonzero(r)                       # Number of dimensions used
     prod = np.sum([math.log10(i) for i in r[r != 0]])
-    prod2 = prod - math.log10((math.pi ** (nonzero / 2)) / math.gamma(1 + nonzero / 2))
+    # prod2 = prod - math.log10((math.pi ** (nonzero / 2)) / math.gamma(1 + nonzero / 2))
     eigenvalues, eigenvectors = np.linalg.eigh(G)
     post_eigenvalues, post_eigenvectors = np.linalg.eigh(G_prime)
     k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
-    return G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, embedding, post_eigenvalues, post_eigenvectors
+    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding, post_eigenvalues, post_eigenvectors
 
-def compare_diagnostics(image_set, image_product_list, embeddings=None, k=5):
+def compare_diagnostics(image_set, image_product_list, embeddings=None, k=5, filters=None):
+    if filters is None:
+        filters = ["unique"]
+    image_type = utils.generate_filtered_image_set(image_set, filters,
+                                                  fputils.get_image_set_filepath(image_set, filters))
     if embeddings is None:
-        embeddings = [("pencorr_" + str(len(ig.get_image_set(image_set))))]
+        embeddings = [("pencorr_" + str(len(image_type)))]
+
     data = {}
     for image_product in image_product_list:
         data[image_product] = {}
         for embedding in embeddings:
             data[image_product][embedding] = {}
-            G, G_prime, A, x, ranges, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors = generate_diagnostics(image_set, image_product, embedding=embedding, k=k)
+            G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors = generate_diagnostics(image_set, image_product, embedding=embedding, k=k, filters=filters)
             data[image_product][embedding]["image_product"] = image_product
             data[image_product][embedding]["A"] = A
             data[image_product][embedding]["Gprime"] = G_prime
@@ -508,6 +512,28 @@ def compare_diagnostics(image_set, image_product_list, embeddings=None, k=5):
             data[image_product][embedding]["peigenvalues"] = peigenvalues
     return data
 
+def display_df(data, image_product_list, display, embedding):
+    index = image_product_list
+    displayed_data = {}
+    for i in display:
+        displayed_data[i] = []
+        for j in image_product_list:
+            displayed_data[i].append(data[j][embedding][i])
+    return pd.DataFrame(displayed_data, index=index)
+
+def display_multiple(data, image_product_list, display, embeddings):
+    displayed_data = {"image_product": [], "embedding": []}
+    for j in image_product_list:
+        for k in embeddings:
+            for i in display:
+                if i not in displayed_data:
+                    displayed_data[i] = []
+                displayed_data[i].append(data[j][k][i])
+                displayed_data["image_product"].append(j)
+                displayed_data["embedding"].append(k)
+    return pd.DataFrame(data)
+
+
 def compare_image_products(image_set, image_product_list, embeddings=None):
     if embeddings is None:
         embeddings = [("pencorr_" + str(len(image_set)))]
@@ -523,7 +549,7 @@ def compare_image_products(image_set, image_product_list, embeddings=None):
     for image_product in image_product_list:
         img_prod = ip.get_image_product(image_product)
         for embedding in embeddings:
-            (G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, emb,
+            (G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb,
              peighenvalues, peigenvectors) = generate_diagnostics(image_set, image_product, embedding=embedding)
             data["image_product"].append(image_product)
             data["embedding"].append(emb)
@@ -551,7 +577,7 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
     for image_product in image_product_list:
 
         for embedding in embeddings:
-            (G, G_prime, A, x, r, s, prod, prod2, nonzero, eigenvalues, eigenvectors, k_score, red,
+            (G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, red,
             peighenvalues, peigenvectors) = generate_diagnostics(image_type, image_product, k=k, embedding=embedding)
 
             data["image_product"].append(image_product)
@@ -560,7 +586,6 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
             data["non_zero"].append(nonzero)
             data["non_negative"].append(np.sum([eigenvalues >= 0]))
             data["prod"].append(prod)
-            data["prod2"].append(prod2)
             data["k_scores"].append(k_score)
     if plot is None:
         plot = "non_zero"
