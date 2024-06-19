@@ -53,7 +53,7 @@ class SampleEstimator:
         if not os.path.isfile(self.trainingImageSetFilepath) or overwrite['imgSet']:
             logging.info("Saving sample images....")
             if trainingImageSet is None:
-                raise ValueError("Image samples must be give if sample estimator has not been previously initialized")
+                raise ValueError("Image samples must be given if sample estimator has not been previously initialized")
             self.trainingImageSet = trainingImageSet
 
             # Making directory if it doesn't exist
@@ -78,15 +78,15 @@ class SampleEstimator:
 
 
         weightMatrix = generate_weighting_matrix(self.imageProductMatrix, self.trainingImageSet, weight, weightingFilepath,
-                                                           self.imageProductFilepath, overwrite['imgProd'])
+                                                           imageProductMatrixFilepath, overwrite['imgProd'])
 
 
         self.embeddingFilepath = Path(FilepathUtils.get_sample_embedding_matrix_filepath(
-            embeddingType, self.sampleDirectory)).parent
+            embeddingType, self.imageProductFilepath)).parent
         if not os.path.isfile(self.embeddingFilepath):
             Path(self.embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
         logging.info("Generating embeddings....")
-        embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(self.embeddingFilepath)
+        embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(embeddingType, self.imageProductFilepath)
         self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingMatrixFilepath,
                                                          overwrite=overwrite['embedding'], weight=weightMatrix)
 

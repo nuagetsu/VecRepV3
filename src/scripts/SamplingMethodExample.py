@@ -13,7 +13,7 @@ Some example graphs for the sampling method randomly generated image set
 """
 
 # -----Variables-----
-imageType = "quadrilaterals"
+imageType = "triangle"
 """
 N island M max_ones: Generates a random island in a N by N matrix with up to M max ones, e.g. 10island30max_ones
 
@@ -23,12 +23,13 @@ triangle_mean_subtracted: triangle image set with mean subtracted from each tria
 """
 
 imageProductType = "ncc_base_10_rep_2"
+weight = ""
 testSize = 42
 trainingSize = 150
 embeddingType = "pencorr_50"
 specifiedKArr = [5]
-sampleName = "Triangle mean example sample"
-testName = "Triangle mean example test"
+sampleName = "Triangle example sample"
+testName = "Triangle example test"
 
 # Loading image dataset. Training set takes from random samples of the image set.
 
@@ -59,7 +60,7 @@ startingTrainingSize = 100
 endingTrainingSize = 190
 increment = 10
 
-SamplingMethod.investigate_training_size(imageSet=imageSet, imageProductType=imageProductType,
+SamplingMethod.investigate_training_size(imageSet=imageSet, imageProductType=imageProductType, weight=weight
                                          embeddingType=embeddingType, startingTrainingSize=startingTrainingSize,
                                          endingTrainingSize=endingTrainingSize, increment=increment, testSize=testSize,
                                          testPrefix=testName, specifiedKArr=specifiedKArr, trials=5)
@@ -72,7 +73,7 @@ sampleSize = 200
 if sampleSize > max_size:
     sampleSize = max_size
 
-SamplingMethod.investigate_tester_rank_constraint(imageSet=imageSet, imageProductType=imageProductType,
+SamplingMethod.investigate_tester_rank_constraint(imageSet=imageSet, imageProductType=imageProductType, weight=weight
                                                   sampleSize=sampleSize, testSize=testSize, testPrefix=testName,
                                                   startingConstr=5, endingConstr=50, increment=5)
 """
@@ -94,17 +95,17 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
 # Example of sweeping the rank constraint of the estimator with multiple image products
 
 max_size = len(imageSet)
-sampleSize = 400
+sampleSize = 150
 if sampleSize > max_size:
     sampleSize = max_size
-testSize = 250
+testSize = 42
 
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
                                                                      imageProductTypes=["ncc", "ncc_pow_2", "ncc"],
                                                                      sampleSize=sampleSize, testSize=testSize,
                                                                      testPrefix=testName, startingConstr=10,
                                                                      endingConstr=250, increment=10,
-                                                                     weights=["", "", "pow_1"], trials=1)
+                                                                     weights=["", "", "ncc_factor_1"], trials=1)
 
 
 plt.show()

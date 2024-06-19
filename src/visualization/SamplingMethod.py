@@ -18,7 +18,8 @@ logging.basicConfig(
 
 
 def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: str, sampleSize: int, testSize: int,
-                                       testPrefix: str, startingConstr: int, endingConstr: int, increment=1, specifiedKArr=None, plotFrob=True):
+                                       testPrefix: str, startingConstr: int, endingConstr: int, increment=1,
+                                       specifiedKArr=None, plotFrob=True, weight=""):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
@@ -64,7 +65,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
 
             # Generating a sampleEstimator and SampleTester with the input parameters
             sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
-                                          imageProductType=imageProductType)
+                                          imageProductType=imageProductType, weight=weight)
             sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
 
@@ -89,7 +90,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
 
 def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embeddingType:str, startingTrainingSize: int,
                               endingTrainingSize: int, increment=50, testSize: int,
-                              testPrefix: str, specifiedKArr=None, plotFrob=True, trials=5):
+                              testPrefix: str, specifiedKArr=None, plotFrob=True, trials=5, weight=""):
     """
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
     of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
@@ -126,7 +127,7 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
             testSample, trainingSample = generate_random_sample(imageSet, testSize)
 
             sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
-                                            embeddingType=embeddingType, imageProductType=imageProductType)
+                                            embeddingType=embeddingType, imageProductType=imageProductType, weight=weight)
             sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
             # For each value of k, add the result to the array
@@ -196,15 +197,14 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
 
         for index in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[index]
-            if weights[index] != "":
-                embeddingType += "_weight_" + weights[index]
+            weight = weights[index]
             # TODO Start Random Sampling here
             for j in range(trials):
                 # Taking random training and testing samples
                 testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
 
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
-                                                  embeddingType=embeddingType, imageProductType=imageProductType)
+                                                  embeddingType=embeddingType, imageProductType=imageProductType, weight=weight)
                 sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
                 # For each value of k, add the result to the array
@@ -272,8 +272,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
         for index in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[index]
             embType = "pencorr_" + str(rank)
-            if weights[index] != "":
-                embType += "_weight_" + weights[index]
+            weight = weights[index]
             sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
             testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
 
@@ -286,7 +285,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
 
                 # Generating a sampleEstimator and SampleTester with the input parameters
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
-                                                  imageProductType=imageProductType)
+                                                  imageProductType=imageProductType, weight=weight)
                 sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 
 
