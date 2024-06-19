@@ -51,9 +51,9 @@ def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProdu
 def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingType:str, copy="") -> str:
     filepath = get_filepath(imageType=imageType, filters=filters)
 
-    components = weightingType.split("_weight_")
+    components = weightingType.split("_factor_")
     if components[0] == "copy":
-        weightingType = copy + "_weight_" + components[1]
+        weightingType = copy + "_factor_" + components[1]
 
     return os.path.join(filepath, "weights", weightingType)
 
@@ -63,17 +63,25 @@ def get_plotting_data_filepath(imageType: str, filters: List[str], imageProductT
     return os.path.join(filepath, "plotting_data")
 
 
-def get_sample_directory(sampleName:str) -> str:
+def get_sample_directory(sampleName:str, category="uncategorized") -> str:
     """
     :param sampleName: Name of sample
     :return: Directory where the sample data should be saved
     """
-    return os.path.join(get_project_root(), "data", "samples", sampleName)
+    return os.path.join(get_project_root(), "data", "samples", category, sampleName)
 
 
-def get_sample_embedding_matrix_filepath(sampleDirectory: str):
-    return os.path.join(sampleDirectory, "sample_embeddings")
+def get_sample_embedding_matrix_filepath(embeddingType, sampleDirectory: str, weight=None):
+    if weight is None or weight == "":
+        weight = "unweighted"
+    return os.path.join(sampleDirectory, embeddingType, weight, "sample_embeddings")
 
+def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy=""):
+    components = weightingType.split("_factor_")
+    if components[0] == "copy":
+        weightingType = copy + "_factor_" + components[1]
+
+    return os.path.join(sampleDirectory, "weightings", weightingType)
 
 def get_sample_ipm_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_image_product_matrix")

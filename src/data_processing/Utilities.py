@@ -91,9 +91,9 @@ def generate_weighting_matrix(imageProductMatrix, imageSet, weightingType, weigh
                               imageProductFilepath, overwrite=False):
     if weightingType == "" or weightingType is None:
         return np.ones_like(imageProductMatrix)
-    components = weightingType.split("_weight_")
+    components = weightingType.split("_factor_")
     if len(components) == 1:
-        raise ValueError("Weighting type must indicate weight factor by _weight_[factor]!")
+        raise ValueError("Weighting type must indicate weight factor by _factor_[factor]!")
     factor = int(components[1])
     base = components[0]
     if not os.path.isfile(weightingFilepath) or overwrite:

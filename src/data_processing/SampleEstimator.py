@@ -8,7 +8,8 @@ from numpy.typing import NDArray
 
 from helpers import FilepathUtils
 from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
-from src.data_processing.Utilities import generate_image_product_matrix, generate_embedding_matrix
+from src.data_processing.Utilities import (generate_image_product_matrix, generate_embedding_matrix,
+                                           generate_weighting_matrix)
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 
 logging.basicConfig(
@@ -27,7 +28,7 @@ class SampleEstimator:
     """
 
     def __init__(self, *, sampleName: str, trainingImageSet=None, embeddingType: str,
-                 imageProductType: str, overwrite=None):
+                 imageProductType: str, overwrite=None, parentImageSet="uncategorized", weight=None):
         """
         :param sampleName: Name of the sample (must be unique for each sample)
         :param embeddingType:
@@ -42,7 +43,7 @@ class SampleEstimator:
 
         self.sampleName = sampleName
         self.imageProductType = imageProductType
-        self.sampleDirectory = FilepathUtils.get_sample_directory(self.sampleName)
+        self.sampleDirectory = FilepathUtils.get_sample_directory(self.sampleName, category=parentImageSet)
         self.embeddingType = embeddingType
         self.imageProduct = get_image_product(imageProductType)
 
@@ -71,14 +72,23 @@ class SampleEstimator:
         self.imageProductMatrix = generate_image_product_matrix(self.trainingImageSet, imageProductType,
                                                                 imageProductMatrixFilepath, overwrite=overwrite['imgProd'])
 
-        self.embeddingFilepath = os.path.join(self.imageProductFilepath, embeddingType)
+        weightingFilepath = FilepathUtils.get_sample_weighting_filepath(self.sampleDirectory, weight, copy=imageProductType)
+        if weight is None or weight == "":
+            weight = ""
+
+
+        weightMatrix = generate_weighting_matrix(self.imageProductMatrix, self.trainingImageSet, weight, weightingFilepath,
+                                                           self.imageProductFilepath, overwrite['imgProd'])
+
+
+        self.embeddingFilepath = Path(FilepathUtils.get_sample_embedding_matrix_filepath(
+            embeddingType, self.sampleDirectory)).parent
         if not os.path.isfile(self.embeddingFilepath):
             Path(self.embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
-
         logging.info("Generating embeddings....")
         embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(self.embeddingFilepath)
         self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingMatrixFilepath,
-                                                         overwrite=overwrite['embedding'])
+                                                         overwrite=overwrite['embedding'], weight=weightMatrix)
 
     def get_embedding_estimate(self, imageInput) -> NDArray:
         """
