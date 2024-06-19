@@ -52,18 +52,19 @@ Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to u
 """
 
 # -----Variables-----
-imageType = "quadrilaterals"
-filters = ["unique"]
+imageType = "triangle"
+filters = []
 imageProductType = "ncc_pow_2"
-embeddingType = "pencorr_192_weight_4"
+embeddingType = "pencorr_192"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
+weight = None
 
 # -----Execution-----
 
 # Example to investigate k histograms
 """
 bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                                      embeddingType=embeddingType, overwrite=overwrite)
+                                                      embeddingType=embeddingType, overwrite=overwrite, weight=weight)
 graphing.investigate_k(bruteForceEstimator)
 """
 
@@ -91,17 +92,17 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc_pow_3","ncc_pow_5", "ncc_base_10", "ncc_base_70"],
-                                                        startingConstr=10, endingConstr=300, interval=5,
+                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc", "ncc", "ncc_base_10", "ncc_pow_3"],
+                                                        startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         plotFrob=False,
-                                                        weights=["", "", "", "", "", ""])
+                                                        weights=["", "copy_weight_1", "ncc_weight_1", "ncc_base_10_weight_1", "ncc_weight_1", ""])
 
 # Investigate changes in weight matrix for up to 9 different image products
 """
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
-                                     imageProductTypes=["ncc", "ncc_base_10", "ncc_base_30", "ncc_base_50", "ncc_base_100"],
+                                     imageProductTypes=["ncc", "ncc_base_10"],
                                      startingConstr=0, endingConstr=20, interval=1,
-                                     specifiedKArr=[5], plotFrob=False, rank=50)
+                                     specifiedKArr=[5], plotFrob=False, rank=192)
 """
 plt.show()

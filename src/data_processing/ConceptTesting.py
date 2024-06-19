@@ -521,6 +521,33 @@ def display_df(data, image_product_list, display, embedding):
             displayed_data[i].append(data[j][embedding][i])
     return pd.DataFrame(displayed_data, index=index)
 
+def display_eigenvalues(data, image_product_list, embeddings, p=0):
+    if p < 2:
+        category = "eigenvalues"
+        if p:
+            category = "p" + category
+        for image_product in image_product_list:
+            for embedding in embeddings:
+                eigenvalues = data[image_product][embedding][category]
+                sorted(eigenvalues)
+                large = np.array(eigenvalues)[eigenvalues > 100].tolist()
+                if len(large) > 0:
+                    eigenvalues = eigenvalues[:-len(large)]
+                label = image_product + "_" + embedding
+                plt.plot(eigenvalues, label=label)
+                plt.legend(loc="lower right")
+        plt.show()
+    else:
+        categories = ["eigenvalues", "peigenvalues"]
+        for image_product in image_product_list:
+            for embedding in embeddings:
+                for category in categories:
+                    eigenvalues = data[image_product][embedding][category]
+                    label = image_product + "_" + embedding + "_" + category
+                    plt.plot(eigenvalues, label=label)
+        plt.show()
+
+
 def display_multiple(data, image_product_list, display, embeddings):
     displayed_data = {"image_product": [], "embedding": []}
     for j in image_product_list:

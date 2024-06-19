@@ -83,8 +83,7 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
     matrixGprime = octave.pull("X")
     return matrixGprime
 
-def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str,
-                         base=None, filters=None):
+def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weightMatrix=None):
     """
     :param imageProductMatrix: Image product matrix to generate vectors
     :param embeddingType: Type of method to generate vector embeddings
@@ -94,19 +93,11 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str,
     """
     if re.search(r'pencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        matrixGprime = pencorr(imageProductMatrix, nDim)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
-    elif re.search(r'pencorr_[0-9]*[0-9]_weight_[0-9]*[0-9]$', embeddingType) is not None:
-        match = re.findall(r'\d+', embeddingType)
-        nDim = int(match[0])
-        weight = generate_weightings(imageProductMatrix, int(match[1]))
-        matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
-    elif re.search(r'pencorr_[0-9]*[0-9]_weight_pow_[0-9]*[0-9]\.?[0-9]*$', embeddingType) is not None:
-        match = re.findall(r'\d+', embeddingType)
-        nDim = int(match[0])
-        weight = generate_weightings(imageProductMatrix, float(match[1]), base=base, filters=filters)
-        matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weight)
+        default_weight = weightMatrix is None or np.array_equal(weightMatrix, np.ones_like(imageProductMatrix))
+        if not default_weight:
+            matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weightMatrix)
+        else:
+            matrixGprime = pencorr(imageProductMatrix, nDim)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")

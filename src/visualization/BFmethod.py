@@ -146,11 +146,9 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     for rank in rankConstraints:
         logging.info("Investigating rank " + str(rank) + "/" + str(endingConstr))
         embType = "pencorr_" + str(rank)
-        if weight is not None:
-            embType += "_weight_" + str(weight)
         bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
                                           imageProductType=imageProductType,
-                                          embeddingType=embType)
+                                          embeddingType=embType, weightType=weight)
 
         # For each k to be investigated, append the respective k neighbour score
         for i in range(len(specifiedKArr)):
@@ -192,12 +190,14 @@ def investigate_BF_weight_power(*, imageType: str, filters=None, imageProductTyp
 
             embType = "pencorr_" + str(rank)
             if weight != 0:
-                embType += "_weight_pow_" + str(weight)
+                weightType = "ncc_weight_" + str(weight)
+            else:
+                weightType = None
             log_string = "Investigating image product " + imageProductType
 
             logging.info(log_string + " for weight " + str(weight) + "/" + str(endingConstr))
-            bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
-                                              imageProductType=imageProductType, embeddingType=embType)
+            bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                              embeddingType=embType, weightType=weightType)
             # For each k to be investigated, append the respective k neighbour score
             for kIndex in range(len(specifiedKArr)):
                 k = specifiedKArr[kIndex]
@@ -250,11 +250,10 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
             log_string = "Investigating image product " + imageProductType
 
             if weight != "":
-                log_string += " with weight of index " + weight
-                embType += "_weight_" + str(weight)
+                log_string += " with weight of " + weight
             logging.info(log_string + " for rank " + str(rank) + "/" + str(endingConstr))
-            bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters,
-                                              imageProductType=imageProductType, embeddingType=embType)
+            bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
+                                              embeddingType=embType, weightType=weight)
             # For each k to be investigated, append the respective k neighbour score
             for kIndex in range(len(specifiedKArr)):
                 k = specifiedKArr[kIndex]
@@ -269,12 +268,13 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
 
 
 def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
-                                   numK=16, plotFrob=True, overwrite=None):
+                                   numK=16, plotFrob=True, overwrite=None, weight=None):
     """
     :param imageType: The image set to investigate
     :param filters: Filters to apply to the image set
     :param imageProductTypeArr: Image product types to investigate
     :param plotFrob: If true, also displays the frobenius error
+    :param weight: Weight to use in embedding process
     :return: Plots a graph of the relative positioning score against the number of neighbours analysed for each image
         product type in the image product type array.
     """
@@ -288,7 +288,7 @@ def investigate_image_product_type(*, imageType: str, filters=None, imageProduct
     for imageProductType in imageProductTypeArr:
         logging.info("Investigating image product " + imageProductType)
         bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                          embeddingType=embType, overwrite=overwrite)
+                                          embeddingType=embType, overwrite=overwrite, weightType=weight)
         kArr = list(range(1, numK + 1))
         aveKNeighArr = []
         for k in kArr:

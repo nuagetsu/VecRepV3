@@ -40,11 +40,22 @@ def get_image_product_filepath(imageType: str, filters: List[str], imageProductT
     return os.path.join(filepath, "image_product_matrix")
 
 
-def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str) -> str:
+def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str,
+                                  weight=None) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
                             embeddingType=embeddingType)
-    return os.path.join(filepath, "embedding_matrix")
+    if weight is None or weight == "":
+        weight = "unweighted"
+    return os.path.join(filepath, weight, "embedding_matrix")
 
+def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingType:str, copy="") -> str:
+    filepath = get_filepath(imageType=imageType, filters=filters)
+
+    components = weightingType.split("_weight_")
+    if components[0] == "copy":
+        weightingType = copy + "_weight_" + components[1]
+
+    return os.path.join(filepath, "weights", weightingType)
 
 def get_plotting_data_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,

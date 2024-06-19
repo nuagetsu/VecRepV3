@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import List
 
+import numpy
 import numpy as np
 from numpy.typing import NDArray
 
@@ -66,7 +67,7 @@ def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imag
 
 
 def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False,
-                              base=None, filters=None):
+                              weight=None):
     """
     :param imageProductMatrix: The image product matrix used to generate the vector embeddings
     :param embeddingType: Method used to generate the vector embeddings
@@ -77,7 +78,7 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     if not os.path.isfile(embeddingFilepath) or overwrite:
         logging.info("Embedding matrix not found/overwrite. Generating embedding matrix...")
         embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType,
-                                                                  base=base, filters=filters)
+                                                                  weightMatrix=weight)
 
         # Creating the directory and saving the embedding matrix
         Path(embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -85,3 +86,26 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     else:
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
+
+def generate_weighting_matrix(imageProductMatrix, imageSet, weightingType, weightingFilepath,
+                              imageProductFilepath, overwrite=False):
+    if weightingType == "" or weightingType is None:
+        return np.ones_like(imageProductMatrix)
+    components = weightingType.split("_weight_")
+    if len(components) == 1:
+        raise ValueError("Weighting type must indicate weight factor by _weight_[factor]!")
+    factor = int(components[1])
+    base = components[0]
+    if not os.path.isfile(weightingFilepath) or overwrite:
+        logging.info("Weighting matrix not found/overwrite. Generating weighting matrix...")
+        if base == "copy":
+            weightingMatrix = imageProductMatrix ** factor
+        else:
+            weightingMatrix = generate_image_product_matrix(imageSet, base, imageProductFilepath) ** factor
+
+        # Creating the directory and saving the weighting matrix
+        Path(weightingFilepath).parent.mkdir(parents=True, exist_ok=True)
+        np.savetxt(weightingFilepath, weightingMatrix)
+    else:
+        weightingMatrix = np.loadtxt(weightingFilepath)
+    return weightingMatrix
