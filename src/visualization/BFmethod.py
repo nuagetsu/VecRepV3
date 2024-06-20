@@ -213,7 +213,7 @@ def investigate_BF_weight_power(*, imageType: str, filters=None, imageProductTyp
 
 def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=None, imageProductTypes: list,
                                                    startingConstr: int, endingConstr: int, interval=1,
-                                                   specifiedKArr=None, plotFrob=False, weights=None):
+                                                   specifiedKArr=None, weights=None, progressive=False):
     """
     :param imageType: Image set to be tested
     :param filters: Filters to produce the image set
@@ -239,6 +239,8 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[[] for imageProductType in imageProductTypes] for k in specifiedKArr]
     rankConstraints = list(range(startingConstr, endingConstr + 1, interval))
+    if progressive:
+        rankConstraints = metrics.get_progressive_range(startingConstr, endingConstr + 1, interval)
 
     for i in range(len(rankConstraints)):
         rank = rankConstraints[i]

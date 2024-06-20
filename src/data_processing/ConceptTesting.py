@@ -447,7 +447,7 @@ def mean_subtract(matrix: NDArray):
     mean = np.mean(matrix)
     return matrix - np.ones(matrix.shape) * mean
 
-def generate_diagnostics(image_type, image_product, k=5, embedding=None, filters=None):
+def generate_diagnostics(image_type, image_product, k=5, weight=None, filters=None):
     """
     :param image_type: Image Set to investigate
     :param image_product: Image Product to investigate
@@ -467,9 +467,10 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None, filters
         filters = []
     image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
     G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, filters, image_product))
-    if embedding is None:
-        embedding = "pencorr_" + str(len(image_set))
-    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, filters, image_product, embedding))
+    embedding = "pencorr_" + str(len(image_set))
+    weightingFilepath = fputils.get_weighting_matrix_filepath(image_type, filters, weight, image_product)
+    weightMatrix = utils.generate_weighting_matrix(G, image_set, weight, weightingFilepath, fputils.get_image_product_filepath(image_type, filters, image_product))
+    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, filters, image_product, embedding), weight=weightMatrix)
     G_prime = np.matmul(np.atleast_2d(A).T, np.atleast_2d(A))
     x = np.array([(np.min(b), np.max(b)) for b in A])   # Range of values which the embeddings take in each dimension
     r = np.array([np.max(b) - np.min(b) for b in A])    # Magnitude of this range
@@ -482,34 +483,34 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None, filters
     k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
     return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding, post_eigenvalues, post_eigenvectors
 
-def compare_diagnostics(image_set, image_product_list, embeddings=None, k=5, filters=None):
+def compare_diagnostics(image_set, image_product_list, weights=None, k=5, filters=None):
     if filters is None:
         filters = ["unique"]
     image_type = utils.generate_filtered_image_set(image_set, filters,
                                                   fputils.get_image_set_filepath(image_set, filters))
-    if embeddings is None:
-        embeddings = [("pencorr_" + str(len(image_type)))]
+    if weights is None:
+        weights = [("pencorr_" + str(len(image_type)))]
 
     data = {}
     for image_product in image_product_list:
         data[image_product] = {}
-        for embedding in embeddings:
-            data[image_product][embedding] = {}
-            G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors = generate_diagnostics(image_set, image_product, embedding=embedding, k=k, filters=filters)
-            data[image_product][embedding]["image_product"] = image_product
-            data[image_product][embedding]["A"] = A
-            data[image_product][embedding]["Gprime"] = G_prime
-            data[image_product][embedding]["embedding"] = emb
-            data[image_product][embedding]["sum"] = s
-            data[image_product][embedding]["non_zero"] = nonzero
-            data[image_product][embedding]["non_negative"] = np.sum([eigenvalues >= 0])
-            data[image_product][embedding]["prod"] = prod
-            data[image_product][embedding]["k_scores"] = k_score
-            data[image_product][embedding]["rng"] = ranges
-            data[image_product][embedding]["eigenvectors"] = eigenvectors
-            data[image_product][embedding]["eigenvalues"] = eigenvalues
-            data[image_product][embedding]["peigenvectors"] = peigenvectors
-            data[image_product][embedding]["peigenvalues"] = peigenvalues
+        for weight in weights:
+            data[image_product][weight] = {}
+            G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors = generate_diagnostics(image_set, image_product, weight=weight, k=k, filters=filters)
+            data[image_product][weight]["image_product"] = image_product
+            data[image_product][weight]["A"] = A
+            data[image_product][weight]["Gprime"] = G_prime
+            data[image_product][weight]["embedding"] = emb
+            data[image_product][weight]["sum"] = s
+            data[image_product][weight]["non_zero"] = nonzero
+            data[image_product][weight]["non_negative"] = np.sum([eigenvalues >= 0])
+            data[image_product][weight]["prod"] = prod
+            data[image_product][weight]["k_scores"] = k_score
+            data[image_product][weight]["rng"] = ranges
+            data[image_product][weight]["eigenvectors"] = eigenvectors
+            data[image_product][weight]["eigenvalues"] = eigenvalues
+            data[image_product][weight]["peigenvectors"] = peigenvectors
+            data[image_product][weight]["peigenvalues"] = peigenvalues
     return data
 
 def display_df(data, image_product_list, display, embedding):
@@ -522,6 +523,7 @@ def display_df(data, image_product_list, display, embedding):
     return pd.DataFrame(displayed_data, index=index)
 
 def display_eigenvalues(data, image_product_list, embeddings, p=0):
+    stats = {"large": {}, "sum": {}}
     if p < 2:
         category = "eigenvalues"
         if p:
@@ -529,23 +531,35 @@ def display_eigenvalues(data, image_product_list, embeddings, p=0):
         for image_product in image_product_list:
             for embedding in embeddings:
                 eigenvalues = data[image_product][embedding][category]
+                s = sum(eigenvalues)
                 sorted(eigenvalues)
                 large = np.array(eigenvalues)[eigenvalues > 100].tolist()
                 if len(large) > 0:
                     eigenvalues = eigenvalues[:-len(large)]
                 label = image_product + "_" + embedding
                 plt.plot(eigenvalues, label=label)
-                plt.legend(loc="lower right")
-        plt.show()
+                stats["large"][image_product + "_" + embedding] = large
+                stats["sum"][image_product + "_" + embedding] = s
     else:
         categories = ["eigenvalues", "peigenvalues"]
         for image_product in image_product_list:
             for embedding in embeddings:
                 for category in categories:
                     eigenvalues = data[image_product][embedding][category]
+                    s = sum(eigenvalues)
+                    sorted(eigenvalues)
+                    large = np.array(eigenvalues)[eigenvalues > 100].tolist()
+                    if len(large) > 0:
+                        eigenvalues = eigenvalues[:-len(large)]
                     label = image_product + "_" + embedding + "_" + category
                     plt.plot(eigenvalues, label=label)
-        plt.show()
+                    stats["large"][image_product + "_" + embedding] = large
+                    stats["sum"][image_product + "_" + embedding] = s
+    plt.legend(loc="lower right")
+    plt.show()
+    return stats
+
+
 
 
 def display_multiple(data, image_product_list, display, embeddings):

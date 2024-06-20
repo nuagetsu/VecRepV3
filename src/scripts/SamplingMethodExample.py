@@ -101,11 +101,11 @@ if sampleSize > max_size:
 testSize = 42
 
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
-                                                                     imageProductTypes=["ncc", "ncc_pow_2", "ncc"],
+                                                                     imageProductTypes=["ncc", "ncc", "ncc_pow_2", "ncc_pow_2"],
                                                                      sampleSize=sampleSize, testSize=testSize,
-                                                                     testPrefix=testName, startingConstr=10,
-                                                                     endingConstr=250, increment=10,
-                                                                     weights=["", "", "ncc_factor_1"], trials=1)
+                                                                     testPrefix=testName, startingConstr=1,
+                                                                     endingConstr=150, increment=1,
+                                                                     weights=["", "ncc_factor_1", "", "ncc_factor_1"], trials=2)
 
 
 plt.show()

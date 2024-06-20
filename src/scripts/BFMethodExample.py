@@ -93,9 +93,9 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
                                                         imageProductTypes=["ncc", "ncc"],
-                                                        startingConstr=1, endingConstr=192, interval=10,
+                                                        startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
-                                                        plotFrob=False,
+                                                        progressive=True,
                                                         weights=["ncc_factor_1", "ncc_base_10_factor_1"])
 
 # Investigate changes in weight matrix for up to 9 different image products

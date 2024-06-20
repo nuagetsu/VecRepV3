@@ -82,11 +82,13 @@ class SampleEstimator:
 
 
         self.embeddingFilepath = Path(FilepathUtils.get_sample_embedding_matrix_filepath(
-            embeddingType, self.imageProductFilepath)).parent
+            embeddingType, self.imageProductFilepath, weight=weight)).parent
         if not os.path.isfile(self.embeddingFilepath):
             Path(self.embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
         logging.info("Generating embeddings....")
-        embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(embeddingType, self.imageProductFilepath)
+        embeddingMatrixFilepath = FilepathUtils.get_sample_embedding_matrix_filepath(embeddingType,
+                                                                                     self.imageProductFilepath,
+                                                                                     weight=weight)
         self.embeddingMatrix = generate_embedding_matrix(self.imageProductMatrix, embeddingType, embeddingMatrixFilepath,
                                                          overwrite=overwrite['embedding'], weight=weightMatrix)
 

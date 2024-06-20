@@ -63,5 +63,20 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
     frobNorm = np.linalg.norm(diff)
     return frobNorm
 
-
-
+def get_progressive_range(startingConstr: int, endingConstr: int, interval: int):
+    """
+    :param startingConstr: Starting constraint for progressive range
+    :param endingConstr: Ending constraint for progressive range
+    :param interval: Starting interval for progressive range that increases by 1 for each cycle of 10
+    :return: The progressive range as a list
+    """
+    constraints = []
+    top = startingConstr
+    while top < endingConstr:
+        curr = list(range(top, top + (interval * 10), interval))
+        constraints.extend(curr)
+        interval += 1
+        top = curr[-1] + interval
+    while constraints[-1] >= endingConstr:
+        constraints.pop()
+    return constraints
