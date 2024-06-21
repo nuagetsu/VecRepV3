@@ -115,7 +115,8 @@ def investigate_estimator(estimator: TestableEstimator, numK=16, plottedImagesIn
 
 
 def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProductType: str, startingConstr: int,
-                                   endingConstr: int, interval=1, specifiedKArr=None, plotFrob=True, weight=None):
+                                   endingConstr: int, interval=1, specifiedKArr=None, plotFrob=True, weight=None,
+                                   progressive=False):
     """
     :param specifiedKArr: value of k for the k neighbour score graph
     :param imageType:
@@ -141,6 +142,8 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
     allAveNeighArr = [[] for i in specifiedKArr]
     aveFrobDistanceArr = []
     rankConstraints = list(range(startingConstr, endingConstr + 1, interval))
+    if progressive:
+        rankConstraints = metrics.get_progressive_range(startingConstr, endingConstr + 1, interval)
 
     # For each rank constraint, create a BF estimator and get its results
     for rank in rankConstraints:

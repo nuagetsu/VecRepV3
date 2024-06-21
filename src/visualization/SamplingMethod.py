@@ -232,7 +232,7 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
 def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, imageProductTypes: list, sampleSize: int,
                                                           testSize: int, testPrefix: str, startingConstr: int,
                                                           endingConstr: int, increment=1, specifiedKArr=None,
-                                                          plotFrob=False, trials=5, weights=None):
+                                                          plotFrob=False, trials=5, weights=None, progressive=False):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
@@ -263,6 +263,8 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[[] for imageProductType in imageProductTypes] for i in specifiedKArr]
     rankConstraints = list(range(startingConstr, endingConstr + 1, increment))
+    if progressive:
+        rankConstraints = metrics.get_progressive_range(startingConstr, endingConstr + 1, increment)
 
 
     # For each rank in the sweep, generate a SampleTester and add its results to the array

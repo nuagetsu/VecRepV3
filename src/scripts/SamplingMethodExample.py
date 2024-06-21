@@ -105,7 +105,7 @@ SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=im
                                                                      sampleSize=sampleSize, testSize=testSize,
                                                                      testPrefix=testName, startingConstr=1,
                                                                      endingConstr=150, increment=1,
-                                                                     weights=["", "ncc_factor_1", "", "ncc_factor_1"], trials=2)
+                                                                     weights=["", "ncc_factor_1", "", "ncc_factor_1"], trials=1)
 
 
 plt.show()
