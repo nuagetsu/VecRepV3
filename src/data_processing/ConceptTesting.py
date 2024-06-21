@@ -465,6 +465,8 @@ def generate_diagnostics(image_type, image_product, k=5, weight=None, filters=No
 
     if filters is None:
         filters = []
+    if weight is None:
+        weight = ""
     image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
     G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, filters, image_product))
     embedding = "pencorr_" + str(len(image_set))
@@ -486,10 +488,8 @@ def generate_diagnostics(image_type, image_product, k=5, weight=None, filters=No
 def compare_diagnostics(image_set, image_product_list, weights=None, k=5, filters=None):
     if filters is None:
         filters = ["unique"]
-    image_type = utils.generate_filtered_image_set(image_set, filters,
-                                                  fputils.get_image_set_filepath(image_set, filters))
     if weights is None:
-        weights = [("pencorr_" + str(len(image_type)))]
+        weights = [""]
 
     data = {}
     for image_product in image_product_list:
@@ -522,39 +522,39 @@ def display_df(data, image_product_list, display, embedding):
             displayed_data[i].append(data[j][embedding][i])
     return pd.DataFrame(displayed_data, index=index)
 
-def display_eigenvalues(data, image_product_list, embeddings, p=0):
+def display_eigenvalues(data, image_product_list, weights, p=0):
     stats = {"large": {}, "sum": {}}
     if p < 2:
         category = "eigenvalues"
         if p:
             category = "p" + category
         for image_product in image_product_list:
-            for embedding in embeddings:
-                eigenvalues = data[image_product][embedding][category]
+            for weight in weights:
+                eigenvalues = data[image_product][weight][category]
                 s = sum(eigenvalues)
                 sorted(eigenvalues)
                 large = np.array(eigenvalues)[eigenvalues > 100].tolist()
                 if len(large) > 0:
                     eigenvalues = eigenvalues[:-len(large)]
-                label = image_product + "_" + embedding
+                label = image_product + "_" + weight
                 plt.plot(eigenvalues, label=label)
-                stats["large"][image_product + "_" + embedding] = large
-                stats["sum"][image_product + "_" + embedding] = s
+                stats["large"][image_product + "_" + weight] = large
+                stats["sum"][image_product + "_" + weight] = s
     else:
         categories = ["eigenvalues", "peigenvalues"]
         for image_product in image_product_list:
-            for embedding in embeddings:
+            for weight in weights:
                 for category in categories:
-                    eigenvalues = data[image_product][embedding][category]
+                    eigenvalues = data[image_product][weight][category]
                     s = sum(eigenvalues)
                     sorted(eigenvalues)
                     large = np.array(eigenvalues)[eigenvalues > 100].tolist()
                     if len(large) > 0:
                         eigenvalues = eigenvalues[:-len(large)]
-                    label = image_product + "_" + embedding + "_" + category
+                    label = image_product + "_" + weight + "_" + category
                     plt.plot(eigenvalues, label=label)
-                    stats["large"][image_product + "_" + embedding] = large
-                    stats["sum"][image_product + "_" + embedding] = s
+                    stats["large"][image_product + "_" + weight] = large
+                    stats["sum"][image_product + "_" + weight] = s
     plt.legend(loc="lower right")
     plt.show()
     return stats
@@ -638,7 +638,108 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
     df = pd.DataFrame(data)
     return df
 
+def newcorr(matrixG: NDArray, nDim):
+    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
+    smallest_eigenvalue = min(eigenvalues)
+    corr = matrixG + np.identity(len(matrixG)) * smallest_eigenvalue
+    return corr
 
+"""
+def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
+    
+    :param matrixG: Matrix G to be decomposed
+    :return: Weightings through which to run weighted pencorr
+    
+    if filters is None:
+        filters = []
+    if base is not None:
+        filepath = fpUtils.get_image_product_filepath(base, filters, "ncc")
+        imageSet = utils.generate_filtered_image_set(base, filters, fpUtils.get_image_set_filepath(base, filters))
+        matrixG = utils.generate_image_product_matrix(imageSet, "ncc", filepath,
+                                                      False)
+        return matrixG ** index
+
+    if index == 0:
+        return np.ones((len(matrixG), len(matrixG)))
+    elif index == 1:
+        return matrixG
+    elif index == 2:
+        return matrixG ** 2
+    elif index == 3:
+        return matrixG ** 3
+    elif index == 4:
+        nbr_arr = matrixG.transpose()
+        k = k + 1
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = nbr_arr[row][n]
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 5:
+        nbr_arr = matrixG.transpose()
+        k = k + 5
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = 1
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 6:
+        nbr_arr = matrixG.transpose()
+        k = k + 5
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = nbr_arr[row][n]
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 7:
+        return matrixG ** 5
+    elif index == 8:
+        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
+        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+                                                      False)
+        return matrixG ** 20
+    elif index == 10:
+        nbr_arr = matrixG.transpose()
+        k = k + 1
+        weight_arr = np.zeros_like(matrixG)
+        for row in range(len(nbr_arr)):
+            max_index = np.argpartition(matrixG[row], -k)[-k:]
+            kth_largest = nbr_arr[row][max_index[0]]
+            kth_element = np.where(nbr_arr[row] == kth_largest)
+            max_index = np.union1d(max_index, kth_element)
+            for n in max_index:
+                weight_arr[row][n] = 1
+        weight_arr = np.asarray(weight_arr)
+        return weight_arr.transpose()
+    elif index == 11:
+        return 10 ** (matrixG - 1)
+    elif index == 12:
+        return 20 ** (matrixG - 1)
+    elif index == 13:
+        return 30 ** (matrixG - 1)
+    elif index == 20:
+        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
+        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
+                                                      False)
+        return matrixG
+    else:
+        raise ValueError(str(index) + "is not a valid weighting index")
+"""
 """
 Some useful links and ideas
 https://developers.google.com/machine-learning/clustering/similarity/measuring-similarity

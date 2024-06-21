@@ -50,7 +50,7 @@ def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     matrixGprime = octave.pull("X")
     return matrixGprime
 
-def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
+def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
     :param nDim: Number of non-zero eigenvalues in the output matrix
@@ -83,6 +83,18 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray):
     matrixGprime = octave.pull("X")
     return matrixGprime
 
+def eigencorr(matrixG: NDArray, nDim: int) -> NDArray:
+    """
+    WIP
+    :param matrixG:
+    :param nDim:
+    :return:
+    """
+    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
+    smallest_eigenvalue = min(eigenvalues)
+    corr = matrixG + np.identity(len(matrixG)) * abs(smallest_eigenvalue)
+    return corr
+
 def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weightMatrix=None):
     """
     :param imageProductMatrix: Image product matrix to generate vectors
@@ -98,6 +110,10 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
             matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weightMatrix)
         else:
             matrixGprime = pencorr(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
+    elif re.search(r'eigencorr_[0-9]*[0-9]$', embeddingType) is not None:
+        nDim = int(re.search(r'\d+', embeddingType).group())
+        matrixGprime = eigencorr(imageProductMatrix, nDim)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
@@ -201,98 +217,3 @@ def is_valid_matrix_g(matrixG: NDArray, nDim) -> (NDArray, int):
         raise ValueError(str(nDim) + " is > " + str(maxDim) + ". nDim has to be < the length of matrixG")
 
     return matrixG, nDim
-
-def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
-    """
-    :param matrixG: Matrix G to be decomposed
-    :return: Weightings through which to run weighted pencorr
-    """
-    if filters is None:
-        filters = []
-    if base is not None:
-        filepath = fpUtils.get_image_product_filepath(base, filters, "ncc")
-        imageSet = utils.generate_filtered_image_set(base, filters, fpUtils.get_image_set_filepath(base, filters))
-        matrixG = utils.generate_image_product_matrix(imageSet, "ncc", filepath,
-                                                      False)
-        return matrixG ** index
-
-    if index == 0:
-        return np.ones((len(matrixG), len(matrixG)))
-    elif index == 1:
-        return matrixG
-    elif index == 2:
-        return matrixG ** 2
-    elif index == 3:
-        return matrixG ** 3
-    elif index == 4:
-        nbr_arr = matrixG.transpose()
-        k = k + 1
-        weight_arr = np.zeros_like(matrixG)
-        for row in range(len(nbr_arr)):
-            max_index = np.argpartition(matrixG[row], -k)[-k:]
-            kth_largest = nbr_arr[row][max_index[0]]
-            kth_element = np.where(nbr_arr[row] == kth_largest)
-            max_index = np.union1d(max_index, kth_element)
-            for n in max_index:
-                weight_arr[row][n] = nbr_arr[row][n]
-        weight_arr = np.asarray(weight_arr)
-        return weight_arr.transpose()
-    elif index == 5:
-        nbr_arr = matrixG.transpose()
-        k = k + 5
-        weight_arr = np.zeros_like(matrixG)
-        for row in range(len(nbr_arr)):
-            max_index = np.argpartition(matrixG[row], -k)[-k:]
-            kth_largest = nbr_arr[row][max_index[0]]
-            kth_element = np.where(nbr_arr[row] == kth_largest)
-            max_index = np.union1d(max_index, kth_element)
-            for n in max_index:
-                weight_arr[row][n] = 1
-        weight_arr = np.asarray(weight_arr)
-        return weight_arr.transpose()
-    elif index == 6:
-        nbr_arr = matrixG.transpose()
-        k = k + 5
-        weight_arr = np.zeros_like(matrixG)
-        for row in range(len(nbr_arr)):
-            max_index = np.argpartition(matrixG[row], -k)[-k:]
-            kth_largest = nbr_arr[row][max_index[0]]
-            kth_element = np.where(nbr_arr[row] == kth_largest)
-            max_index = np.union1d(max_index, kth_element)
-            for n in max_index:
-                weight_arr[row][n] = nbr_arr[row][n]
-        weight_arr = np.asarray(weight_arr)
-        return weight_arr.transpose()
-    elif index == 7:
-        return matrixG ** 5
-    elif index == 8:
-        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
-        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
-                                                      False)
-        return matrixG ** 20
-    elif index == 10:
-        nbr_arr = matrixG.transpose()
-        k = k + 1
-        weight_arr = np.zeros_like(matrixG)
-        for row in range(len(nbr_arr)):
-            max_index = np.argpartition(matrixG[row], -k)[-k:]
-            kth_largest = nbr_arr[row][max_index[0]]
-            kth_element = np.where(nbr_arr[row] == kth_largest)
-            max_index = np.union1d(max_index, kth_element)
-            for n in max_index:
-                weight_arr[row][n] = 1
-        weight_arr = np.asarray(weight_arr)
-        return weight_arr.transpose()
-    elif index == 11:
-        return 10 ** (matrixG - 1)
-    elif index == 12:
-        return 20 ** (matrixG - 1)
-    elif index == 13:
-        return 30 ** (matrixG - 1)
-    elif index == 20:
-        filepath = fpUtils.get_image_product_filepath("triangle", [], "ncc")
-        matrixG = utils.generate_image_product_matrix(get_triangle_image_set(), "ncc", filepath,
-                                                      False)
-        return matrixG
-    else:
-        raise ValueError(str(index) + "is not a valid weighting index")

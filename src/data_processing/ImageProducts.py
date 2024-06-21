@@ -46,6 +46,8 @@ def edit_image_product(imageProduct, mod: str, factor=None):
         return image_product_log(imageProduct, factor)
     elif mod == "base":
         return image_product_as_power(imageProduct, factor)
+    elif mod == "mult":
+        return multiply_image_product(imageProduct, factor)
     else:
         raise ValueError(mod + " is not a valid modification!")
 
@@ -106,6 +108,14 @@ def image_product_as_power(image_product, base: float):
     :return: Base raised by (image product - 1)
     """
     return lambda mainImg, tempImg: base ** (image_product(mainImg, tempImg) - 1)
+
+def multiply_image_product(image_product, factor: float):
+    """
+    :param image_product: Image product to be modified
+    :param factor: Factor to which to multiply the image product
+    :return: Image product multiplied by factor
+    """
+    return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
