@@ -92,12 +92,12 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_2", "ncc", "ncc_pow_2", "ncc", "ncc_pow_2"],
+                                                        imageProductTypes=["ncc", "ncc_pow_5", "ncc_pow_50", "ncc", "ncc_pow_5", "ncc_pow_50"],
                                                         startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         progressive=False,
                                                         weights=["", "", "", "", "", ""],
-                                                        embeddings=["pencorr", "pencorr", "testcorr", "testcorr", "dblcorr", "dblcorr"])
+                                                        embeddings=["pencorr", "pencorr", "pencorr", "testcorr", "testcorr", "testcorr"])
 
 # Investigate changes in weight matrix for up to 9 different image products
 """
