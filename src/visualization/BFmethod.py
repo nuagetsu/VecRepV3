@@ -216,7 +216,8 @@ def investigate_BF_weight_power(*, imageType: str, filters=None, imageProductTyp
 
 def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=None, imageProductTypes: list,
                                                    startingConstr: int, endingConstr: int, interval=1,
-                                                   specifiedKArr=None, weights=None, progressive=False):
+                                                   specifiedKArr=None, weights=None, progressive=False,
+                                                   embeddings=None):
     """
     :param imageType: Image set to be tested
     :param filters: Filters to produce the image set
@@ -238,6 +239,8 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
         specifiedKArr = [5]
     if weights is None:
         weights = ["" for image_product_type in imageProductTypes]
+    if embeddings is None:
+        embeddings = ["pencorr" for image_product_type in imageProductTypes]
 
     # A list of k neighbour plotting data, for each of the k in specified K array
     allAveNeighArr = [[[] for imageProductType in imageProductTypes] for k in specifiedKArr]
@@ -251,7 +254,7 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
         for imageProductTypeIndex in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[imageProductTypeIndex]
             weight = weights[imageProductTypeIndex]
-            embType = "pencorr_" + str(rank)
+            embType = embeddings[imageProductTypeIndex] + "_" + str(rank)
             log_string = "Investigating image product " + imageProductType
 
             if weight != "":

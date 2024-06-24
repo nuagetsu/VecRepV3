@@ -83,7 +83,7 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray) -> NDArray:
     matrixGprime = octave.pull("X")
     return matrixGprime
 
-def eigencorr(matrixG: NDArray, nDim: int) -> NDArray:
+def eigencorr(matrixG: NDArray, nDim: int):
     """
     WIP
     :param matrixG:
@@ -91,9 +91,42 @@ def eigencorr(matrixG: NDArray, nDim: int) -> NDArray:
     :return:
     """
     eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
-    smallest_eigenvalue = min(eigenvalues)
-    corr = matrixG + np.identity(len(matrixG)) * abs(smallest_eigenvalue)
-    return corr
+    selected_eigenvalue = eigenvalues[len(matrixG) - nDim]
+    corr = matrixG - np.identity(len(matrixG)) * selected_eigenvalue
+
+    return corr, abs(selected_eigenvalue)
+
+def testcorr(matrixG: NDArray, nDim: int):
+    """
+    Testing method
+    :param matrixG:
+    :param index:
+    :return:
+    """
+    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
+    selected_eigenvalue = eigenvalues[len(matrixG) - nDim]
+    corr = matrixG - np.identity(len(matrixG)) * selected_eigenvalue
+
+    return corr, abs(selected_eigenvalue)
+
+def testcorr100(matrixG: NDArray, nDim: int):
+    """
+    Testing method
+    :param matrixG:
+    :param index:
+    :return:
+    """
+    corr = matrixG + np.identity(len(matrixG)) * 100
+
+    return corr, 101
+
+def dblcorr(matrixG:NDArray, nDim: int, weight=None):
+    corr, radius = eigencorr(matrixG, nDim)
+    if weight is not None:
+        matrixGprime = pencorr_weighted(corr, nDim, weight)
+    else:
+        matrixGprime = pencorr(corr, nDim)
+    return matrixGprime
 
 def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weightMatrix=None):
     """
@@ -113,8 +146,20 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     elif re.search(r'eigencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        matrixGprime = eigencorr(imageProductMatrix, nDim)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
+        matrixGprime, radius = eigencorr(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim, r=radius)
+    elif re.search(r'testcorr_[0-9]*[0-9]$', embeddingType) is not None:
+        index = int(re.search(r'\d+', embeddingType).group())
+        matrixGprime, radius = testcorr(imageProductMatrix, index)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
+    elif re.search(r'testcorr100_[0-9]*[0-9]$', embeddingType) is not None:
+        index = int(re.search(r'\d+$', embeddingType).group())
+        matrixGprime, radius = testcorr100(imageProductMatrix, index)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
+    elif re.search(r'dblcorr_[0-9]*[0-9]$', embeddingType) is not None:
+        index = int(re.search(r'\d+$', embeddingType).group())
+        matrixGprime = dblcorr(imageProductMatrix, index)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix
@@ -132,16 +177,17 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     # The eigenvectors are already given in the form of a transposed eigenvector matrix, where the rows represent the
     # eigenvectors instead of columns
     eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
-    # Reverses the order form ascending to descending
+    # Reverses the order from ascending to descending
     eigenvalues = eigenvalues[::-1]
     eigenvectors = eigenvectors.T[::-1].T
     return eigenvalues, eigenvectors
 
 
-def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
+def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     """
     :param matrixG: Matrix G to be decomposed
-    :param nDim: Number of dimensions of the vector embedding.
+    :param nDim: Number of dimensions of the vector embedding
+    :param r: Radius of the hypersphere
     :return: An embedding matrix, with each vector having nDim dimensions. An nDim by len(MatrixG) matrix
     TLDR: Input matrix G' into the function, with the number of dimensions you want your vectors to have.
     Function will then output matrix A.
@@ -158,7 +204,7 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
 
     # Checking that the matrix is positive semi-definite
     for eigenvalue in eigenvalues[:nDim]:
-        if not (eigenvalue > 0 or math.isclose(eigenvalue, 0, abs_tol=1e-5)):
+        if not (eigenvalue > 0 or math.isclose(eigenvalue, 0, abs_tol=abs_tol)):
             raise NonPositiveSemidefiniteError("Matrix G does not have al least nDim number of positive eigenvalues")
 
     # Zeros negative eigenvalues which are close to zero
@@ -171,7 +217,7 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None):
     matrixA = np.matmul(Drootm, eigenvectors.T)
 
     # Normalizing matrix A
-    matrixA = normalize(matrixA, norm='l2', axis=0)
+    matrixA = normalize(matrixA, norm='l2', axis=0) * ((r + 1) ** 0.5)
     return matrixA
 
 
