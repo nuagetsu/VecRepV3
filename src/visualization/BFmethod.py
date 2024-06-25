@@ -259,6 +259,7 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
 
             if weight != "":
                 log_string += " with weight of " + weight
+            log_string += " and embedding type " + embeddings[imageProductTypeIndex]
             logging.info(log_string + " for rank " + str(rank) + "/" + str(endingConstr))
             bfEstimator = BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                               embeddingType=embType, weightType=weight)

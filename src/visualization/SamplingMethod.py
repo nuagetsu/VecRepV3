@@ -232,7 +232,8 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
 def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, imageProductTypes: list, sampleSize: int,
                                                           testSize: int, testPrefix: str, startingConstr: int,
                                                           endingConstr: int, increment=1, specifiedKArr=None,
-                                                          plotFrob=False, trials=5, weights=None, progressive=False):
+                                                          plotFrob=False, trials=5, weights=None, progressive=False,
+                                                          embeddings=None):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
@@ -258,6 +259,8 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
         specifiedKArr = [5]
     if weights is None:
         weights = ["" for image_product_type in imageProductTypes]
+    if embeddings is None:
+        embeddings = ["pencorr" for image_product_type in imageProductTypes]
 
     aveFrobDistanceArr = [[] for imageProductType in imageProductTypes]
     # A list of k neighbour plotting data, for each of the k in specified K array
@@ -273,7 +276,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
 
         for index in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[index]
-            embType = "pencorr_" + str(rank)
+            embType = embeddings[index] + "_" + str(rank)
             weight = weights[index]
             sampleName = testPrefix + "_sample_" + str(rank) + " of " + str(endingConstr)
             testName = testPrefix + "_test_" + str(rank) + " of " + str(endingConstr)
@@ -286,7 +289,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
                 testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
 
                 # Generating a sampleEstimator and SampleTester with the input parameters
-                sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
+                sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
                                                   imageProductType=imageProductType, weight=weight)
                 sampleTester = SampleTester(testImages=testSample, sampleEstimator=sampleEstimator, testName=testName)
 

@@ -103,10 +103,11 @@ testSize = 42
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
                                                                      imageProductTypes=["ncc"],
                                                                      sampleSize=sampleSize, testSize=testSize,
-                                                                     testPrefix=testName, startingConstr=1,
+                                                                     testPrefix=testName, startingConstr=5,
                                                                      endingConstr=150, increment=1,
-                                                                     weights=[""],
-                                                                     trials=1, progressive=True)
+                                                                     weights=["", ""],
+                                                                     embeddings=["pencorr"],
+                                                                     trials=3, progressive=True)
 
 
 plt.show()

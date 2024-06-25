@@ -109,17 +109,6 @@ def testcorr(matrixG: NDArray, nDim: int):
 
     return corr, abs(selected_eigenvalue)
 
-def testcorr100(matrixG: NDArray, nDim: int):
-    """
-    Testing method
-    :param matrixG:
-    :param index:
-    :return:
-    """
-    corr = matrixG + np.identity(len(matrixG)) * 100
-
-    return corr, 101
-
 def dblcorr(matrixG:NDArray, nDim: int, weight=None):
     corr, radius = eigencorr(matrixG, nDim)
     if weight is not None:
@@ -147,14 +136,10 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
     elif re.search(r'eigencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime, radius = eigencorr(imageProductMatrix, nDim)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim, r=radius)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim, r=radius, abs_tol=100)
     elif re.search(r'testcorr_[0-9]*[0-9]$', embeddingType) is not None:
         index = int(re.search(r'\d+', embeddingType).group())
         matrixGprime, radius = testcorr(imageProductMatrix, index)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
-    elif re.search(r'testcorr100_[0-9]*[0-9]$', embeddingType) is not None:
-        index = int(re.search(r'\d+$', embeddingType).group())
-        matrixGprime, radius = testcorr100(imageProductMatrix, index)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
     elif re.search(r'dblcorr_[0-9]*[0-9]$', embeddingType) is not None:
         index = int(re.search(r'\d+$', embeddingType).group())
