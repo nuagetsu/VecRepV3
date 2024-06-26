@@ -145,6 +145,9 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         index = int(re.search(r'\d+$', embeddingType).group())
         matrixGprime = dblcorr(imageProductMatrix, index)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, index)
+    elif re.search(r'nocorr_[0-9]*[0-9]$', embeddingType) is not None:
+        nDim = int(re.search(r'\d+', embeddingType).group())
+        embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim, abs_tol=100)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix

@@ -502,6 +502,7 @@ def compare_diagnostics(image_set, image_product_list, embeddings, weights=None,
                 G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors = generate_diagnostics(image_set, image_product, weight=weight, k=k, filters=filters, embedding=embedding)
                 data[image_product][embedding][weight]["image_product"] = image_product
                 data[image_product][embedding][weight]["A"] = A
+                data[image_product][embedding][weight]["G"] = G
                 data[image_product][embedding][weight]["Gprime"] = G_prime
                 data[image_product][embedding][weight]["embedding"] = emb
                 data[image_product][embedding][weight]["sum"] = s

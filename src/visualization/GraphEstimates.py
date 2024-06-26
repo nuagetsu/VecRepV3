@@ -226,7 +226,7 @@ def plot_ave_k_neighbours_for_weights_in_one(neighbourAxArr: List[Axes], weightA
         neighbourAx.legend(loc="lower right")
 
 def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: List, fullNeighArrList: List,
-                                          specifiedKArr: List, imageProductTypes: List, weights: List, imageSet=None):
+                                          specifiedKArr: List, imageProductTypes: List, weights: List, embeddings, imageSet=None):
     """
     :param neighbourAxArr: Axes to plot the neighbour graph
     :param rankArr: array of rank constrain values to plot (x axis for both graphs)
@@ -246,9 +246,10 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
         for imageProductIndex in range(len(imageProductTypes)):
             neighArr = fullNeighArrList[count][imageProductIndex]
             weight = weights[imageProductIndex]
-            label = imageProductTypes[imageProductIndex]
+            embedding = embeddings[imageProductIndex]
+            label = imageProductTypes[imageProductIndex] + ", " + embedding
             if weight != "":
-                label += "_weight_" + weight
+                label += ", weight " + weight
             neighbourAx.plot(rankArr, neighArr, color=colours[imageProductIndex],
                              label=label)
 

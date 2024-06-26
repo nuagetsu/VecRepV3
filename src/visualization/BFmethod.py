@@ -273,7 +273,7 @@ def investigate_BF_rank_constraint_for_image_types(*, imageType: str, filters=No
         neighAx = [neighAx]
     GraphEstimates.plot_ave_k_neighbours_for_type_in_one(neighAx, rankConstraints, allAveNeighArr,
                                                          specifiedKArr, imageProductTypes,
-                                                         weights, imageSet=imageType)
+                                                         weights, embeddings, imageSet=imageType)
 
 
 def investigate_image_product_type(*, imageType: str, filters=None, imageProductTypeArr=None, embType: str,
