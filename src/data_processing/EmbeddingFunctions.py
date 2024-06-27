@@ -85,22 +85,28 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray) -> NDArray:
 
 def eigencorr(matrixG: NDArray, nDim: int):
     """
-    WIP
+    Correct eigenvalues by adding a multiple of the identity matrix to G. Note that this process and the subsequent
+    zeroing of eigenvalues causes diagonal elements to deviate from each other in unpredictable ways, meaning that this
+    method causes mathematical errors in subsequent calculations. This method should not be used and is left here to be
+    developed further (which would require more estimation or projection into the hypersphere).
     :param matrixG:
     :param nDim:
     :return:
     """
     eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
     selected_eigenvalue = eigenvalues[len(matrixG) - nDim]
-    corr = matrixG - np.identity(len(matrixG)) * selected_eigenvalue
-
-    return corr, abs(selected_eigenvalue)
+    if selected_eigenvalue < 0:
+        corr = matrixG - np.identity(len(matrixG)) * selected_eigenvalue
+        return corr, abs(selected_eigenvalue) + 1
+    else:
+        corr = matrixG
+        return corr, 1
 
 def testcorr(matrixG: NDArray, nDim: int):
     """
     Testing method
     :param matrixG:
-    :param index:
+    :param index: Weight Matrix
     :return:
     """
     eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
@@ -110,7 +116,19 @@ def testcorr(matrixG: NDArray, nDim: int):
     return corr, abs(selected_eigenvalue)
 
 def dblcorr(matrixG:NDArray, nDim: int, weight=None):
+    """
+    Mix between pencorr and correcting the eigenvalues. If the nth largest eigenvalue is positive, runs pencorr with
+    rank restriction. Otherwise, corrects the eigenvalues by adding the identity matrix multiplied by the absolute value
+    of the nth largest eigenvalue, then scales G down so that the diagonal elements are 1, before running pencorr. This
+    way, the diagonal values of G remain at 1.
+    :param matrixG: Symmetric square matrix
+    :param nDim: Number of non-zero eigenvalues in the output matrix
+    :param weight: Weight Matrix
+    :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
+    nDim non-zero eigenvalues
+    """
     corr, radius = eigencorr(matrixG, nDim)
+    corr = corr / radius
     if weight is not None:
         matrixGprime = pencorr_weighted(corr, nDim, weight)
     else:
@@ -143,8 +161,8 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
     elif re.search(r'dblcorr_[0-9]*[0-9]$', embeddingType) is not None:
         index = int(re.search(r'\d+$', embeddingType).group())
-        matrixGprime = dblcorr(imageProductMatrix, index)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index)
+        matrixGprime = dblcorr(imageProductMatrix, index, weight=weightMatrix)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, abs_tol=100)
     elif re.search(r'nocorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim, abs_tol=100)
@@ -205,7 +223,7 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     matrixA = np.matmul(Drootm, eigenvectors.T)
 
     # Normalizing matrix A
-    matrixA = normalize(matrixA, norm='l2', axis=0) * ((r + 1) ** 0.5)
+    matrixA = normalize(matrixA, norm='l2', axis=0) * (r ** 0.5)
     return matrixA
 
 
