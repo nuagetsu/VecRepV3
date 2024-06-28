@@ -485,7 +485,8 @@ def generate_diagnostics(image_type, image_product, k=5, embedding=None, weight=
     above_one = len(eigenvalues[eigenvalues > 1])
     post_eigenvalues, post_eigenvectors = np.linalg.eigh(G_prime)
     k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
-    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding, post_eigenvalues, post_eigenvectors, above_one
+    vector_range = np.array([(np.min(b), np.max(b)) for b in eigenvectors])
+    return G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, embedding, post_eigenvalues, post_eigenvectors, above_one, vector_range
 
 def compare_diagnostics(image_set, image_product_list, embeddings, weights=None, k=5, filters=None):
     if filters is None:
@@ -500,7 +501,7 @@ def compare_diagnostics(image_set, image_product_list, embeddings, weights=None,
             data[image_product][embedding] = {}
             for weight in weights:
                 data[image_product][embedding][weight] = {}
-                G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors, above_one = generate_diagnostics(image_set, image_product, weight=weight, k=k, filters=filters, embedding=embedding)
+                G, G_prime, A, x, ranges, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb, peigenvalues, peigenvectors, above_one, vector_range = generate_diagnostics(image_set, image_product, weight=weight, k=k, filters=filters, embedding=embedding)
                 data[image_product][embedding][weight]["image_product"] = image_product
                 data[image_product][embedding][weight]["A"] = A
                 data[image_product][embedding][weight]["G"] = G
@@ -609,7 +610,7 @@ def compare_image_products(image_set, image_product_list, embeddings=None):
         img_prod = ip.get_image_product(image_product)
         for embedding in embeddings:
             (G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, emb,
-             peighenvalues, peigenvectors, above_one) = generate_diagnostics(image_set, image_product, embedding=embedding)
+             peighenvalues, peigenvectors, above_one, vector_range) = generate_diagnostics(image_set, image_product, embedding=embedding)
             data["image_product"].append(image_product)
             data["embedding"].append(emb)
             data["sum"].append(s)
@@ -637,7 +638,7 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
 
         for embedding in embeddings:
             (G, G_prime, A, x, r, s, prod, nonzero, eigenvalues, eigenvectors, k_score, red,
-            peighenvalues, peigenvectors, above_one) = generate_diagnostics(image_type, image_product, k=k, embedding=embedding)
+            peighenvalues, peigenvectors, above_one, vector_range) = generate_diagnostics(image_type, image_product, k=k, embedding=embedding)
 
             data["image_product"].append(image_product)
             data["embedding"].append(embedding)

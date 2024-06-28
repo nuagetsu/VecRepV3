@@ -3,8 +3,11 @@ import re
 
 import numpy as np
 from numpy.typing import NDArray
+from skimage.draw import polygon, polygon_perimeter
 
+from src.data_processing.Filters import remove_translationally_similar
 from src.helpers.IslandCreator import grid_creation
+
 
 
 def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int]:
@@ -148,10 +151,18 @@ def get_rotations_of_mean_subtracted_and_padded(tri_image: NDArray):
         mean_subtracted = np.rot90(mean_subtracted)
         ls.append(mean_subtracted)
     return ls
+"""
+def get_quadrilaterals_image_set():
+    unpadded_image_set = get_shapes_set(4, 4).tolist()
+    small_triangle = np.array([[1, 0], [1, 1]])
+    unpadded_image_set.extend(get_rotations_and_pad(small_triangle))
 
+    image_set = []
+    for image in unpadded_image_set:
+        image_set.append(np.pad(image, (2, 2), constant_values=(0, 0)))
 
-
-
+    return np.asarray(image_set)
+"""
 
 def get_quadrilaterals_image_set():
     """
@@ -184,6 +195,13 @@ def get_quadrilaterals_image_set():
 
     return np.asarray(image_set)
 
+
+def get_only_quadrilaterals_image_set():
+    quadrilaterals = get_quadrilaterals_image_set()
+    triangles = get_triangle_image_set()
+    only_quadrilaterals = remove_translationally_similar(quadrilaterals, triangles)
+    return only_quadrilaterals
+
 def straight_lines():
     vertical_lines = [[0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15]]
     horizontal_lines = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
@@ -194,7 +212,34 @@ def straight_lines():
     straights.extend(diagonal_lines)
     return straights
 
-def fill_shape(matrix: NDArray):
+def fill_shape(combination: list, size):
+    matrix = np.zeros((size, size), dtype=int)
+    indexes = list(range(0, size ** 2))
+    for index in indexes:
+        if index in combination:
+            continue
+        position = (index // 4, index % 4)
+        top_left = False
+        top_right = False
+        bottom_left = False
+        bottom_right = False
+        left = False
+        right = False
+        up = False
+        down = False
+        for selected in combination:
+            # Check if surrounded on diagonals
+            selected_position = (selected // 4, selected % 4)
+            top_left = selected_position[0] < position[0] and selected_position[1] < position[1]
+            top_right = selected_position[0] < position[0] and selected_position[1] > position[1]
+            bottom_left = selected_position[0] > position[0] and selected_position[1] < position[1]
+            bottom_right = selected_position[0] > position[0] and selected_position[1] > position[1]
+            diamond = top_left and top_right and bottom_left and bottom_right
+
+
+
+
+def fill_shape2(matrix: NDArray):
     change = True
     while change:
         before = np.copy(matrix)
@@ -289,6 +334,31 @@ def fill_shape(matrix: NDArray):
             change = False
     return matrix
 
+def get_shapes_set(size: int, sides: int):
+    image_set = []
+    indexes = list(range(0, size ** 2))
+    for comb in itertools.combinations(indexes, sides):
+        image = np.zeros((size, size), dtype=int)
+        r = []
+        c = []
+        for index in comb:
+            r.append(index // size)
+            c.append(index % size)
+        rr, cc = polygon(r, c)
+        pr, pc = polygon_perimeter(r, c)
 
+        # Check for straight lines
+        points = []
+        for i in range(0, len(rr)):
+            points.append((rr[i], cc[i]))
+        directions = np.diff(np.array(points), axis=0)
+        cross_products = np.cross(directions[:-1], directions[1:])
+        if np.all(cross_products == 0):
+            continue
 
-
+        image[rr, cc] = 1
+        image[r, c] = 1
+        image[pr, pc] = 1
+        image_set.append(image)
+    image_set = np.array(image_set)
+    return image_set

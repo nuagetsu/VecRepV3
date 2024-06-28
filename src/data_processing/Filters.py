@@ -82,3 +82,22 @@ def apply_max_ones_filter(imageSet: NDArray, onesMaxPercentage: float) -> NDArra
     finalArr = np.array(finalArr)
     return finalArr
 
+def remove_translationally_similar(imageSet: NDArray, comparisonSet: NDArray) -> NDArray:
+    translations = set()
+    squareLength = len(imageSet[0])
+    unique = []
+    for matrix in comparisonSet:
+        # All translational invariant permutations for given nxn matrix
+        for dr in range(squareLength):
+            matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in horizontal axis
+            for dc in range(squareLength):
+                matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in vertical axis
+                to_store = np.reshape(matrix, (1, squareLength ** 2))
+                translations.add(tuple(to_store[0]))  # store in dictionary
+    for image in imageSet:
+        original_image = np.copy(image)
+        original_image = np.reshape(original_image, (1, squareLength ** 2))
+        if tuple(original_image[0]) not in translations:
+            unique.append(image)
+    unique = np.array(unique)
+    return unique
