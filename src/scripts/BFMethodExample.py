@@ -69,11 +69,11 @@ graphing.investigate_k(bruteForceEstimator)
 """
 
 # Example to investigate a specific set of parameters for BF estimator
-
+"""
 bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                                               embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_estimator(bruteForceEstimator, 16)
-
+"""
 
 # Example to investigate rank constraint
 """
@@ -92,12 +92,12 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_mult_0.5"],
+                                                        imageProductTypes=["ncc_pow_2", "ncc_pow_2", "ncc_pow_2"],
                                                         startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
-                                                        progressive=False,
-                                                        weights=["", "", "", ""],
-                                                        embeddings=["pencorr", "pencorr"])
+                                                        progressive=True,
+                                                        weights=["", "ncc_factor_1", "copy_factor_1", ""],
+                                                        embeddings=["pencorr", "pencorr", "pencorr", "pencorr"])
 
 # Investigate changes in weight matrix for up to 9 different image products
 """
