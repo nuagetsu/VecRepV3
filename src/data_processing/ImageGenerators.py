@@ -3,9 +3,8 @@ import re
 
 import numpy as np
 from numpy.typing import NDArray
-from skimage.draw import polygon, polygon_perimeter
+from skimage.draw import polygon
 
-from src.data_processing.Filters import remove_translationally_similar
 from src.helpers.IslandCreator import grid_creation
 
 
@@ -35,25 +34,32 @@ def get_image_set(imageType: str):
         image_set = get_triangles_image_set()
     elif imageType == "quadrilaterals":
         image_set = get_quadrilaterals_image_set()
+    elif re.search(r'shapes', imageType) is not None:
+        size, border_size, sides = parse_shapes_set(imageType)
+        image_set = []
+        for j in sides:
+            image_set.extend(get_shapes_set(size, j, border_size).tolist())
+        image_set = np.array(image_set)
+    elif re.search('[0-9]?[0-9]island[0-9]?[0-9]max_ones[0-9]?[0-9]images$', imageType) is not None:  # Searching if image type follows the
+        # format of 3bin40max_ones
+        matches = re.findall(r"\d", imageType)
+        imageLength = int(matches[0])
+        maxOnesPercentage = int(matches[1])
+        numImages = int(matches[2])
+        image_set = get_island_image_set(imageLength, maxOnesPercentage, numImages)
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
 
 
-def get_island_image_set(imageType, numImages):
+def get_island_image_set(imageLength, maxOnesPercentage, numImages):
     """
     :param imageLength: side length of image grid
-    :param percentOnes: Percent of ones
+    :param maxOnesPercentage: Percent of ones
     :param numImages: number of images to generate
     :return: An image set of randomly generated islands with no repeats
     """
-    if re.search('[0-9]?[0-9]island[0-9]?[0-9]max_ones$', imageType) is not None:  # Searching if image type follows the
-        # format of 3bin40max_ones
-        imageLength = int(re.search(r'^\d+', imageType).group())
-        maxOnesPercentage = int(re.search(r'\d+', imageType[2:]).group())
-        return np.array(grid_creation(imageLength, numImages, int(maxOnesPercentage / 100 * (imageLength ** 2))))
-    else:
-        raise ValueError("invalid image type")
+    return np.array(grid_creation(imageLength, numImages, int(maxOnesPercentage / 100 * (imageLength ** 2))))
 
 
 def get_triangles_image_set():
@@ -64,6 +70,28 @@ def get_triangles_image_set():
 
 def get_quadrilaterals_image_set():
     return get_shapes_set(4, 4, 2)
+
+def parse_shapes_set(imageType: str):
+    """
+    Parses the imageType string for an image set containing multiple shapes
+    :param imageType: imageType string
+    :return: Parameters for the whole image set
+    """
+    params = imageType.split("_")
+    dims = False
+    size = 4
+    border_size = 2
+    sides = []
+    for i in range(1, len(params)):
+        if params[i] == "dims":
+            dims = True
+            continue
+        elif dims:
+            size = int(params[i])
+            border_size = int(params[i + 1])
+            break
+        sides.append(int(params[i]))
+    return size, border_size, sides
 
 def get_shapes_set(size: int, sides: int, border_size: int):
     image_set = []

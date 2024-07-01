@@ -4,6 +4,8 @@ import numpy as np
 from src.data_processing.ImageGenerators import get_island_image_set
 from src.data_processing.ImageGenerators import get_triangles_image_set
 from src.data_processing.ImageGenerators import get_quadrilaterals_image_set
+from src.data_processing.Utilities import generate_filtered_image_set
+from src.helpers.FilepathUtils import get_image_set_filepath
 from src.visualization import SamplingMethod, BFmethod
 from src.data_processing.SampleTester import SampleTester
 from src.data_processing.SampleEstimator import SampleEstimator
@@ -13,17 +15,17 @@ Some example graphs for the sampling method randomly generated image set
 """
 
 # -----Variables-----
-imageType = "triangle"
+imageType = "quadrilaterals"
 """
 N island M max_ones: Generates a random island in a N by N matrix with up to M max ones, e.g. 10island30max_ones
 
-triangle: 8x8 matrix with a triangle contained in a 4x4 matrix within.
+triangles: 8x8 matrix with a triangle contained in a 4x4 matrix within.
 
-triangle_mean_subtracted: triangle image set with mean subtracted from each triangle.
 """
 
 imageProductType = "ncc_base_10_rep_2"
 weight = ""
+filters = []
 testSize = 42
 trainingSize = 150
 embeddingType = "pencorr_50"
@@ -33,12 +35,7 @@ testName = "Triangle example test"
 
 # Loading image dataset. Training set takes from random samples of the image set.
 
-if imageType == "triangle":
-    imageSet = get_triangles_image_set()
-elif imageType == "quadrilaterals":
-    imageSet = get_quadrilaterals_image_set()
-else:
-    imageSet = get_island_image_set(imageType, 500)
+imageSet = generate_filtered_image_set(imageType, filters, get_image_set_filepath(imageType, filters))
 imageSet = np.array(imageSet)
 # testSample, trainingSample = SamplingMethod.generate_random_sample(imageSet, testSize, trainingSize)
 
@@ -93,19 +90,40 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
 # Example of sweeping the rank constraint of the estimator with multiple image products
 
 max_size = len(imageSet)
-sampleSize = 150
+sampleSize = 300
 if sampleSize > max_size:
     sampleSize = max_size
-testSize = 42
+testSize = 50
+
+imageType = "quadrilaterals"
+sampleName = "Quadrilaterals example sample"
+testName = "Quadrilaterals example test"
 
 SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=imageSet,
                                                                      imageProductTypes=["ncc", "ncc"],
                                                                      sampleSize=sampleSize, testSize=testSize,
                                                                      testPrefix=testName, startingConstr=5,
-                                                                     endingConstr=150, increment=1,
+                                                                     endingConstr=300, increment=1,
                                                                      weights=["", ""],
-                                                                     embeddings=["pencorr", "eigencorr"],
-                                                                     trials=1, progressive=False)
+                                                                     embeddings=["pencorr", "dblcorr"],
+                                                                     trials=1, progressive=True)
 
+# Example of sweeping the rank constraint of the estimator with multiple image products while specifying training and
+# test image sets
+max_size = len(imageSet)
+sampleSize = 300
+if sampleSize > max_size:
+    sampleSize = max_size
+testSize = 50
+
+imageType = "quadrilaterals"
+sampleName = "Quadrilaterals example sample"
+testName = "Triangles example test"
+
+SamplingMethod.investigate_sample_and_test_sets(trainingSet="quadrilaterals", testSet="triangles", filters=["unique"],
+                                                trainingSize=500, testSize=50, imageProductTypes=["ncc_pow_2"],
+                                                weights=["ncc_factor_1"], startingConstr=5, endingConstr=300,
+                                                increment=5, progressive=False, trials=1, embeddings=["pencorr"],
+                                                testPrefix=testName)
 
 plt.show()
