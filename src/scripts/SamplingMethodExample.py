@@ -88,7 +88,7 @@ SamplingMethod.investigate_training_size_for_image_products(imageSet=imageSet,
                                                             weights=["", "", ""])
 """
 # Example of sweeping the rank constraint of the estimator with multiple image products
-
+"""
 max_size = len(imageSet)
 sampleSize = 300
 if sampleSize > max_size:
@@ -107,14 +107,9 @@ SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=im
                                                                      weights=["", ""],
                                                                      embeddings=["pencorr", "dblcorr"],
                                                                      trials=1, progressive=True)
-
+"""
 # Example of sweeping the rank constraint of the estimator with multiple image products while specifying training and
 # test image sets
-max_size = len(imageSet)
-sampleSize = 300
-if sampleSize > max_size:
-    sampleSize = max_size
-testSize = 50
 
 imageType = "quadrilaterals"
 sampleName = "Quadrilaterals example sample"
