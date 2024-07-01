@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.data_processing.ImageGenerators import get_island_image_set
-from src.data_processing.ImageGenerators import get_triangle_image_set
+from src.data_processing.ImageGenerators import get_triangles_image_set
 from src.data_processing.ImageGenerators import get_quadrilaterals_image_set
 from src.visualization import SamplingMethod, BFmethod
 from src.data_processing.SampleTester import SampleTester
@@ -34,9 +34,7 @@ testName = "Triangle example test"
 # Loading image dataset. Training set takes from random samples of the image set.
 
 if imageType == "triangle":
-    imageSet = get_triangle_image_set()
-elif imageType == "triangle_mean_subtracted":
-    imageSet = get_triangle_image_set(mean_subtracted=True)
+    imageSet = get_triangles_image_set()
 elif imageType == "quadrilaterals":
     imageSet = get_quadrilaterals_image_set()
 else:

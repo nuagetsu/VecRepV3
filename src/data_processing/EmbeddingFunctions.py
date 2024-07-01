@@ -9,7 +9,7 @@ from sklearn.preprocessing import normalize
 from src.helpers.FilepathUtils import get_matlab_dirpath
 
 import src.data_processing.Utilities as utils
-from src.data_processing.ImageGenerators import get_triangle_image_set
+from src.data_processing.ImageGenerators import get_triangles_image_set
 import src.helpers.FilepathUtils as fpUtils
 
 class NonPositiveSemidefiniteError(Exception):
