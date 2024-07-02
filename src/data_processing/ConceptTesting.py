@@ -5,6 +5,8 @@ import random
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import normalize
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 from src.data_processing.EmbeddingFunctions import pencorr
 from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
 import src.data_processing.ImageProducts as ip
@@ -548,8 +550,10 @@ def display_eigenvalues(data, image_product_list, embeddings, weights, p=0):
                     s = sum(eigenvalues)
                     sorted(eigenvalues)
                     large = np.array(eigenvalues)[eigenvalues > 100].tolist()
+                    """
                     if len(large) > 0:
                         eigenvalues = eigenvalues[:-len(large)]
+                    """
                     label = image_product + "_" + weight
                     plt.plot(eigenvalues, label=label)
                     stats["large"][embedding][image_product + "_" + weight] = large
@@ -662,6 +666,36 @@ def newcorr(matrixG: NDArray, nDim):
     smallest_eigenvalue = min(eigenvalues)
     corr = matrixG + np.identity(len(matrixG)) * smallest_eigenvalue
     return corr
+
+def clustering(image_type: str, image_product: str, embedding: str, weight: str, filters, k=3):
+    image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
+    G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, filters, image_product))
+    weightingFilepath = fputils.get_weighting_matrix_filepath(image_type, filters, weight, image_product)
+    weightMatrix = utils.generate_weighting_matrix(G, image_set, weight, weightingFilepath, fputils.get_image_product_filepath(image_type, filters, image_product))
+    A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, filters, image_product, embedding), weight=weightMatrix)
+    kmeans = KMeans(n_clusters=k).fit(A.T)
+    return A, kmeans, lambda x: estimateEmbedding(x, image_set, ip.get_image_product(image_product), A)
+
+def cluster_prediction(testing_image_set: str, filters, kMeans, estimator):
+    testing_set = utils.generate_filtered_image_set(testing_image_set, filters, fputils.get_image_set_filepath(testing_image_set, filters))
+    embeddings = []
+    for i in testing_set:
+        embeddings.append(estimator(i))
+    embeddings = np.array(embeddings, dtype="double")
+    classification = kMeans.predict(embeddings)
+    return testing_set, classification
+
+
+def estimateEmbedding(imageInput, ImageSet, imageProduct, embeddingMatrix) -> NDArray:
+    """
+    :param imageInput: Takes in an image with the same dimensions as images in the image sample
+    :return: A vector embedding of the input image generated using the image sample. Method used is by minimizing
+    the error between the dot product results and the image product vector.
+    """
+    imageProductVector = ip.calculate_image_product_vector(imageInput, ImageSet, imageProduct)
+    estimateVector = Lagrangian_Method2(embeddingMatrix, imageProductVector)[0]
+    return estimateVector
+
 
 """
 def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:

@@ -111,7 +111,6 @@ SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=im
 # Example of sweeping the rank constraint of the estimator with multiple image products while specifying training and
 # test image sets
 
-imageType = "quadrilaterals"
 sampleName = "Quadrilaterals example sample"
 testName = "Triangles example test"
 

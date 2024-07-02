@@ -1,10 +1,12 @@
 import itertools
+import random
 import re
 
 import numpy as np
 from numpy.typing import NDArray
 from skimage.draw import polygon
 
+from src.data_processing.Filters import get_filtered_image_sets
 from src.helpers.IslandCreator import grid_creation
 
 
@@ -69,6 +71,9 @@ def get_triangles_image_set():
     return get_shapes_set(4, 3, 2)
 
 def get_quadrilaterals_image_set():
+    """
+    :return: The image set of 4x4 quadrilaterals within an 8x8 matrix
+    """
     return get_shapes_set(4, 4, 2)
 
 def parse_shapes_set(imageType: str):
@@ -96,7 +101,7 @@ def parse_shapes_set(imageType: str):
 def get_shapes_set(size: int, sides: int, border_size: int):
     image_set = []
     indexes = list(range(0, size ** 2))
-    for comb in itertools.permutations(indexes, r=sides):
+    for comb in itertools.permutations(indexes, sides):
         image = np.zeros((size, size), dtype=int)
         r = []
         c = []
@@ -166,3 +171,67 @@ def is_intersecting(p1, p2, p3, p4):
         return False
 
     return cross_test(p1, p3, p4) != cross_test(p2, p3, p4) and cross_test(p1, p2, p3) != cross_test(p1, p2, p4)
+
+def get_randomized_shapes(size: int, sides: int, border_size: int, number: int, filters=None):
+    if filters is None:
+        filters = []
+
+    image_set = np.array([])
+    counted = []
+    indexes = list(range(0, size ** 2))
+    count = 0
+    while count < number:
+        random.shuffle(indexes)
+        comb = indexes[0:sides]
+        if tuple(comb) in counted:
+            continue
+
+        image = np.zeros((size, size), dtype=int)
+        r = []
+        c = []
+        for index in comb:
+            r.append(index // size)
+            c.append(index % size)
+
+        # Check for straight lines
+        points = []
+        for i in range(0, len(r)):
+            points.append((r[i], c[i]))
+        collinear = False
+        for coords in itertools.combinations(points, 3):
+            m1 = (coords[1][1] - coords[0][1]) * (coords[2][0] - coords[1][0])
+            m2 = (coords[2][1] - coords[1][1]) * (coords[1][0] - coords[0][0])
+            if m1 == m2:
+                collinear = True
+                break
+        if collinear:
+            continue
+
+        # Check for intersecting lines within shape
+        if sides > 3:
+            intersect = False
+            lines = []
+            for i in range(0, sides):
+                start = (r[i % sides], c[i % sides])
+                end = (r[(i + 1) % sides], c[(i + 1) % sides])
+                lines.append((start, end))
+            for pair in itertools.combinations(lines, 2):
+                test = is_intersecting(pair[0][0], pair[0][1], pair[1][0], pair[1][1])
+                if test:
+                    intersect = test
+                    break
+            if intersect:
+                continue
+
+        # Create shape
+        rr, cc = polygon(r, c)
+        image[rr, cc] = 1
+        image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
+        np.append(image_set, image)
+        counted.append(tuple(comb))
+        count += 1
+        if count == number:
+            image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
+            count = len(image_set)
+    image_set = np.unique(image_set, axis=0)
+    return image_set

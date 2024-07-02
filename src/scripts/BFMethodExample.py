@@ -52,7 +52,7 @@ Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to u
 """
 
 # -----Variables-----
-imageType = "shapes_3_4_dims_4_2"
+imageType = "triangles"
 filters = ["unique"]
 imageProductType = "ncc_mult_0.5"
 embeddingType = "pencorr_192"
@@ -92,11 +92,11 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc"],
+                                                        imageProductTypes=["ncc", "ncc_pow_5", "ncc_pow_0.2"],
                                                         startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         progressive=False,
-                                                        weights=["", "ncc_factor_1", "copy_factor_1", ""],
+                                                        weights=["", "", ""],
                                                         embeddings=["pencorr", "pencorr", "pencorr", "pencorr"])
 
 # Investigate changes in weight matrix for up to 9 different image products
