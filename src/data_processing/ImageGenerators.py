@@ -172,7 +172,16 @@ def is_intersecting(p1, p2, p3, p4):
 
     return cross_test(p1, p3, p4) != cross_test(p2, p3, p4) and cross_test(p1, p2, p3) != cross_test(p1, p2, p4)
 
-def get_randomized_shapes(size: int, sides: int, border_size: int, number: int, filters=None):
+def get_randomized_shapes(size: int, side_list: list, border_size: int, number: int, filters=None):
+    """
+    Generates an image set of shapes of limited size
+    :param size: Size of the shapes
+    :param sides: Number of sides of the shapes
+    :param border_size: Size of the border
+    :param number: Number of shapes to generate
+    :param filters: Filters to use
+    :return: The image set
+    """
     if filters is None:
         filters = []
 
@@ -182,6 +191,7 @@ def get_randomized_shapes(size: int, sides: int, border_size: int, number: int, 
     count = 0
     while count < number:
         random.shuffle(indexes)
+        sides = random.choice(side_list)
         comb = indexes[0:sides]
         if tuple(comb) in counted:
             continue
