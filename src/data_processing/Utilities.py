@@ -30,7 +30,7 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
-        imageSet = ImageGenerators.get_image_set(imageType=imageType)
+        imageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters)
 
         logging.info("Image set generated, applying filters...")
         filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)

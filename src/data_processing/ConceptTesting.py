@@ -667,7 +667,7 @@ def newcorr(matrixG: NDArray, nDim):
     corr = matrixG + np.identity(len(matrixG)) * smallest_eigenvalue
     return corr
 
-def clustering(image_type: str, image_product: str, embedding: str, weight: str, filters, k=3):
+def k_means_clustering(image_type: str, image_product: str, embedding: str, weight: str, filters, k=3):
     image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
     G = utils.generate_image_product_matrix(image_set, image_product, fputils.get_image_product_filepath(image_type, filters, image_product))
     weightingFilepath = fputils.get_weighting_matrix_filepath(image_type, filters, weight, image_product)
@@ -676,7 +676,7 @@ def clustering(image_type: str, image_product: str, embedding: str, weight: str,
     kmeans = KMeans(n_clusters=k).fit(A.T)
     return A, kmeans, lambda x: estimateEmbedding(x, image_set, ip.get_image_product(image_product), A)
 
-def cluster_prediction(testing_image_set: str, filters, kMeans, estimator):
+def k_means_cluster_prediction(testing_image_set: str, filters, kMeans, estimator):
     testing_set = utils.generate_filtered_image_set(testing_image_set, filters, fputils.get_image_set_filepath(testing_image_set, filters))
     embeddings = []
     for i in testing_set:

@@ -23,7 +23,7 @@ def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int
     return fullList
 
 
-def get_image_set(imageType: str):
+def get_image_set(imageType: str, filters=None):
     if re.search('[0-9]?[0-9]bin[0-9]?[0-9]max_ones$', imageType) is not None:  # Searching if image type follows the
         # format of 3bin40max_ones
         imageLength = int(re.search(r'^\d+', imageType).group())
@@ -36,6 +36,9 @@ def get_image_set(imageType: str):
         image_set = get_triangles_image_set()
     elif imageType == "quadrilaterals":
         image_set = get_quadrilaterals_image_set()
+    elif re.search(r'randomshapes', imageType) is not None:
+        size, border_size, sides, number = parse_shapes_set(imageType, number=True)
+        image_set = get_randomized_shapes(size, sides, border_size, number, filters)
     elif re.search(r'shapes', imageType) is not None:
         size, border_size, sides = parse_shapes_set(imageType)
         image_set = []
@@ -76,7 +79,7 @@ def get_quadrilaterals_image_set():
     """
     return get_shapes_set(4, 4, 2)
 
-def parse_shapes_set(imageType: str):
+def parse_shapes_set(imageType: str, number=False):
     """
     Parses the imageType string for an image set containing multiple shapes
     :param imageType: imageType string
@@ -94,8 +97,12 @@ def parse_shapes_set(imageType: str):
         elif dims:
             size = int(params[i])
             border_size = int(params[i + 1])
+            if number:
+                number = int(params[i + 2])
             break
         sides.append(int(params[i]))
+    if number:
+        return size, border_size, sides, number
     return size, border_size, sides
 
 def get_shapes_set(size: int, sides: int, border_size: int):
@@ -174,22 +181,19 @@ def is_intersecting(p1, p2, p3, p4):
 
 def get_randomized_shapes(size: int, side_list: list, border_size: int, number: int, filters=None):
     """
-    Generates an image set of shapes of limited size
+    Generates an image set of shapes containing specified number of images
     :param size: Size of the shapes
-    :param sides: Number of sides of the shapes
+    :param side_list: Number of sides of the shapes
     :param border_size: Size of the border
     :param number: Number of shapes to generate
     :param filters: Filters to use
     :return: The image set
     """
-    if filters is None:
-        filters = []
 
-    image_set = np.array([])
+    image_set = []
     counted = []
     indexes = list(range(0, size ** 2))
-    count = 0
-    while count < number:
+    while len(image_set) < number:
         random.shuffle(indexes)
         sides = random.choice(side_list)
         comb = indexes[0:sides]
@@ -237,11 +241,11 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
         rr, cc = polygon(r, c)
         image[rr, cc] = 1
         image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
-        np.append(image_set, image)
+        image_set.append(image.tolist())
         counted.append(tuple(comb))
-        count += 1
-        if count == number:
-            image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
-            count = len(image_set)
-    image_set = np.unique(image_set, axis=0)
+        if len(image_set) == number:
+            image_set = get_filtered_image_sets(imageSet=np.array(image_set), filters=filters)
+            image_set = np.unique(image_set, axis=0)
+            image_set = image_set.tolist()
+    image_set = np.array(image_set)
     return image_set
