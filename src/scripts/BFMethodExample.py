@@ -45,10 +45,6 @@ EMBEDDING_TYPES = ["pencorr_D"]
 pencorr_D: Find the nearest correlation matrix using pencorr, subject to the rank constraint.
 Then computes embeddings with D dimensions, then normalize the embeddings before output
 Sample input: pencorr_20
-
-pencorr_D_weight_I: Find the nearest correlation matrix using pencorr, subject to the rank constraint and weightings
-generated from index I.
-Valid indexes are 0 for the identity matrix, 1 to use G as the weighting, 2 to use squared values of G as the weightings.
 """
 
 # -----Variables-----

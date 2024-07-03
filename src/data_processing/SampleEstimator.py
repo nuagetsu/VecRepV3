@@ -7,10 +7,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 from helpers import FilepathUtils
-from src.data_processing.ImageProducts import calculate_image_product_vector, get_image_product
+from src.data_processing.ImageProducts import get_image_product
 from src.data_processing.Utilities import (generate_image_product_matrix, generate_embedding_matrix,
                                            generate_weighting_matrix)
-from src.helpers.FindingEmbUsingSample import Lagrangian_Method2
+from src.helpers.FindingEmbUsingSample import get_embedding_estimate
 
 logging.basicConfig(
     level=logging.INFO,
@@ -98,9 +98,7 @@ class SampleEstimator:
         :return: A vector embedding of the input image generated using the image sample. Method used is by minimizing
         the error between the dot product results and the image product vector.
         """
-        imageProductVector = calculate_image_product_vector(imageInput, self.trainingImageSet, self.imageProduct)
-        estimateVector = Lagrangian_Method2(self.embeddingMatrix, imageProductVector)[0]
-        return estimateVector
+        return get_embedding_estimate(imageInput, self.trainingImageSet, self.imageProductType, self.embeddingMatrix)
 
     def to_string(self):
         return self.sampleName + ", " + self.imageProductType + ", " + self.embeddingType

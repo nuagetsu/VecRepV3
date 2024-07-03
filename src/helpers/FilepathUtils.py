@@ -83,6 +83,12 @@ def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy
 
     return os.path.join(sampleDirectory, "weightings", weightingType)
 
+def get_matching_sample_filepath(matching_sample_name: str):
+    return os.path.join(get_project_root(), "data", "matching", matching_sample_name, "matching_images.npy")
+
+def get_matching_embeddings_filepath(matching_directory: str, training_sample_name: str):
+    return os.path.join(matching_directory, training_sample_name, )
+
 def get_sample_ipm_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_image_product_matrix")
 
