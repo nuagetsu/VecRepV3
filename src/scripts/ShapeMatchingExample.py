@@ -1,12 +1,4 @@
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.cluster import KMeans
-
-import src.data_processing.Utilities as utils
-import src.helpers.FilepathUtils as fputils
-from src.helpers.FindingEmbUsingSample import get_embedding_estimate
-from src.data_processing.BruteForceEstimator import BruteForceEstimator
-from src.data_processing.ShapeMatchingTester import ShapeMatchingTester
+import src.visualization.ShapeMatching as graphing
 
 SHAPE_IMAGE_TYPES = ["triangles", "quadrilaterals", "shapes_A_B_dims_C_D", "randomshapes_A_B_dims_C_D_E"]
 
@@ -50,19 +42,19 @@ Sample input: dblcorr_200
 
 # -----Variables-----
 imageProductType = "ncc"
-embeddingType = "pencorr_400"
+embeddingType = "pencorr_200"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 weight = None
-training_image_type = "shapes_3_4_dims_4_2"
-training_filers = ["unique"]
-test_image_type = "triangles"
+training_image_type = "randomshapes_3_4_dims_4_2_400"
+training_filters = ["unique"]
+test_image_type = "shapes_3_4_dims_4_2"
 test_filters = ["unique"]
 
 # -----Tests-----
 
 # Default shape matching
 
-estimator = BruteForceEstimator(imageType=training_image_type, filters=training_filers, imageProductType=imageProductType,
-                                embeddingType=embeddingType, weightType=weight, overwrite=overwrite)
-tester = ShapeMatchingTester(training_estimator=estimator)
-
+graphing.match_random_shape(training_image_type=training_image_type, training_filters=training_filters,
+                            test_image_type=test_image_type, test_filters=test_filters,
+                            embeddingType=embeddingType, weight=weight, imageProductType=imageProductType,
+                            overwrite=overwrite)

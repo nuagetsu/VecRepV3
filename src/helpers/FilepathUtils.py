@@ -48,7 +48,8 @@ def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProdu
         weight = "unweighted"
     return os.path.join(filepath, weight, "embedding_matrix")
 
-def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingType:str, copy="") -> str:
+
+def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingType: str, copy="") -> str:
     filepath = get_filepath(imageType=imageType, filters=filters)
 
     components = weightingType.split("_factor_")
@@ -57,13 +58,14 @@ def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingT
 
     return os.path.join(filepath, "weights", weightingType)
 
+
 def get_plotting_data_filepath(imageType: str, filters: List[str], imageProductType: str, embeddingType: str) -> str:
     filepath = get_filepath(imageType=imageType, filters=filters, imageProductType=imageProductType,
                             embeddingType=embeddingType)
     return os.path.join(filepath, "plotting_data")
 
 
-def get_sample_directory(sampleName:str, category="uncategorized") -> str:
+def get_sample_directory(sampleName: str, category="uncategorized") -> str:
     """
     :param sampleName: Name of sample
     :return: Directory where the sample data should be saved
@@ -76,6 +78,7 @@ def get_sample_embedding_matrix_filepath(embeddingType, sampleDirectory: str, we
         weight = "unweighted"
     return os.path.join(sampleDirectory, embeddingType, weight, "sample_embeddings")
 
+
 def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy=""):
     components = weightingType.split("_factor_")
     if components[0] == "copy":
@@ -83,11 +86,6 @@ def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy
 
     return os.path.join(sampleDirectory, "weightings", weightingType)
 
-def get_matching_sample_filepath(matching_sample_name: str):
-    return os.path.join(get_project_root(), "data", "matching", matching_sample_name, "matching_images.npy")
-
-def get_matching_embeddings_filepath(matching_directory: str, training_sample_name: str):
-    return os.path.join(matching_directory, training_sample_name, )
 
 def get_sample_ipm_filepath(sampleDirectory: str):
     return os.path.join(sampleDirectory, "sample_image_product_matrix")
@@ -117,3 +115,14 @@ def get_test_ipm_filepath(sampleDirectory: str, testName: str):
     return os.path.join(sampleDirectory, testName, "test_image_product_matrix")
 
 
+def get_matching_sample_filepath(matching_sample_name: str):
+    return os.path.join(get_project_root(), "data", "matching", matching_sample_name, "matching_images.npy")
+
+
+def get_full_matching_image_set_filepath(matching_directory: str, training_sample_name: str):
+    matching_directory = os.path.split(matching_directory)[0]
+    return os.path.join(matching_directory, training_sample_name, "full_images.npy")
+
+
+def get_matching_embeddings_filepath(matching_directory: str, image_product_type: str, embedding_type: str):
+    return os.path.join(matching_directory, image_product_type, embedding_type, "embeddings.npy")
