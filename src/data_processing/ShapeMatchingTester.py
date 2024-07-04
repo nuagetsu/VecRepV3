@@ -80,6 +80,7 @@ class ShapeMatchingTester:
              Find closest images for each? Or relegate to method Done
              Match images not in matching set Done
              Repeated random matching 
+             Add more logging
              Clustering??? Find out if image embeddings are evenly spaced? How to cluster against cosine similarity?
              Can we categorise shapes?
              Compare actual closest shapes to generated closest shapes from embedding
