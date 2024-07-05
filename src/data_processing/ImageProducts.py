@@ -22,6 +22,7 @@ def get_image_product(imageProductType: str):
         func = edit_image_product(func, elems[1 + 2 * i], float(elems[2 + 2 * i]))
     return func
 
+
 def get_base_image_product(imageProductType: str):
     """
     :param imageProductType: Function to get the base image product to be further modified through monotonic
@@ -34,6 +35,7 @@ def get_base_image_product(imageProductType: str):
         return ncc
     else:
         raise ValueError(imageProductType + " is not a valid image product type!")
+
 
 def edit_image_product(imageProduct, mod: str, factor=None):
     if mod == "scaled":
@@ -51,6 +53,7 @@ def edit_image_product(imageProduct, mod: str, factor=None):
     else:
         raise ValueError(mod + " is not a valid modification!")
 
+
 def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     :param mainImg: Main image to be scanned
@@ -58,6 +61,7 @@ def ncc_scaled(mainImg: NDArray, tempImg: NDArray) -> float:
     :return: Max value of the ncc, with scaled bounds of [-1,1]
     """
     return ncc(mainImg, tempImg) * 2 - 1
+
 
 def scale_min(image_product, min_value: float):
     """
@@ -70,6 +74,7 @@ def scale_min(image_product, min_value: float):
     factor = 1 - min_value
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor + min_value
 
+
 def image_product_pow(image_product, power: float):
     """
     :param image_product: Image product to be modified
@@ -79,6 +84,7 @@ def image_product_pow(image_product, power: float):
     In theory, this should further separate close images with high NCC score that we care more about.
     """
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) ** power
+
 
 def image_product_exp_repeated(image_product, reps: int):
     """
@@ -93,6 +99,7 @@ def image_product_exp_repeated(image_product, reps: int):
         return func
     return res
 
+
 def image_product_log(image_product, base: float):
     """
     :param image_product: Image product to be modified
@@ -100,6 +107,7 @@ def image_product_log(image_product, base: float):
     :return: Value of log base x of x - 1 + result of image product, repeated the number of times indicated
     """
     return lambda mainImg, tempImg: math.log(image_product(mainImg, tempImg) + base - 1, base)
+
 
 def image_product_as_power(image_product, base: float):
     """
@@ -109,6 +117,7 @@ def image_product_as_power(image_product, base: float):
     """
     return lambda mainImg, tempImg: base ** (image_product(mainImg, tempImg) - 1)
 
+
 def multiply_image_product(image_product, factor: float):
     """
     :param image_product: Image product to be modified
@@ -116,6 +125,7 @@ def multiply_image_product(image_product, factor: float):
     :return: Image product multiplied by factor
     """
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor
+
 
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
@@ -143,6 +153,7 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
 
     return max_val
 
+
 def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:
     """
     Applies the image product between every possible permutation of images in the imageSet
@@ -153,6 +164,7 @@ def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) ->
             imageProductMatrix.append(imageProduct(image1, image2))
     imageProductMatrix = np.reshape(imageProductMatrix, (len(imageSet), len(imageSet)))
     return imageProductMatrix
+
 
 def calculate_image_product_vector(newImage: NDArray, imageSet: NDArray, imageProduct: Callable):
     """

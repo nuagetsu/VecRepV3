@@ -41,11 +41,11 @@ Sample input: dblcorr_200
 """
 
 # -----Variables-----
-imageProductType = "ncc"
-embeddingType = "pencorr_200"
+imageProductType = "ncc_pow_2"
+embeddingType = "pencorr_500"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
-weight = None
-training_image_type = "randomshapes_3_4_dims_4_2_400"
+weight = "ncc_factor_1"
+training_image_type = "randomshapes_3_4_dims_4_2_500"
 training_filters = ["unique"]
 test_image_type = "shapes_3_4_dims_4_2"
 test_filters = ["unique"]
@@ -53,8 +53,16 @@ test_filters = ["unique"]
 # -----Tests-----
 
 # Default shape matching
-
+"""
 graphing.match_random_shape(training_image_type=training_image_type, training_filters=training_filters,
                             test_image_type=test_image_type, test_filters=test_filters,
                             embeddingType=embeddingType, weight=weight, imageProductType=imageProductType,
                             overwrite=overwrite)
+"""
+
+# Continuous shape matching - key in index into console
+
+graphing.match_shapes_with_index(training_image_type=training_image_type, training_filters=training_filters,
+                                 test_image_type=test_image_type, test_filters=test_filters,
+                                 embeddingType=embeddingType, weight=weight, imageProductType=imageProductType,
+                                 overwrite=overwrite)

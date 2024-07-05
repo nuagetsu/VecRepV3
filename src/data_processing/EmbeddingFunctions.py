@@ -102,18 +102,6 @@ def eigencorr(matrixG: NDArray, nDim: int):
         corr = matrixG
         return corr, 1
 
-def testcorr(matrixG: NDArray, nDim: int):
-    """
-    Testing method
-    :param matrixG:
-    :param index: Weight Matrix
-    :return:
-    """
-    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
-    selected_eigenvalue = eigenvalues[len(matrixG) - nDim]
-    corr = matrixG - np.identity(len(matrixG)) * selected_eigenvalue
-
-    return corr, abs(selected_eigenvalue)
 
 def dblcorr(matrixG:NDArray, nDim: int, weight=None):
     """
@@ -134,6 +122,7 @@ def dblcorr(matrixG:NDArray, nDim: int, weight=None):
     else:
         matrixGprime = pencorr(corr, nDim)
     return matrixGprime
+
 
 def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weightMatrix=None):
     """

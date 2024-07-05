@@ -635,7 +635,6 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
         "non_zero": [],
         "non_negative": [],
         "prod": [],
-        "prod2": [],
         "k_scores": []
     }
     for image_product in image_product_list:
@@ -661,11 +660,6 @@ def plot_k_on_values(k: int, image_type: str, image_product_list: list, plot=Non
     df = pd.DataFrame(data)
     return df
 
-def newcorr(matrixG: NDArray, nDim):
-    eigenvalues, eigenvectors = np.linalg.eigh(matrixG)
-    smallest_eigenvalue = min(eigenvalues)
-    corr = matrixG + np.identity(len(matrixG)) * smallest_eigenvalue
-    return corr
 
 def k_means_clustering(image_type: str, image_product: str, embedding: str, weight: str, filters, k=3):
     image_set = utils.generate_filtered_image_set(image_type, filters, fputils.get_image_set_filepath(image_type, filters))
@@ -675,6 +669,7 @@ def k_means_clustering(image_type: str, image_product: str, embedding: str, weig
     A = utils.generate_embedding_matrix(G, embedding, fputils.get_embedding_matrix_filepath(image_type, filters, image_product, embedding), weight=weightMatrix)
     kmeans = KMeans(n_clusters=k).fit(A.T)
     return A, kmeans, lambda x: estimateEmbedding(x, image_set, ip.get_image_product(image_product), A)
+
 
 def k_means_cluster_prediction(testing_image_set: str, filters, kMeans, estimator):
     testing_set = utils.generate_filtered_image_set(testing_image_set, filters, fputils.get_image_set_filepath(testing_image_set, filters))
