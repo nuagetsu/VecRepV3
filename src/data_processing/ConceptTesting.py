@@ -1,3 +1,4 @@
+import logging
 import math
 
 import cv2
@@ -690,6 +691,55 @@ def estimateEmbedding(imageInput, ImageSet, imageProduct, embeddingMatrix) -> ND
     imageProductVector = ip.calculate_image_product_vector(imageInput, ImageSet, imageProduct)
     estimateVector = Lagrangian_Method2(embeddingMatrix, imageProductVector)[0]
     return estimateVector
+
+
+def find_plateau_rank(image_sets: list, filters: list, image_product_list, embeddings, weights, k=5, prox=3):
+    data = {"Image Set": image_sets, "Image Products": image_product_list, "Embeddings": embeddings, "Weights": weights,
+            "K_scores": [], "Set Size": [], "Plateau Rank": [], "Non_zero": []}
+    for index, image_type in enumerate(image_sets):
+        image_product = image_product_list[index]
+        weight = weights[index]
+        embedding = embeddings[index]
+        image_set = utils.generate_filtered_image_set(image_type, filters,
+                                                      fputils.get_image_set_filepath(image_type, filters))
+        data["Set Size"].append(len(image_set))
+        high = len(image_set)
+        low = 0
+        selected_rank = high
+        max_k_score = 2
+        iterations = 0
+        while high - low > prox:
+            logging.info("Starting iteration " + str(iterations + 1))
+            G = utils.generate_image_product_matrix(image_set, image_product,
+                                                    fputils.get_image_product_filepath(image_type, filters, image_product))
+            selected_embedding = embedding + "_" + str(selected_rank)
+            weightingFilepath = fputils.get_weighting_matrix_filepath(image_type, filters, weight, image_product)
+            weightMatrix = utils.generate_weighting_matrix(G, image_set, weight, weightingFilepath,
+                                                           fputils.get_image_product_filepath(image_type, filters,
+                                                                                              image_product))
+            A = utils.generate_embedding_matrix(G, selected_embedding,
+                                                fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
+                                                                                      selected_embedding), weight=weightMatrix)
+            G_prime = np.matmul(np.atleast_2d(A).T, np.atleast_2d(A))
+            k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
+            if iterations == 0:
+                max_k_score = k_score
+                data["K_scores"].append(max_k_score)
+                nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in A]))
+                data["Non_zero"].append(nonzero)
+                high = nonzero
+                low = nonzero // 2
+            elif k_score < max_k_score:
+                low = ((high - low) // 2) + low
+            else:
+                high = low
+                low = high // 2
+            selected_rank = low
+            iterations += 1
+            logging.info("Finishing iteration" + str(iterations))
+            logging.info("Next Rank" + str(low))
+        data["Plateau Rank"].append(low)
+    return data
 
 
 """
