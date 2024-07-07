@@ -697,6 +697,7 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
     data = {"Image Set": image_sets, "Image Products": image_product_list, "Embeddings": embeddings, "Weights": weights,
             "K_scores": [], "Set Size": [], "Plateau Rank": [], "Non_zero": []}
     for index, image_type in enumerate(image_sets):
+        logging.info("Investigating " + image_type)
         image_product = image_product_list[index]
         weight = weights[index]
         embedding = embeddings[index]
@@ -737,9 +738,9 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
             selected_rank = low
             iterations += 1
             logging.info("Finishing iteration" + str(iterations))
-            logging.info("Next Rank" + str(low))
+            logging.info("Next Rank " + str(low))
         data["Plateau Rank"].append(low)
-    return data
+    return pd.DataFrame(data)
 
 
 """
