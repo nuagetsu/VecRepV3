@@ -1,4 +1,5 @@
 import itertools
+import logging
 import random
 import re
 
@@ -24,18 +25,28 @@ def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int
 
 
 def get_image_set(imageType: str, filters=None):
+    if filters is None:
+        filters = []
     if re.search('[0-9]?[0-9]bin[0-9]?[0-9]max_ones$', imageType) is not None:  # Searching if image type follows the
         # format of 3bin40max_ones
         imageLength = int(re.search(r'^\d+', imageType).group())
         maxOnesPercentage = int(re.search(r'\d+', imageType[2:]).group())
         image_set = get_binary_image_set(imageLength, maxOnesPercentage=maxOnesPercentage)
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search('[0-9]?[0-9]bin$', imageType) is not None:  # Searching if the image type follows the format 2bin
         imageLength = int(re.search(r'\d+', imageType).group())
         image_set = get_binary_image_set(imageLength)
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif imageType == "triangles":
         image_set = get_triangles_image_set()
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif imageType == "quadrilaterals":
         image_set = get_quadrilaterals_image_set()
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search(r'randomshapes', imageType) is not None:
         size, border_size, sides, number = parse_shapes_set(imageType, number=True)
         image_set = get_randomized_shapes(size, sides, border_size, number, filters)
@@ -45,6 +56,8 @@ def get_image_set(imageType: str, filters=None):
         for j in sides:
             image_set.extend(get_shapes_set(size, j, border_size).tolist())
         image_set = np.array(image_set)
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search('[0-9]?[0-9]island[0-9]?[0-9]max_ones[0-9]?[0-9]images$', imageType) is not None:  # Searching if image type follows the
         # format of 3bin40max_ones
         matches = re.findall(r"\d", imageType)
@@ -52,6 +65,8 @@ def get_image_set(imageType: str, filters=None):
         maxOnesPercentage = int(matches[1])
         numImages = int(matches[2])
         image_set = get_island_image_set(imageLength, maxOnesPercentage, numImages)
+        logging.info("Image set generated, applying filters...")
+        image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     else:
         raise ValueError(imageType + " is not a valid image type")
     return image_set
@@ -105,10 +120,19 @@ def parse_shapes_set(imageType: str, number=False):
         return size, border_size, sides, number
     return size, border_size, sides
 
-def get_shapes_set(size: int, sides: int, border_size: int):
+def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
+    if filters is None:
+        filters = []
+    unique = "unique" in filters
+    all_permutations = set()
     image_set = []
     indexes = list(range(0, size ** 2))
     for comb in itertools.permutations(indexes, sides):
+
+        # Check if combination is translationally unique if the option is selected
+        if unique and tuple(comb) in all_permutations:
+            continue
+
         image = np.zeros((size, size), dtype=int)
         r = []
         c = []
@@ -151,9 +175,19 @@ def get_shapes_set(size: int, sides: int, border_size: int):
         image[rr, cc] = 1
         image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
         image_set.append(image)
+
+        # Accounts for all translationally unique combinations if the option is selected
+        if unique:
+            comb = tuple(comb)
+            for dr in range(size):
+                comb = shift_right(comb, size)
+                for dc in range(size):
+                    comb = shift_down(comb, size)
+                    all_permutations.add(comb)
     image_set = np.array(image_set)
     image_set = np.unique(image_set, axis=0)
     return image_set
+
 
 def cross_test(p1, p2, p3):
     """
@@ -163,6 +197,7 @@ def cross_test(p1, p2, p3):
     :return: Tests gradient for checking intersections
     """
     return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0])
+
 
 def is_intersecting(p1, p2, p3, p4):
     """
@@ -179,6 +214,7 @@ def is_intersecting(p1, p2, p3, p4):
 
     return cross_test(p1, p3, p4) != cross_test(p2, p3, p4) and cross_test(p1, p2, p3) != cross_test(p1, p2, p4)
 
+
 def get_randomized_shapes(size: int, side_list: list, border_size: int, number: int, filters=None):
     """
     Generates an image set of shapes containing specified number of images
@@ -189,15 +225,19 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
     :param filters: Filters to use
     :return: The image set
     """
+    random.seed(500)
 
     image_set = []
-    counted = []
+    if filters is None:
+        filters = []
+    unique = "unique" in filters
     indexes = list(range(0, size ** 2))
+    all_permutations = set()
     while len(image_set) < number:
         random.shuffle(indexes)
         sides = random.choice(side_list)
         comb = indexes[0:sides]
-        if tuple(comb) in counted:
+        if tuple(comb) in all_permutations:
             continue
 
         image = np.zeros((size, size), dtype=int)
@@ -242,10 +282,35 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
         image[rr, cc] = 1
         image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
         image_set.append(image.tolist())
-        counted.append(tuple(comb))
+        comb = tuple(comb)
+        if unique:
+            for dr in range(size):
+                comb = shift_right(comb, size)
+                for dc in range(size):
+                    comb = shift_down(comb, size)
+                    all_permutations.add(comb)
+        else:
+            all_permutations.add(comb)
         if len(image_set) == number:
             image_set = get_filtered_image_sets(imageSet=np.array(image_set), filters=filters)
             image_set = np.unique(image_set, axis=0)
             image_set = image_set.tolist()
     image_set = np.array(image_set)
     return image_set
+
+
+def shift_down(comb: tuple, side: int):
+    new = []
+    for i in comb:
+        new.append((i + side) % (side ** 2))
+    new = tuple(new)
+    return new
+
+
+def shift_right(comb: tuple, side: int):
+    new = []
+    for i in comb:
+        whole = i // side
+        new.append(whole + ((i + 1) % side))
+    new = tuple(new)
+    return new

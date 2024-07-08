@@ -158,11 +158,18 @@ def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) ->
     """
     Applies the image product between every possible permutation of images in the imageSet
     """
-    imageProductMatrix = []
-    for image1 in imageSet:
-        for image2 in imageSet:
-            imageProductMatrix.append(imageProduct(image1, image2))
-    imageProductMatrix = np.reshape(imageProductMatrix, (len(imageSet), len(imageSet)))
+    size = len(imageSet)
+    imageProductMatrix = np.ones((size, size)) * 2
+    for index1, image1 in enumerate(imageSet):
+        for index2, image2 in enumerate(imageSet):
+            if index1 == index2:
+                imageProductMatrix[index1][index2] = 1
+            elif imageProductMatrix[index1][index2] < 2:
+                continue
+            else:
+                result = imageProduct(image1, image2)
+                imageProductMatrix[index1][index2] = result
+                imageProductMatrix[index2][index1] = result
     return imageProductMatrix
 
 

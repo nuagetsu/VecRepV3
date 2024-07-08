@@ -730,7 +730,7 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
                 data["Non_zero"].append(nonzero)
                 high = nonzero
                 low = nonzero // 2
-            elif k_score < max_k_score:
+            elif k_score != max_k_score:
                 low = ((high - low) // 2) + low
             else:
                 high = low
@@ -739,7 +739,7 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
             iterations += 1
             logging.info("Finishing iteration" + str(iterations))
             logging.info("Next Rank " + str(low))
-        data["Plateau Rank"].append(low)
+        data["Plateau Rank"].append(high)
     return pd.DataFrame(data)
 
 

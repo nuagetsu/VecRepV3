@@ -48,7 +48,7 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "shapes_3_4_dims_4_2"
+imageType = "quadrilaterals"
 filters = ["unique"]
 imageProductType = "ncc"
 embeddingType = "pencorr_192"
@@ -89,9 +89,9 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
                                                         imageProductTypes=["ncc"],
-                                                        startingConstr=1, endingConstr=916, interval=1,
+                                                        startingConstr=1, endingConstr=400, interval=1,
                                                         specifiedKArr=[5],
-                                                        progressive=False,
+                                                        progressive=True,
                                                         weights=["", "", ""],
                                                         embeddings=["pencorr", "pencorr", "pencorr", "pencorr"])
 

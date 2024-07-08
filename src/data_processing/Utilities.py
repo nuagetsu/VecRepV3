@@ -8,7 +8,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from src.data_processing import EmbeddingFunctions
-from src.data_processing import Filters
 from src.data_processing import ImageGenerators
 from src.data_processing import ImageProducts
 from src.data_processing.ImageProducts import calculate_image_product_matrix
@@ -30,10 +29,7 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
-        imageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters)
-
-        logging.info("Image set generated, applying filters...")
-        filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)
+        filteredImageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters)
 
         # Creating the directory and saving the image set
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
