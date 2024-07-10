@@ -63,9 +63,9 @@ def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
             unique.append(matrix)
             # All translational invariant permutations for given nxn matrix
             for dr in range(squareLength):
-                matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in horizontal axis
+                matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in vertical axis
                 for dc in range(squareLength):
-                    matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in vertical axis
+                    matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in horizontal axis
                     to_store = np.reshape(matrix, (1, squareLength ** 2))
                     all_permutations.add(tuple(to_store[0]))  # store in dictionary
     unique = np.array(unique)

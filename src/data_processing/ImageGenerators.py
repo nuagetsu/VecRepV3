@@ -178,14 +178,15 @@ def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
 
         # Accounts for all translationally unique combinations if the option is selected
         if unique:
-            comb = tuple(comb)
-            for dr in range(size):
-                comb = shift_right(comb, size)
-                for dc in range(size):
-                    comb = shift_down(comb, size)
-                    all_permutations.add(comb)
+            all_permutations = add_permutations(all_permutations, comb, size)
+
+    if unique:
+        filters.remove("unique")
+
     image_set = np.array(image_set)
     image_set = np.unique(image_set, axis=0)
+    image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
+
     return image_set
 
 
@@ -231,6 +232,8 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
     if filters is None:
         filters = []
     unique = "unique" in filters
+    if unique:
+        filters.remove("unique")
     indexes = list(range(0, size ** 2))
     all_permutations = set()
     while len(image_set) < number:
@@ -283,12 +286,11 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
         image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
         image_set.append(image.tolist())
         comb = tuple(comb)
+
+        # Accounts for all translationally unique permutations if the option is selected
+        # If not, adds the permutation to the set of all permutations to ensure no duplicates
         if unique:
-            for dr in range(size):
-                comb = shift_right(comb, size)
-                for dc in range(size):
-                    comb = shift_down(comb, size)
-                    all_permutations.add(comb)
+            all_permutations = add_permutations(all_permutations, comb, size)
         else:
             all_permutations.add(comb)
         if len(image_set) == number:
@@ -302,7 +304,10 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
 def shift_down(comb: tuple, side: int):
     new = []
     for i in comb:
-        new.append((i + side) % (side ** 2))
+        j = i + side
+        if j >= side ** 2:
+            return comb
+        new.append(j)
     new = tuple(new)
     return new
 
@@ -311,6 +316,19 @@ def shift_right(comb: tuple, side: int):
     new = []
     for i in comb:
         whole = i // side
-        new.append(whole + ((i + 1) % side))
+        rem = i - (whole * side)
+        if rem + 1 >= side:
+            return comb
+        new.append(whole * side + (rem + 1))
     new = tuple(new)
     return new
+
+
+def add_permutations(permutations: set, comb_tuple: tuple, size: int):
+    for dr in range(size):
+        comb_tuple_down = comb_tuple
+        for dc in range(size):
+            permutations.add(comb_tuple_down)
+            comb_tuple_down = shift_down(comb_tuple_down, size)
+        comb_tuple = shift_right(comb_tuple, size)
+    return permutations
