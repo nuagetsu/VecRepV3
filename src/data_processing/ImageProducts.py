@@ -162,10 +162,10 @@ def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) ->
     imageProductMatrix = np.ones((size, size)) * 2
     for index1, image1 in enumerate(imageSet):
         for index2, image2 in enumerate(imageSet):
+            if index1 > index2:
+                continue
             if index1 == index2:
                 imageProductMatrix[index1][index2] = 1
-            elif imageProductMatrix[index1][index2] < 2:
-                continue
             else:
                 result = imageProduct(image1, image2)
                 imageProductMatrix[index1][index2] = result

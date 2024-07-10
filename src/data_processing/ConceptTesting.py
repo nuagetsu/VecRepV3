@@ -709,6 +709,9 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
         selected_rank = high
         max_k_score = 2
         iterations = 0
+        same_rank = 0
+        score_change = False
+        max_score_rank = []
         while high - low > prox:
             logging.info("Starting iteration " + str(iterations + 1))
             G = utils.generate_image_product_matrix(image_set, image_product,
@@ -723,22 +726,42 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
                                                                                       selected_embedding), weight=weightMatrix)
             G_prime = np.matmul(np.atleast_2d(A).T, np.atleast_2d(A))
             k_score = metrics.get_mean_normed_k_neighbour_score(G, G_prime, k)
-            if iterations == 0:
-                max_k_score = k_score
-                data["K_scores"].append(max_k_score)
-                nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in A]))
-                data["Non_zero"].append(nonzero)
-                high = nonzero
-                low = nonzero // 2
+            if not score_change:
+                if iterations == 0:
+                    max_k_score = k_score
+                    data["K_scores"].append(max_k_score)
+                    nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in A]))
+                    data["Non_zero"].append(nonzero)
+                    high = nonzero
+                    low = nonzero // 2
+                elif k_score == max_k_score:
+                    high = low
+                    low = high // 2
+                else:
+                    score_change = True
+                    low = ((high - low) // 2) + low
             elif k_score != max_k_score:
                 low = ((high - low) // 2) + low
+                max_score_rank = []
+                same_rank = 0
+            elif same_rank == 2:
+                high = max_score_rank[0]
+                iterations += 1
+                logging.info("Finishing iteration" + str(iterations))
+
+                break
             else:
-                high = low
-                low = high // 2
+                max_score_rank.append(low)
+                diff = (high - low) // 4
+                low += diff
+                same_rank += 1
+
+
             selected_rank = low
             iterations += 1
             logging.info("Finishing iteration" + str(iterations))
             logging.info("Next Rank " + str(low))
+        logging.info("Plateau rank " + str(high))
         data["Plateau Rank"].append(high)
     return pd.DataFrame(data)
 
