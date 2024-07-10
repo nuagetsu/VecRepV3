@@ -766,6 +766,10 @@ def find_plateau_rank(image_sets: list, filters: list, image_product_list, embed
     return pd.DataFrame(data)
 
 
+def display_plateau_rank(data):
+    plt.plot(data["Set Size"], data["Plateau Rank"])
+    plt.show()
+
 """
 def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
     
