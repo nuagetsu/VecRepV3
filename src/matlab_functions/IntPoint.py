@@ -123,25 +123,25 @@ def mPCA(P, lmbda, Rank, b):
         lambda1 = lmbda[:Rank]
         lambda1 = np.sqrt(lambda1)
         if Rank > 1:
-            P1 = P1*np.diag(lambda1)
+            P1 = P1 @ np.diag(lambda1)
         else:
-            P1 = P1*lambda1
+            P1 = P1 * lambda1
         pert_Mat = np.random.rand(n, Rank)
         for i in range(n):
-            s = np.linalg.norm(P1[i, :])
+            s = np.linalg.norm(P1[i, :], 2)
             if s < 1.0e-12:
                 P1[i, :] = pert_Mat[i, :]
-                s = np.linalg.norm(P1[i, :])
-            P1[i, :] = P1[i, :]/s
-            P1[i, :] = P1[i, :]*np.sqrt(b[i])
-        X = P1*np.transpose(P1)
+                s = np.linalg.norm(P1[i, :], 2)
+            P1[i, :] = P1[i, :] / s
+            P1[i, :] = P1[i, :] * np.sqrt(b[i])
+        X = P1 @ P1.T
     else:
         X = np.zeros((n, n))
     return X
 
 
 def MYmexeig(X, order_abs):
-    P, lambda_ = np.linalg.eig(X)
+    lambda_, P = np.linalg.eig(X)
     P = np.real(P)
     lambda_ = np.real(lambda_)
     if order_abs == 0:

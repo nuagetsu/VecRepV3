@@ -61,7 +61,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
 
     
     # reset input pars
-    G = G - tau * sp.eye(n)
+    G = G - tau * np.identity(n)
     G = (G + G.T) / 2
     Ind = np.where(I_e == J_e)[0]
     e[Ind] = e[Ind] - tau
@@ -282,7 +282,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     # check if y is the optimal dual Lagrange multiplier
     X_tmp = G + np.diag(y)
     X_tmp = (X_tmp + X_tmp.T) / 2
-    P0, lambda0 = eigh(X_tmp)
+    lambda0, P0 = eigh(X_tmp)
     lambda0 = np.real(lambda0)
     if np.all(np.sort(np.abs(lambda0))):
         lambda0 = lambda0[::-1]

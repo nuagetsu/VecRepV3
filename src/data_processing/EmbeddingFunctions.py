@@ -11,6 +11,7 @@ from src.helpers.FilepathUtils import get_matlab_dirpath
 import src.data_processing.Utilities as utils
 from src.data_processing.ImageGenerators import get_triangles_image_set
 import src.helpers.FilepathUtils as fpUtils
+from src.matlab_functions.Pencorr import PenCorr
 
 class NonPositiveSemidefiniteError(Exception):
     pass
@@ -49,6 +50,27 @@ def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     octave.eval("[X,INFOS] = PenCorr(G,ConstrA,r_rank,OPTIONS);", verbose=False)
     matrixGprime = octave.pull("X")
     return matrixGprime
+
+def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
+    """
+    :param matrixG: Symmetric square matrix
+    :param nDim: Number of non-zero eigenvalues in the output matrix
+    :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
+    nDim non-zero eigenvalues
+
+
+    """
+    matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
+    n = len(matrixG)
+
+    I_e = np.array(list(range(0, n)))
+    J_e = I_e
+    ConstrA = {"e": np.ones(n), "Ie": I_e, "Je": J_e}
+    Options = {"tau": 0, "tolrel": 1e-5}
+
+    X, INFOS = PenCorr(matrixG, ConstrA, nDim, Options)
+    return X
+
 
 def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray) -> NDArray:
     """
@@ -144,17 +166,14 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime, radius = eigencorr(imageProductMatrix, nDim)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim, r=radius, abs_tol=100)
-    elif re.search(r'testcorr_[0-9]*[0-9]$', embeddingType) is not None:
-        index = int(re.search(r'\d+', embeddingType).group())
-        matrixGprime, radius = testcorr(imageProductMatrix, index)
-        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, r=radius, abs_tol=100)
     elif re.search(r'dblcorr_[0-9]*[0-9]$', embeddingType) is not None:
         index = int(re.search(r'\d+$', embeddingType).group())
         matrixGprime = dblcorr(imageProductMatrix, index, weight=weightMatrix)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, abs_tol=100)
-    elif re.search(r'nocorr_[0-9]*[0-9]$', embeddingType) is not None:
+    elif re.search(r'pencorr_python_[0-9]*[0-9]$', embeddingType).group() is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
-        embeddingMatrix = get_embeddings_mPCA(imageProductMatrix, nDim, abs_tol=100)
+        matrixGprime = pencorr_python(imageProductMatrix, nDim)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     else:
         raise ValueError(embeddingType + " is not a valid embedding type")
     return embeddingMatrix
