@@ -1,6 +1,10 @@
 import numpy as np
 from numpy.linalg import eigh
-import scipy.sparse as sp
+import scipy as sp
+
+from src.matlab_functions.CorMat3Mex import CorMat3Mex
+from src.matlab_functions.IntPoint import IntPoint
+
 
 def PenCorr(G, ConstrA, Rank, OPTIONS):
     
@@ -113,7 +117,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     rankErr_CorNewton = np.abs(np.sum(lambda_) - np.sum(lambda_[:Rank]))
     if rankErr_CorNewton <= tolrank:
         if Rank < n:
-            INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr_CorNewton, 'residue': residue_CorNewton, 'time': time_used}
+            INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr_CorNewton, 'residue': residue_CorNewton}
             return X, INFOS
     
     residue_1 = residue_CorNewton
@@ -128,7 +132,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
         infeas[i] = e[i] - X1[I_e[i], J_e[i]]
     NormInf_CorNewtonPCA = np.linalg.norm(infeas)
     if residue_error / max(residue_cutoff, residue_CorNewtonPCA) <= tolPCA and NormInf_CorNewtonPCA <= tolinfeas:
-        INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': 0, 'residue': residue_CorNewtonPCA, 'time': time_used}
+        INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': 0, 'residue': residue_CorNewtonPCA}
         return X1, INFOS
     
     if use_InitialPoint:
@@ -278,7 +282,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     # check if y is the optimal dual Lagrange multiplier
     X_tmp = G + np.diag(y)
     X_tmp = (X_tmp + X_tmp.T) / 2
-    P0, lambda0 = mexeig(X_tmp)
+    P0, lambda0 = eigh(X_tmp)
     lambda0 = np.real(lambda0)
     if np.all(np.sort(np.abs(lambda0))):
         lambda0 = lambda0[::-1]
@@ -348,7 +352,7 @@ def mPCA(P, lambda_, Rank, b=None):
         lambda1 = np.sqrt(lambda1)
 
         if Rank > 1:
-            P1 = P1 @ sparse.diags(lambda1)
+            P1 = P1 @ sp.sparse.diags(lambda1)
         else:
             P1 = P1 * lambda1
 
@@ -376,7 +380,7 @@ def Projr(P, lambda_, r):
         lambda1 = lambda_[:r]
         if r > 1:
             lambda1 = np.sqrt(lambda1)
-            P1 = P1 @ sparse.diags(lambda1)
+            P1 = P1 @ sp.sparse.diags(lambda1)
             X = P1 @ P1.T
         else:
             X = lambda1 * P1 @ P1.T
@@ -410,13 +414,40 @@ def InitialPoint(G, e, I_e, J_e, Rank, rankErr_CorNewton, X1):
     c = c0
 
     opts = {'disp': 0}
+    for iter in range(0, maxit):
+        if iter == 0:
+            Y = X1
+        else:
+            if use_mPCA:
+                Y = mPCA(P, lambda_, Rank, e_diag)
+            else:
+                Y = Projr(P, lambda_, Rank)
+        infeas = np.zeros((k_e, 1))
+        for i in range(0, k_e):
+            infeas[i] = e(i) - Y(I_e(i), J_e(i))
+        NormInf = np.linalg.norm(infeas, 2)
+        if NormInf <= tolinfeas:
+            X = Y
+            P, lambda_ = MYmexeig(X)
+            rank_X = Rank
+            rankErr = abs(sum(lambda_) - sum(lambda_[0: Rank]))
+            infoNum["eigendecom"] = infoNum["eigendecom"] + 1
+            break
+        G0 = (G + c * Y) / (1 + c)
+        y = np.zeros((k_e, 1))
+        for i in range(0, k_e):
+            y[i] = e[i] - G0[I_e[i], J_e[i]]
 
-    # The rest of the function would need to be implemented based on the CorMat3Mex function
-    # and other dependencies that are not provided in the original code.
-
-    # This is a placeholder to show the structure:
-    for iter in range(1, maxit + 1):
-        # Implementation details would go here
-        pass
-
+        X, y, info = CorMat3Mex(G0, e, I_e, J_e, opts, y)
+        P = info["P"]
+        lambda_ = info["lam"]
+        rank_X = info["rank"]
+        infoNum["callCN"] = infoNum["callCN"] + 1
+        infoNum["iterCN"] = infoNum["iterCN"] + info.numIter
+        infoNum["CG"] = infoNum["CG"] + info["numPcg"]
+        infoNum["eigendecom"] = infoNum["eigendecom"] + info["numEig"]
+        rankErr = abs(sum(lambda_) - sum(lambda_[0:Rank]))
+        if rankErr <= rank_ratio * max(1, rankErr_CorNewton):
+            break
+        c = min(alpha * c, cmax)
     return X, P, lambda_, rank_X, rankErr, infoNum
