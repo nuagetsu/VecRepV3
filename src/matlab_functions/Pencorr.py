@@ -1,28 +1,37 @@
 import numpy as np
 from numpy.linalg import eigh
-import scipy as sp
 
 from src.matlab_functions.CorMat3Mex import CorMat3Mex
 from src.matlab_functions.IntPoint import IntPoint
 
 
 def PenCorr(G, ConstrA, Rank, OPTIONS):
-    
-    
+    """
+    :param G: the given symmetric matrix
+    :param ConstrA: the equality and inequality constraints
+    :param Rank: the rank constraint of X
+    :param OPTIONS: parameters in the OPTIONS structure
+    :returns X: the optimal primal solution
+    :returns INFOS: the optimal dual solution to equality constraints
+
+    Code from Pencorr.m translated into Python.
+    Translation was done using online AI tools, then proofread and edited.
+    Code is based on the algorithm found in:
+    'A Quadratically Convergent Newton Method for Computing the Nearest Correlation Matrix'
+    by Houduo Qi and Defeng Sun (2006)
+    """
     # get constraints infos from constrA
     e = ConstrA['e']
     I_e = ConstrA['Ie']
     J_e = ConstrA['Je']
     k_e = len(e)
     n = len(G)
-    
+
     tolrel = 1.0e-5
-    
+
     # get parameters from the OPTIONS structure
     if 'tau' in OPTIONS:
         tau = OPTIONS['tau']
-    else:
-        tau = 0
     if 'tolrel' in OPTIONS:
         tolrel = OPTIONS['tolrel']
     if 'tolrank' in OPTIONS:
@@ -43,7 +52,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
         use_CorNewtonPCA = OPTIONS['use_CorNewtonPCA']
     if 'use_InitialPoint' in OPTIONS:
         use_InitialPoint = OPTIONS['use_InitialPoint']
-    
+
     tau = 0
     innerTolrel = tolrel
     tolsub = max(innerTolrel, tolrel)
@@ -59,14 +68,13 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     if tolrel <= 1.0e-4:
         residue_cutoff = 100
 
-    
     # reset input pars
     G = G - tau * np.identity(n)
     G = (G + G.T) / 2
     Ind = np.where(I_e == J_e)[0]
     e[Ind] = e[Ind] - tau
     e_diag = e[Ind]
-    
+
     # constant pars
     const_disp1 = 10
     const_disp2 = 10
@@ -86,25 +94,25 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     progress_rank2 = 1
     progress_relErr = 1.0e-5
     progress_rankErr = 1.0e-3
-    
+
     # penalty pars
     c0_min = 1.0
     c0_max = 1e2
     alpha_min = 1.2
     alpha_max = 4.0
     c_max = 1.0e8
-    
+
     Totalcall_CN = 0
     Totaliter_CN = 0
     Totalnumb_CG = 0
     Totalnumb_eigendecom = 0
-    
+
     # CorNewton3Mex preprocessing
     y = np.zeros(k_e)
     for i in range(k_e):
         y[i] = e[i] - G[I_e[i], J_e[i]]
     opts = {'disp': 0}
-    X, y, info = CorMat3Mex(G, e, I_e, J_e, opts, y)
+    X, y, info = CorMat3Mex(G, e, I_e, J_e, opts, y=y)
     P = info['P']
     lambda_ = info['lam']
     rank_X = info['rank']
@@ -116,25 +124,28 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     residue_CorNewton = np.sqrt(residue_CorNewton)
     rankErr_CorNewton = np.abs(np.sum(lambda_) - np.sum(lambda_[:Rank]))
     if rankErr_CorNewton <= tolrank:
-        if Rank < n:
-            INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr_CorNewton, 'residue': residue_CorNewton}
-            return X, INFOS
-    
+        INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG,
+                 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr_CorNewton,
+                 'residue': residue_CorNewton}
+        return X, INFOS
+
     residue_1 = residue_CorNewton
-    
+
     # check how good is CorNewton_PCA
-    X1 = mPCA(P, lambda_, Rank, e_diag)
+    X1 = mPCA(P, lambda_, Rank, b=e_diag)
     residue_CorNewtonPCA = np.sum(np.sum((X1 - G) * (X1 - G)))
     residue_CorNewtonPCA = np.sqrt(residue_CorNewtonPCA)
     residue_error = np.abs(residue_CorNewtonPCA - residue_CorNewton)
     infeas = np.zeros(k_e)
     for i in range(k_e):
         infeas[i] = e[i] - X1[I_e[i], J_e[i]]
-    NormInf_CorNewtonPCA = np.linalg.norm(infeas)
+    NormInf_CorNewtonPCA = np.linalg.norm(infeas, 2)
     if residue_error / max(residue_cutoff, residue_CorNewtonPCA) <= tolPCA and NormInf_CorNewtonPCA <= tolinfeas:
-        INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': 0, 'residue': residue_CorNewtonPCA}
+        INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG,
+                 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': 0, 'residue': residue_CorNewtonPCA}
         return X1, INFOS
-    
+
+    # Initial Guess
     if use_InitialPoint:
         opt_disp = 1
         X, P, lambda_, rank_X, rankErr, normInf, infoNum = IntPoint(G, e, I_e, J_e, Rank, X, P, lambda_, opt_disp)
@@ -151,12 +162,12 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
         Totalnumb_eigendecom = Totalnumb_eigendecom + 1
         residue_int = residue_CorNewtonPCA
         residue_1 = residue_int
-    
+
     # initialize U
     P1 = P[:, :Rank]
-    U = np.dot(P1, P1.T)
+    U = np.matmul(P1, P1.T)
     rankErr = np.abs(np.sum(lambda_) - np.sum(lambda_[:Rank]))
-    
+
     # initial penalty parameter c
     if use_InitialPoint:
         c0 = 0.50 * (residue_int ** 2 - residue_CorNewton ** 2)
@@ -164,36 +175,43 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     else:
         c0 = 0.50 * (residue_CorNewtonPCA ** 2 - residue_CorNewton ** 2)
         c0 = 0.25 * c0 / max(1.0, rankErr_CorNewton)
-    if tolrel >= 1.0e-1:
+
+    if Rank <= 1:
+        c0 = c0_max
+
+    if tolrel >= 1.0e-1:  # less accurate, larger c
         c0 = 4 * c0
-    elif tolrel >= 1.0e-2:
+    elif tolrel >= 1.0e-2:  # less accurate, larger c
         c0 = 2 * c0
+
     c0 = max(c0, c0_min)
     c0 = min(c0, c0_max)
     c = c0
-    
+
+    # The Penalty Method Initiated
     relErr_0 = 1.0e6
     break_level = 0
-    
+
     k1 = 1
     sum_iter = 0
     while k1 <= maxit:
         subtotaliter_CN = 0
         subtotalnumb_CG = 0
         subtotalnumb_eigendecom = 0
-        
+
         fc = 0.5 * residue_1 ** 2
         fc = fc + c * rankErr
 
         G0 = G + c * (U - np.eye(n))
-        
+
         if k1 == 1 or rankErr > tolrank:
             y = np.zeros(k_e)
             for i in range(k_e):
                 y[i] = e[i] - G0[I_e[i], J_e[i]]
-        
-        for itersub in range(1, maxitsub + 1):
-            X, y, info = CorMat3Mex(G0, e, I_e, J_e, opts, y)
+
+        for itersub in range(1,
+                             maxitsub + 1):  # Indexing from 1 is maintained because "itersub" variable is used outside of loop as well
+            X, y, info = CorMat3Mex(G0, e, I_e, J_e, opts, y=y)
             P = info['P']
             lambda_ = info['lam']
             rank_X = info['rank']
@@ -206,25 +224,33 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
             fc = np.sum(np.sum((X - G) * (X - G)))
             residue_1 = np.sqrt(fc)
             fc = 0.5 * fc + c * rankErr
-            
+
+            if itersub <= const_disp1 or itersub % const_disp2 == 0:
+                dispsub = 1  # Seems to be removed later on but maintained for consistency
+            else:
+                dispsub = 0
+
+            # Rank History
             if itersub <= const_rank_hist:
                 rank_hist[itersub - 1] = rank_X
             else:
                 rank_hist[:-1] = rank_hist[1:]
                 rank_hist[-1] = rank_X
-            
+
+            # Function Value History
             if itersub <= const_funcVal_hist:
                 funcVal_hist[itersub - 1] = fc ** 0.5
             else:
                 funcVal_hist[:-1] = funcVal_hist[1:]
                 funcVal_hist[-1] = fc ** 0.5
-            
+
+            # Residue History
             if sum_iter + itersub <= const_residue_hist:
                 residue_hist[sum_iter + itersub - 1] = residue_1
             else:
                 residue_hist[:-1] = residue_hist[1:]
                 residue_hist[-1] = residue_1
-            
+
             if rankErr <= tolrank:
                 tolsub_check = tolsub_rank
             else:
@@ -232,28 +258,40 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
             if itersub >= const_funcVal_hist:
                 relErr_sub = abs(funcVal_hist[0] - funcVal_hist[-1])
                 relErr_sub = relErr_sub / max(residue_cutoff, max(funcVal_hist[0], funcVal_hist[-1]))
-            
+
             if itersub >= const_funcVal_hist and relErr_sub <= tolsub_check:
                 break
-            elif itersub >= const_rank_hist and abs(rank_hist[0] - rank_hist[-1]) <= progress_rank1 and rank_X - Rank >= progress_rank2:
+            elif itersub >= const_rank_hist and abs(
+                    rank_hist[0] - rank_hist[-1]) <= progress_rank1 and rank_X - Rank >= progress_rank2:
                 break
-        
+
+            # Update U, G0 and fc0
             P1 = P[:, :Rank]
-            U = np.dot(P1, P1.T)
+            U = np.matmul(P1, P1.T)
             G0 = G + c * (U - np.eye(n))
-        
+            const_primal = c * (np.sum(np.sum(U * X)) - np.sum(lambda_[
+                                                               :Rank]))  # This variable seems to have been removed, but has been included to ensure consistency with matlab code
+            const_primal = const_primal + 0.5 * (np.sum(np.sum(G * G)) - np.sum(np.sum(G0 * G0)))
+
         sum_iter = sum_iter + itersub
         Totalnumb_CG = Totalnumb_CG + subtotalnumb_CG
         Totaliter_CN = Totaliter_CN + subtotaliter_CN
         Totalnumb_eigendecom = Totalnumb_eigendecom + subtotalnumb_eigendecom
-        
+
         if sum_iter >= const_residue_hist:
             relErr = abs(residue_hist[0] - residue_hist[-1])
             relErr = relErr / max(residue_cutoff, max(residue_hist[0], residue_hist[-1]))
         else:
             relErr = abs(residue_hist[0] - residue_hist[sum_iter - 1])
             relErr = relErr / max(residue_cutoff, max(residue_hist[0], residue_hist[sum_iter - 1]))
-        
+
+        if k1 <= const_rankErr_hist:
+            rankErr_hist[k1 - 1] = rankErr  # Change to k1 - 1 from k1
+        else:
+            rankErr_hist[:-1] = rankErr_hist[1:]
+            rankErr_hist[-1] = rankErr
+
+        # Termination Test
         if relErr <= tolrel:
             if rankErr <= tolrank:
                 break
@@ -267,10 +305,11 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
                     if rankErr > tolrank:
                         finalPCA = 1
                     break
-        
+
         k1 = k1 + 1
         relErr_0 = relErr
-        
+
+        # Update c
         if rank_X <= Rank:
             c = min(c_max, c)
         else:
@@ -278,7 +317,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
                 c = min(c_max, c * alpha_max)
             else:
                 c = min(c_max, c * alpha_min)
-    
+
     # check if y is the optimal dual Lagrange multiplier
     X_tmp = G + np.diag(y)
     X_tmp = (X_tmp + X_tmp.T) / 2
@@ -292,28 +331,32 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
         lambda01, Inx = np.sort(np.abs(lambda0)), np.argsort(np.abs(lambda0))[::-1]
         lambda0 = lambda0[Inx]
     f = np.sum(lambda0[Rank:n] ** 2)
-    f = -f + np.dot(y, y)
+    f = -f + np.matmul(y.T, y)
     f = 0.5 * f
     dual_obj = -f
-    
+
     # final PCA correction
     if len(e_diag) == k_e and finalPCA:
-        X = mPCA(P, lambda_, Rank, e_diag)
+        X = mPCA(P, lambda_, Rank, b=e_diag)
         rank_X = Rank
         rankErr = 0
         residue_1 = np.sum(np.sum((X - G) * (X - G))) ** 0.5
     infeas = np.zeros(k_e)
     for i in range(k_e):
         infeas[i] = e[i] - X[I_e[i], J_e[i]]
-    NormInf = np.linalg.norm(infeas)
+    NormInf = np.linalg.norm(infeas, 2)
 
-    INFOS = {'iter': k1, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG, 'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr, 'relErr': relErr, 'infeas': NormInf, 'residue': residue_1}
-    
+    INFOS = {'iter': k1, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG,
+             'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': rankErr, 'relErr': relErr, 'infeas': NormInf,
+             'residue': residue_1}
+
     return X, INFOS
 
 
+# All Subroutines
+
 # To change the format of time
-def time(t):
+def time(t):  # Time functions have been removed
     t = round(t)
     h = t // 3600
     m = (t % 3600) // 60
@@ -343,7 +386,7 @@ def MYmexeig(X):
 
 def mPCA(P, lambda_, Rank, b=None):
     n = len(lambda_)
-    if b is None:
+    if b is None:       # Unsure about "nargin"
         b = np.ones(n)
 
     if Rank > 0:
@@ -352,23 +395,22 @@ def mPCA(P, lambda_, Rank, b=None):
         lambda1 = np.sqrt(lambda1)
 
         if Rank > 1:
-            P1 = P1 @ sp.sparse.diags(lambda1)
+            P1 = P1 @ np.diag(lambda1)
         else:
-            P1 = P1 * lambda1
+            P1 = P1 @ lambda1
 
         pert_Mat = np.random.rand(n, Rank)
         for i in range(n):
-            s = np.linalg.norm(P1[i, :])
+            s = np.linalg.norm(P1[i, :], 2)
             if s < 1.0e-12:  # PCA breakdowns
                 P1[i, :] = pert_Mat[i, :]
-                s = np.linalg.norm(P1[i, :])
+                s = np.linalg.norm(P1[i, :], 2)
             P1[i, :] = P1[i, :] / s
             P1[i, :] = P1[i, :] * np.sqrt(b[i])
 
         X = P1 @ P1.T
     else:
         X = np.zeros((n, n))
-
     return X
 
 
@@ -380,10 +422,10 @@ def Projr(P, lambda_, r):
         lambda1 = lambda_[:r]
         if r > 1:
             lambda1 = np.sqrt(lambda1)
-            P1 = P1 @ sp.sparse.diags(lambda1)
+            P1 = P1 @ np.diag(lambda1)
             X = P1 @ P1.T
         else:
-            X = lambda1 * P1 @ P1.T
+            X = lambda1 @ P1 @ P1.T
     return X
 
 
@@ -419,10 +461,10 @@ def InitialPoint(G, e, I_e, J_e, Rank, rankErr_CorNewton, X1):
             Y = X1
         else:
             if use_mPCA:
-                Y = mPCA(P, lambda_, Rank, e_diag)
+                Y = mPCA(P, lambda_, Rank, b=e_diag)
             else:
                 Y = Projr(P, lambda_, Rank)
-        infeas = np.zeros((k_e, 1))
+        infeas = np.zeros(k_e)
         for i in range(0, k_e):
             infeas[i] = e(i) - Y(I_e(i), J_e(i))
         NormInf = np.linalg.norm(infeas, 2)
@@ -434,6 +476,7 @@ def InitialPoint(G, e, I_e, J_e, Rank, rankErr_CorNewton, X1):
             infoNum["eigendecom"] = infoNum["eigendecom"] + 1
             break
         G0 = (G + c * Y) / (1 + c)
+        # Call Cornewton3Mex
         y = np.zeros((k_e, 1))
         for i in range(0, k_e):
             y[i] = e[i] - G0[I_e[i], J_e[i]]

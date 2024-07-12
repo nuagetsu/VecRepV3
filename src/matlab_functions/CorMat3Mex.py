@@ -2,6 +2,20 @@ import numpy as np
 import scipy as sp
 
 def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
+    """
+    :param G: the given symmetric correlation matrix
+    :param b: the right hand side of equality constraints
+    :param I: row indices of the fixed elements
+    :param J: column indices of the fixed elements
+    :param OPTIONS:
+    :param y: initial point
+    :returns X:  the optimal primal solution
+    :returns Y: the optimal dual solution
+
+    Python version of the code in CorMat3Mex.m
+    Based on the algorithm in 'A Quadratically Convergent Newton Method for Computing the Nearest Correlation Matrix'
+    by Houduo Qi and Defeng Sun
+    """
     # set parameters
     tau = 0
     tol = 1.0e-6    # termination tolerance
@@ -30,8 +44,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
             maxitCG = OPTIONS['maxitCG']
         if 'disp' in OPTIONS:
             disp = OPTIONS['disp']
-    
-    t0 = np.array([0, 0, 0, 0, 0, 0])
+
     
     n = len(G)
     k = len(b)
@@ -84,7 +97,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
     
     f = f0
     b = b0 - Fy
-    norm_b = np.linalg.norm(b)
+    norm_b = np.linalg.norm(b, 2)
     
     f_hist[0] = f
     val_G = np.sum(np.sum(G * G)) / 2
@@ -92,7 +105,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
     # fprintf('\n Initial Dual Objective Function value  = %d \n', Initial_f)
 
     
-    while (norm_b > tol and k1 < maxit):
+    while norm_b > tol and k1 < maxit:
         
         Omega12 = omega_mat(lambda_)
         
@@ -123,7 +136,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
         f_eval = f_eval + 1
     
         k_inner = 0
-        while (k_inner <= maxitsub and f > f0 + sigma * 0.5 ** k_inner * slope + 1.0e-6):
+        while k_inner <= maxitsub and f > f0 + sigma * 0.5 ** k_inner * slope + 1.0e-6:
     
             y = x0 + 0.5 ** k_inner * d  # backtracking
     
@@ -146,7 +159,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
         x0 = y
         f0 = f
         b = b0 - Fy
-        norm_b = np.linalg.norm(b)
+        norm_b = np.linalg.norm(b, 2)
 
         # slow convergence test
         if k1 < const_hist:
@@ -163,11 +176,11 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
     Ip = np.where(lambda_ > 1.0e-8)[0]
     r = len(Ip)
     
-    if (r == 0):
+    if r == 0:
         X = np.zeros((n, n))
-    elif (r == n):
+    elif r == n:
         X = X
-    elif (r <= n / 2):
+    elif r <= n / 2:
         lambda1 = lambda_[Ip]
         lambda1 = lambda1 ** 0.5
         P1 = P[:, Ip]
@@ -175,13 +188,13 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
             P1 = P1 @ np.diag(lambda1)
             X = np.matmul(P1, P1.T)  # Optimal solution X*
         else:
-            X = lambda1 ** 2 * np.dot(P1, P1.T)
+            X = lambda1 ** 2 * np.matmul(P1, P1.T)
     else:
-        lambda2 = -lambda_[r + 1:n]
+        lambda2 = -lambda_[r:n]     # TODO Check if r or r + 1. For now, r works.
         lambda2 = lambda2 ** 0.5
-        P2 = P[:, r + 1:n]
+        P2 = P[:, r:n]
         P2 = P2 * np.diag(lambda2)
-        X = X + np.dot(P2, P2.T)  # Optimal solution X*
+        X = X + np.matmul(P2, P2.T)  # Optimal solution X*
     X = (X + X.T) / 2
     
     # optimal primal and dual objective values
@@ -206,7 +219,7 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
 
 
 # mexeig decomposition
-def MYmexeig(X):
+def MYmexeig(X):        # Check elif
     lambda_, P = np.linalg.eig(X)
     P = np.real(P)
     lambda_ = np.real(lambda_)
@@ -237,14 +250,14 @@ def gradient(y, I, J, lambda_, P, X, b0):
                 Fy[i] = X[I[i], J[i]]
         elif r <= n / 2:
             lambda1 = lambda_[I1]
-            f = np.dot(lambda1.conj().T, lambda1)
+            f = np.matmul(lambda1.conj().T, lambda1)
     
             lambda1 = lambda1 ** 0.5
             P1 = P[:, I1]
             if r > 1:
-                P1 = P1 * sp.sparse.diags(lambda1)
+                P1 = P1 @ np.diag(lambda1)
             else:
-                P1 = lambda1 * P1
+                P1 = lambda1 @ P1
             P1T = P1.conj().T
 
             if k <= const_sparse * n:
@@ -255,7 +268,7 @@ def gradient(y, I, J, lambda_, P, X, b0):
             else:
                 P = np.matmul(P1, P1.T)
                 i = 0
-                while i < k:
+                while i < k:    # Same as for loop in other parts
                     Fy[i] = P[I[i], J[i]]
                     i = i + 1
         else:
@@ -263,7 +276,7 @@ def gradient(y, I, J, lambda_, P, X, b0):
             f = lambda_.conj().T @ lambda_ - (lambda2.conj().T @ lambda2)
             lambda2 = lambda2 ** 0.5
             P2 = P[:, r: n]
-            P2 = P2 @ sp.sparse.diags(lambda2)
+            P2 = P2 @ np.diag(lambda2)
             P2T = P2.conj().T
 
             if k <= const_sparse * n:
@@ -273,19 +286,18 @@ def gradient(y, I, J, lambda_, P, X, b0):
                     i += 1
             else:
                 P = P2 @ P2T
-                i = 1
-                while i <= k:
+                i = 0
+                while i < k:
                     Fy[i] = X[I[i], J[i]] + P[I[i], J[i]]
                     i += 1
     
-    f = 0.5 * f - np.dot(b0.T, y)
+    f = 0.5 * f - np.matmul(b0.T, y)
     return f, Fy
 
 # To generate the essential part of the first-order difference of d
 def omega_mat(lambda_):
     n = len(lambda_)
-    idx = {}
-    idx['idp'] = np.where(lambda_ > 0)[0]
+    idx = {'idp': np.where(lambda_ > 0)[0]}
     r = len(idx['idp'])
     
     if r != 0:
@@ -295,8 +307,10 @@ def omega_mat(lambda_):
             s = n - r
             dp = lambda_[:r]
             dn = lambda_[r:n]
-    
-            Omega12 = np.dot(dp.reshape(-1, 1), np.ones((1, s))) / (np.abs(dp).reshape(-1, 1) + np.abs(dn))
+
+            # TODO Check the following function later
+            # Omega12 = np.matmul(dp.reshape(-1, 1), np.ones((1, s))) / (np.abs(dp).reshape(-1, 1) + np.abs(dn))
+            Omega12 = (dp[:, np.newaxis] * np.ones((1, s))) / (np.abs(dp)[:, np.newaxis] * np.ones((1, s)) + np.ones((r, 1)) * np.abs(dn[np.newaxis, :]))
     else:
         Omega12 = np.array([])
     return Omega12
@@ -332,7 +346,7 @@ def pre_cg(b, I, J, tol, maxit, Omega12, P, c):
             w = w + 1.0e-2 * min(1.0, 0.1 * n2b) * d  ## perturb it to avoid numerical singularity
     
         denom = np.matmul(d.T, w)
-        relres = np.linalg.norm(r) / n2b  # relative residue=norm(r)/norm(b)
+        relres = np.linalg.norm(r, 2) / n2b  # relative residue=norm(r)/norm(b)
     
         if denom <= 0:
             p = d / np.linalg.norm(d, 2)  # d is not a descent direction
@@ -379,8 +393,8 @@ def Jacobian_matrix(x, I, J, Omega12, P):
             # sparse form
             if r < n / 2:
                 # H = (Omega.*(P'*sparse(Z)*P))*P';
-                H1 = np.matmul(P1.T, Z)
-                Omega12 = Omega12 * np.matmul(H1, P2)
+                H1 = np.matmul(P1.T, Z)     # Can change this to sparse arrays
+                Omega12 = np.multiply(Omega12, np.matmul(H1, P2))
                 H = np.vstack([np.matmul(H1, P1) @ P1.T + np.matmul(Omega12, P2.T), np.matmul(Omega12.T, P1.T)])
 
                 for i in range(k):
@@ -390,7 +404,7 @@ def Jacobian_matrix(x, I, J, Omega12, P):
                 # H = ((E-Omega).*(P'*Z*P))*P';
                 H2 = np.matmul(P2.T, Z)
                 Omega12 = np.ones((r, s)) - Omega12
-                Omega12 = Omega12 * np.matmul(H2, P1).T
+                Omega12 = np.multiply(Omega12, np.matmul(H2, P1).T)
                 H = np.vstack([(np.matmul(Omega12, P2.T)), (np.matmul(Omega12.T, P1.T) + np.matmul(H2, P2) @ P2.T)])
 
                 for i in range(k):  ### AA^* is not the identity matrix
@@ -406,7 +420,7 @@ def Jacobian_matrix(x, I, J, Omega12, P):
             if r < n / 2:
                 # H = P*(Omega.*(P'*Z*P))*P';
                 H1 = np.matmul(P1.T, Z)
-                Omega12 = Omega12 * np.dot(H1, P2)
+                Omega12 = np.multiply(Omega12, np.matmul(H1, P2))
                 H = np.matmul(P1, np.matmul(H1, P1.T) + 2.0 * np.matmul(Omega12, P2.T))
                 H = (H + H.T) / 2
 
@@ -417,7 +431,7 @@ def Jacobian_matrix(x, I, J, Omega12, P):
                 # H = - P*( (E-Omega).*(P'*Z*P) )*P';
                 H2 = np.matmul(P2.T, Z)
                 Omega12 = np.ones((r, s)) - Omega12
-                Omega12 = Omega12 * np.matmul(H2, P1).T
+                Omega12 = np.multiply(Omega12, np.matmul(H2, P1).T)
                 H = np.matmul(P2, 2.0 * np.matmul(Omega12.T, P1.T) + np.matmul(H2, P2) * P2.T)
                 H = (H + H.T) / 2
                 H = Z - H
@@ -448,38 +462,41 @@ def precond_matrix(I, J, Omega12, P):
                 if k1 > 0:
                     H1 = np.zeros((n, k1))
                     for i in range(k1):
-                        H1[:, i] = P[I[Ind[i]], :].T * P[J[Ind[i]], :]
+                        H1[:, i] = np.multiply(P[I[Ind[i]], :].T, P[J[Ind[i]], :])
     
                 if r < n / 2:
-                    H12 = np.dot(H[:r, :].T, Omega12)
+                    H12 = np.matmul(H[:r, :].T, Omega12)
                     if k1 > 0:
-                        H12_1 = np.dot(H1[:r, :].T, Omega12)
+                        H12_1 = np.matmul(H1[:r, :].T, Omega12)
     
                     d = np.ones(r)
-    
+
+                    # Check matrix multiplication or dot product
+                    j = -1
                     for i in range(k):
                         if I[i] == J[i]:
-                            c[i] = np.sum(H[:r, I[i]]) * np.dot(d.T, H[:r, J[i]])
-                            c[i] = c[i] + 2.0 * np.dot(H12[I[i], :], H[r:n, J[i]])
+                            c[i] = np.sum(H[:r, I[i]]) * np.matmul(d.T, H[:r, J[i]])
+                            c[i] = c[i] + 2.0 * np.matmul(H12[I[i], :], H[r:n, J[i]])
                         else:
-                            c[i] = np.sum(H[:r, I[i]]) * np.dot(d.T, H[:r, J[i]])
-                            c[i] = c[i] + 2.0 * np.dot(H12[I[i], :], H[r:n, J[i]])
-                            c[i] = c[i] + np.sum(H1[:r, i]) * np.dot(d.T, H1[:r, i])
-                            c[i] = c[i] + 2.0 * np.dot(H12_1[i, :], H1[r:n, i])
+                            j += 1
+                            c[i] = np.sum(H[:r, I[i]]) * np.matmul(d.T, H[:r, J[i]])
+                            c[i] = c[i] + 2.0 * np.matmul(H12[I[i], :], H[r:n, J[i]])
+                            c[i] = c[i] + np.sum(H1[:r, j]) * np.matmul(d.T, H1[:r, j])
+                            c[i] = c[i] + 2.0 * np.matmul(H12_1[j, :], H1[r:n, j])
                             c[i] = 0.5 * c[i]
                         if c[i] < 1.0e-8:
                             c[i] = 1.0e-8
     
                 else:  # if r>=n/2, use a complementary formula
-                    Omega12 = 1 - Omega12
-                    H12 = np.dot(Omega12, H[r:n, :])
+                    Omega12 = np.ones((r, s)) - Omega12
+                    H12 = np.matmul(Omega12, H[r:n, :])
                     if k1 > 0:
-                        H12_1 = np.dot(Omega12, H1[r:n, :])
+                        H12_1 = np.matmul(Omega12, H1[r:n, :])
     
                     d = np.ones(s)
                     dd = np.ones(n)
 
-                    j = 0
+                    j = -1
                     for i in range(k):
                         if I[i] == J[i]:
                             c[i] = np.sum(H[r:n, I[i]]) * np.matmul(d.T, H[r:n, J[i]])
@@ -493,10 +510,10 @@ def precond_matrix(I, J, Omega12, P):
                             alpha = np.sum(H[:, I[i]])
                             c[i] = alpha * np.matmul(H[:, J[i]].T, dd) - c[i]
     
-                            tmp = np.sum(H1[r:n, i]) * np.matmul(d.T, H1[r:n, i])
-                            tmp = tmp + 2.0 * np.matmul(H1[:r, i].T, H12_1[:, i])
-                            alpha = np.sum(H1[:, i])
-                            tmp = alpha * np.matmul(H1[:, i].T, dd) - tmp
+                            tmp = np.sum(H1[r:n, j]) * np.matmul(d.T, H1[r:n, j])
+                            tmp = tmp + 2.0 * np.matmul(H1[:r, j].T, H12_1[:, j])
+                            alpha = np.sum(H1[:, j])
+                            tmp = alpha * np.matmul(H1[:, j].T, dd) - tmp
     
                             c[i] = (tmp + c[i]) / 2
                         if c[i] < 1.0e-8:

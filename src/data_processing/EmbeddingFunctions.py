@@ -58,7 +58,9 @@ def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
     :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
     nDim non-zero eigenvalues
 
-
+    Python version of pencorr translated from the matlab version.
+    Although in Python, this version runs more slowly than the matlab version.
+    Can be more easily used in AI Stack, but matlab version is still recommended.
     """
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
     n = len(matrixG)
@@ -66,7 +68,7 @@ def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
     I_e = np.array(list(range(0, n)))
     J_e = I_e
     ConstrA = {"e": np.ones(n), "Ie": I_e, "Je": J_e}
-    Options = {"tau": 0, "tolrel": 1e-5}
+    Options = {"tau": 0, "tolrel": 1.0e-5}
 
     X, INFOS = PenCorr(matrixG, ConstrA, nDim, Options)
     return X
