@@ -770,6 +770,25 @@ def display_plateau_rank(data):
     plt.plot(data["Set Size"], data["Plateau Rank"])
     plt.show()
 
+def test_pencorr():
+    image_type = "triangles"
+    filters = ["unique"]
+    image_product = "ncc"
+    weight = ""
+    image_set = utils.generate_filtered_image_set(image_type, filters,
+                                                  fputils.get_image_set_filepath(image_type, filters))
+    G = utils.generate_image_product_matrix(image_set, image_product,
+                                            fputils.get_image_product_filepath(image_type, filters, image_product))
+    A1 = utils.generate_embedding_matrix(G, "pencorr_192",
+                                        fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
+                                                                              "pencorr_192"), weight=None)
+    A2 = utils.generate_embedding_matrix(G, "pencorr_python_192",
+                                        fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
+                                                                              "pencorr_python_192"), weight=None)
+    return A1, A2, np.all(np.equal(A1, A2))
+
+
+
 """
 def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
     
