@@ -126,10 +126,10 @@ def MYmexeig(X, order_abs):
     P = np.real(P)
     lambda_ = np.real(lambda_)
     if order_abs == 0:
-        if np.all(np.sort(lambda_)):
+        if np.all(np.diff(lambda_) >= 0):
             lambda_ = lambda_[::-1]     # TODO Check
             P = P[:, ::-1]
-        elif np.all(np.sort(lambda_[::-1])):
+        elif np.all(np.sort(lambda_)[::-1]):
             return P, lambda_
         else:
             Inx = np.argsort(lambda_)[::-1]

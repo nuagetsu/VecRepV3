@@ -208,13 +208,15 @@ def CorMat3Mex(G, b, I, J, OPTIONS, y=None):
 
 
 # mexeig decomposition
-def MYmexeig(X):  # Check elif
+def MYmexeig(X):  # Possible unavoidable error due to non unique eigenvectors
     lambda_, P = np.linalg.eig(X)
-    P = np.real(P)
+    P = np.real(P) * -1
     lambda_ = np.real(lambda_)
-    if np.all(np.sort(lambda_) == lambda_):
-        lambda_ = lambda_[::-1]             # TODO Check
+    if np.all(np.diff(lambda_) >= 0):
+        lambda_ = lambda_[::-1]
         P = P[:, ::-1]
+    elif np.all(np.diff(lambda_) >= 0):
+        pass
     else:
         lambda_, Inx = np.sort(lambda_)[::-1], np.argsort(lambda_)[::-1]
         P = P[:, Inx]
@@ -222,7 +224,7 @@ def MYmexeig(X):  # Check elif
 
 
 # To generate F(y)
-def gradient(y, I, J, lambda_, P, X, b0):
+def gradient(y, I, J, lambda_, P, X, b0):   # Tested wrong!! Check again.
     n = len(P)
     k = len(y)
 
@@ -286,7 +288,7 @@ def gradient(y, I, J, lambda_, P, X, b0):
 
 
 # To generate the essential part of the first-order difference of d
-def omega_mat(lambda_):
+def omega_mat(lambda_):     # Tested with 1e-16 error
     n = len(lambda_)
     idx = {'idp': np.where(lambda_ > 0)[0]}
     r = len(idx['idp'])
@@ -310,7 +312,7 @@ def omega_mat(lambda_):
 
 
 # PCG method
-def pre_cg(b, I, J, tol, maxit, Omega12, P, c):
+def pre_cg(b, I, J, tol, maxit, Omega12, P, c):         # Tested 1x, uses Jacobian Matrix
     k1 = len(b)
     dim_n, dim_m = P.shape
     flag = 1
@@ -438,7 +440,7 @@ def Jacobian_matrix(x, I, J, Omega12, P):
 
 
 # To generate the (approximate) diagonal preconditioner
-def precond_matrix(I, J, Omega12, P):
+def precond_matrix(I, J, Omega12, P):       # Tested 1x
     n = len(P)
     k = len(I)
     r, s = Omega12.shape

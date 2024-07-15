@@ -48,7 +48,7 @@ Sample input: pencorr_20
 """
 
 # -----Variables-----
-imageType = "quadrilaterals"
+imageType = "triangles"
 filters = ["unique"]
 imageProductType = "ncc"
 embeddingType = "pencorr_192"
@@ -88,12 +88,12 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 # Investigate changes in rank constraint for up to 5 different image products
 
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc"],
-                                                        startingConstr=1, endingConstr=400, interval=1,
+                                                        imageProductTypes=["ncc", "ncc"],
+                                                        startingConstr=2, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         progressive=True,
                                                         weights=["", "", ""],
-                                                        embeddings=["pencorr", "pencorr", "pencorr", "pencorr"])
+                                                        embeddings=["pencorr", "pencorr_python"])
 
 # Investigate changes in weight matrix for up to 9 different image products
 """

@@ -65,7 +65,7 @@ def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
     n = len(matrixG)
 
-    I_e = np.array(list(range(0, n)))
+    I_e = np.array(list(range(0, n))).T
     J_e = I_e
     ConstrA = {"e": np.ones(n), "Ie": I_e, "Je": J_e}
     Options = {"tau": 0, "tolrel": 1.0e-5}

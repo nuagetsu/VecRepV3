@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import eigh
+from numpy.linalg import eig
 
 from src.matlab_functions.CorMat3Mex import CorMat3Mex
 from src.matlab_functions.IntPoint import IntPoint
@@ -89,7 +89,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     rank_hist = np.zeros(const_rank_hist)
     rankErr_hist = np.zeros(const_rankErr_hist)
     funcVal_hist = np.zeros(const_funcVal_hist)
-    residue_hist = np.zeros(const_residue_hist)
+    residue_hist = np.zeros(const_residue_hist)     # TODO Check
     progress_rank1 = 1
     progress_rank2 = 1
     progress_relErr = 1.0e-5
@@ -143,7 +143,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     if residue_error / max(residue_cutoff, residue_CorNewtonPCA) <= tolPCA and NormInf_CorNewtonPCA <= tolinfeas:
         INFOS = {'iter': 0, 'callCN': Totalcall_CN, 'itCN': Totaliter_CN, 'itCG': Totalnumb_CG,
                  'numEig': Totalnumb_eigendecom, 'rank': rank_X, 'rankErr': 0, 'residue': residue_CorNewtonPCA}
-        return X1, INFOS
+        return X, INFOS         # X1 or X?
 
     # Initial Guess
     if use_InitialPoint:
@@ -321,14 +321,14 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     # check if y is the optimal dual Lagrange multiplier
     X_tmp = G + np.diag(y)
     X_tmp = (X_tmp + X_tmp.T) / 2
-    lambda0, P0 = eigh(X_tmp)
+    lambda0, P0 = eig(X_tmp)
     lambda0 = np.real(lambda0)
-    if np.all(np.sort(np.abs(lambda0))):
+    if np.all(np.diff(np.abs(lambda0)) >= 0):
         lambda0 = lambda0[::-1]
-    elif np.all(np.sort(np.abs(lambda0[::-1]))):
+    elif np.all(np.diff(np.abs(lambda0[::-1])) >= 0):
         pass
     else:
-        lambda01, Inx = np.sort(np.abs(lambda0)), np.argsort(np.abs(lambda0))[::-1]
+        lambda01, Inx = np.sort(np.abs(lambda0))[::-1], np.argsort(np.abs(lambda0))[::-1]
         lambda0 = lambda0[Inx]
     f = np.sum(lambda0[Rank:n] ** 2)
     f = -f + np.matmul(y.T, y)
@@ -366,7 +366,7 @@ def time(t):  # Time functions have been removed
 
 # mexeig decomposition
 def MYmexeig(X):
-    eigenvalues, eigenvectors = eigh(X)
+    eigenvalues, eigenvectors = eig(X)
     P = np.real(eigenvectors)
     lambda_ = np.real(eigenvalues)
 
@@ -401,7 +401,7 @@ def mPCA(P, lambda_, Rank, b=None):
 
         pert_Mat = np.random.rand(n, Rank)
         for i in range(n):
-            s = np.linalg.norm(P1[i, :], 2)
+            s = np.linalg.norm(np.atleast_2d(P1)[i, :], 2)
             if s < 1.0e-12:  # PCA breakdowns
                 P1[i, :] = pert_Mat[i, :]
                 s = np.linalg.norm(P1[i, :], 2)
