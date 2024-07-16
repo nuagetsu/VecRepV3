@@ -19,6 +19,11 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     Code is based on the algorithm found in:
     'A Quadratically Convergent Newton Method for Computing the Nearest Correlation Matrix'
     by Houduo Qi and Defeng Sun (2006)
+    Notably, the Python version will produce different results compared to the matlab/Octave version due to
+    the use of eigenvectors which are not unique (eig functions run differently in each language).
+    Also, this Python version is slower than the matlab/Octave version since matlab runs matrix calculations
+    much more quickly and can utilise MEX functions (like mexeig.m, though at this point I am unfamiliar with
+    why MEX functions are better or faster).
     """
     # get constraints infos from constrA
     e = ConstrA['e']

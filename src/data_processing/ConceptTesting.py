@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from src.data_processing.EmbeddingFunctions import get_embedding_matrix
 import src.data_processing.Utilities as utils
 import src.helpers.FilepathUtils as fputils
+from src.data_processing.EmbeddingFunctions import pencorr, pencorr_python
 
 """
 The purpose of this file is to test my understanding of concepts presented in the repo handed down to me from 
@@ -779,13 +780,17 @@ def test_pencorr():
                                                   fputils.get_image_set_filepath(image_type, filters))
     G = utils.generate_image_product_matrix(image_set, image_product,
                                             fputils.get_image_product_filepath(image_type, filters, image_product))
+    Gprime1 = pencorr(G, 7)
+    Gprime2 = pencorr_python(G, 7)
+    """
     A1 = utils.generate_embedding_matrix(G, "pencorr_7",
                                         fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
                                                                               "pencorr_7"), weight=None)
     A2 = utils.generate_embedding_matrix(G, "pencorr_python_7",
                                         fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
                                                                               "pencorr_python_7"), weight=None)
-    return A1, A2, np.all(np.equal(A1, A2)), G
+    """
+    return Gprime1, Gprime2, np.all(np.abs(Gprime1 - Gprime2) <= 1e-5), G
 
 
 
