@@ -110,14 +110,19 @@ SamplingMethod.investigate_tester_rank_constraint_for_image_products(imageSet=im
 """
 # Example of sweeping the rank constraint of the estimator with multiple image products while specifying training and
 # test image sets
-
+"""
 sampleName = "Shapes example sample"
 testName = "Shapes example test"
 
 SamplingMethod.investigate_sample_and_test_sets(trainingSet="shapes_3_4_dims_4_2", testSet="ramdomshapes_3_4_dims_4_2_80", filters=["unique"],
                                                 trainingSize=600, testSize=80, imageProductTypes=["ncc_pow_2"],
-                                                weights=["ncc_factor_1"], startingConstr=10, endingConstr=500,
+                                                weights=["ncc_factor_1"], startingConstr=10, endingConstr=11,
                                                 increment=1, progressive=True, trials=1, embeddings=["pencorr"],
                                                 testPrefix=testName)
+"""
+
+# Example of finding plateau rank for a sample
+
+
 
 plt.show()

@@ -4,6 +4,7 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy.typing import NDArray
+import pandas as pd
 
 import src.data_processing.Utilities as utils
 import src.helpers.FilepathUtils as fputils
@@ -401,3 +402,116 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
         neighAx = [neighAx]
     GraphEstimates.plot_error_against_rank_constraint_for_image_products(neighAx, rankConstraints, allAveNeighArr, specifiedKArr,
                                                                          imageProducts=imageProductTypes, weights=weights)
+
+
+def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, training_sizes: list,
+                                    image_product_types: list, test_prefix: str,
+                                    k=5, trials=5, prox=3,
+                                    weights=None, embeddings=None, filters=None):
+
+    if weights is None:
+        weights = ["" for image_product_type in image_product_types]
+    if embeddings is None:
+        embeddings = ["pencorr_python" for image_product_type in image_product_types]
+    if filters is None:
+        filters = []
+
+    data = {"Training Set": training_sets, "Test Set": test_sets, "Image Size": [], "Image Products": image_product_types,
+            "Embeddings": embeddings, "Weights": weights,
+            "K_scores": [], "Training Set Size": [], "Non_zero": [], "Plateau Rank": []}
+
+    for index, trainingSet in enumerate(training_sets):
+        testSet = test_sets[index]
+        embedding = embeddings[index]
+        weight = weights[index]
+        image_product = image_product_types[index]
+        training_size = training_sizes[index]
+        ave_neigh_arr = []
+        average_plateau_rank_arr = []
+
+        training_set_filepath = fputils.get_image_set_filepath(trainingSet, filters)
+        full_training_image_set = utils.generate_filtered_image_set(trainingSet, filters, training_set_filepath)
+
+        test_set_filepath = fputils.get_image_set_filepath(testSet, filters)
+        test_sample = utils.generate_filtered_image_set(testSet, filters, test_set_filepath)
+
+        image_size = len(full_training_image_set[0])
+        data["Image Size"].append(image_size)
+
+        for i in range(trials):
+            disregard, training_sample = generate_random_sample(full_training_image_set, 0, training_size, seed=i)
+
+            # Loop variables
+            high = training_size
+            low = 0
+            selected_rank = high
+            max_k_score = 2
+            iterations = 0
+            same_rank = 0
+            score_change = False
+            max_score_rank = []
+
+            while high - low > prox:
+                logging.info("Starting iteration " + str(iterations + 1))
+                selected_embedding = embedding + "_" + str(selected_rank)
+                sampleName = test_prefix + "_constraint_" + str(selected_rank)
+                sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(i),
+                                                  trainingImageSet=training_sample, embeddingType=selected_embedding,
+                                                  imageProductType=image_product, weight=weight)
+                testName = test_prefix + "_test"
+                sample_tester = SampleTester(testImages=test_sample, sampleEstimator=sampleEstimator, testName=testName)
+
+                k_score = metrics.get_mean_normed_k_neighbour_score(sample_tester.matrixG, sample_tester.matrixGprime, k)
+                if not score_change:
+                    # k_score is the same as previous tested rank constraint
+                    if iterations == 0:
+                        # First iteration, no rank constraint placed
+                        max_k_score = k_score  # k_score value where plateau occurs
+                        ave_neigh_arr.append(max_k_score)
+                        nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in sampleEstimator.embeddingMatrix]))
+                        data["Non_zero"].append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                        high = training_size
+                        low = training_size // 2
+                        image_size = len(sampleEstimator.trainingImageSet[0])
+                        data["Image Size"].append(image_size)
+                    elif k_score == max_k_score:
+                        # Not first iteration, k_score has yet to change. Continue lowering rank constraint.
+                        high = low
+                        low = high // 2
+                    else:
+                        # Not first iteration, k_score has changed. Begin looking for plateau rank.
+                        score_change = True
+                        low = ((high - low) // 2) + low
+                elif k_score != max_k_score:
+                    # Before plateau area. Raise rank constraint.
+                    low = ((high - low) // 2) + low
+                    max_score_rank = []
+                    same_rank = 0
+                elif same_rank == 2:
+                    # Successively within plateau area. Break loop
+                    high = max_score_rank[0]
+                    iterations += 1
+                    logging.info("Finishing iteration" + str(iterations))
+                    break
+                else:
+                    # Within plateau area. Raise rank constraint slowly in case plateau rank not yet reached.
+                    max_score_rank.append(low)
+                    diff = (high - low) // 4
+                    low += diff
+                    same_rank += 1
+
+                # Test next iteration at low estimate
+                selected_rank = low
+                iterations += 1
+                logging.info("Finishing iteration" + str(iterations))
+                logging.info("Next Rank " + str(low))
+
+            # Once loop ends, save high estimate plateau rank for currently tested image set
+            logging.info("Plateau rank " + str(high))
+            average_plateau_rank_arr.append(high)
+        data["K_scores"].append(sum(ave_neigh_arr) / len(ave_neigh_arr))
+        data["Plateau Rank"].append(sum(average_plateau_rank_arr) / len(average_plateau_rank_arr))
+    df = pd.DataFrame(data)
+    return df
+
+
