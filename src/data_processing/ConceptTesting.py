@@ -772,7 +772,7 @@ def display_plateau_rank(data):
     plt.show()
 
 def test_pencorr():
-    image_type = "triangles"
+    image_type = "2bin"
     filters = ["unique"]
     image_product = "ncc"
     weight = ""
@@ -780,8 +780,8 @@ def test_pencorr():
                                                   fputils.get_image_set_filepath(image_type, filters))
     G = utils.generate_image_product_matrix(image_set, image_product,
                                             fputils.get_image_product_filepath(image_type, filters, image_product))
-    Gprime1 = pencorr(G, 192)
-    Gprime2 = pencorr_python(G, 192)
+    Gprime1 = pencorr(G, 7)
+    Gprime2 = pencorr_python(G, 7)
     """
     A1 = utils.generate_embedding_matrix(G, "pencorr_7",
                                         fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
@@ -790,7 +790,7 @@ def test_pencorr():
                                         fputils.get_embedding_matrix_filepath(image_type, filters, image_product,
                                                                               "pencorr_python_7"), weight=None)
     """
-    return Gprime1, Gprime2, np.all(np.abs(Gprime1 - Gprime2) <= 1e-5), G
+    return Gprime1, Gprime2, np.max(np.max(np.abs(Gprime1 - Gprime2))), G
 
 
 

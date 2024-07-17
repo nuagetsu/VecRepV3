@@ -1,5 +1,6 @@
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from numpy._typing import NDArray
@@ -345,3 +346,18 @@ def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[A
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="lower right")
+
+
+def plot_plateau_ranks(set_groups: dict):
+    fig = plt.figure()
+    fig.suptitle("Plateau Rank on Image Set Sizes")
+    axes = plt.axes()
+    cmap = plt.get_cmap("hsv", len(set_groups.keys()))
+
+    for index, group in enumerate(set_groups):
+        plateau_ranks = np.array(set_groups[group]["plateau ranks"])
+        set_sizes = np.array(set_groups[group]["set size"])
+        indexes = np.argsort(set_sizes)
+        plateau_ranks = plateau_ranks[indexes]
+        set_sizes = set_sizes[indexes]
+        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(4 * index))

@@ -117,7 +117,7 @@ testName = "Shapes example test"
 SamplingMethod.investigate_sample_and_test_sets(trainingSet="shapes_3_4_dims_4_2", testSet="ramdomshapes_3_4_dims_4_2_80", filters=["unique"],
                                                 trainingSize=600, testSize=80, imageProductTypes=["ncc_pow_2"],
                                                 weights=["ncc_factor_1"], startingConstr=10, endingConstr=500,
-                                                increment=10, progressive=False, trials=1, embeddings=["pencorr"],
+                                                increment=1, progressive=True, trials=1, embeddings=["pencorr"],
                                                 testPrefix=testName)
 
 plt.show()

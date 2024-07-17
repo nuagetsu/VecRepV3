@@ -21,7 +21,7 @@ logging.basicConfig(
 
 def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: str, sampleSize: int, testSize: int,
                                        testPrefix: str, startingConstr: int, endingConstr: int, increment=1,
-                                       specifiedKArr=None, plotFrob=True, weight=""):
+                                       specifiedKArr=None, plotFrob=True, weight="", trials=5):
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
@@ -61,9 +61,9 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
         aveNeighArr = [[] for i in specifiedKArr]
         frobDistanceArr = []
         # TODO Start Random Sampling Here
-        for j in range(5):
+        for j in range(trials):
             # Taking training and testing samples as random samples of the image set
-            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
+            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize, seed=j)
 
             # Generating a sampleEstimator and SampleTester with the input parameters
             sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
@@ -126,7 +126,7 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         # TODO Start Random Sampling here
         for j in range(trials):
             # Taking random training and testing samples
-            testSample, trainingSample = generate_random_sample(imageSet, testSize)
+            testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested, seed=j)
 
             sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
                                             embeddingType=embeddingType, imageProductType=imageProductType, weight=weight)
@@ -151,10 +151,10 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         trainingFig, neighAx = plt.subplots(1, len(specifiedKArr))
     GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr)
 
-def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampleSize: int):
+def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampleSize: int, seed=0):
     if testSampleSize + trainingSampleSize > len(imageSet):
         raise ValueError("Training and test sample size too large! Use size less than " + str(len(imageSet)) + ".")
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed=500 + seed)
     trainingSample = rng.choice(imageSet, trainingSampleSize, replace=False)
     remaining = np.asarray([image for image in imageSet.tolist() if image not in trainingSample.tolist()])
     testSample = rng.choice(remaining, testSampleSize, replace=False)
@@ -203,7 +203,7 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
             # TODO Start Random Sampling here
             for j in range(trials):
                 # Taking random training and testing samples
-                testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested)
+                testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested, seed=j)
 
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_" + str(j), trainingImageSet=trainingSample,
                                                   embeddingType=embeddingType, imageProductType=imageProductType, weight=weight)
@@ -288,7 +288,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
             # TODO Start Random Sampling Here
             for j in range(trials):
                 # Taking training and testing samples as random samples of the image set
-                testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize)
+                testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize, seed=j)
 
                 # Generating a sampleEstimator and SampleTester with the input parameters
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,
@@ -335,11 +335,11 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
 
     training_set_filepath = fputils.get_image_set_filepath(trainingSet, filters)
     full_training_image_set = utils.generate_filtered_image_set(trainingSet, filters, training_set_filepath)
-    sameSet = False
 
     if trainingSet == testSet:
         sameSet = True
     else:
+        sameSet = False
         test_set_filepath = fputils.get_image_set_filepath(testSet, filters)
         full_test_image_set = utils.generate_filtered_image_set(testSet, filters, test_set_filepath)
 
@@ -369,10 +369,10 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
             for j in range(trials):
                 # Taking training and testing samples as random samples of the image set
                 if sameSet:
-                    testSample, trainingSample = generate_random_sample(full_training_image_set, testSize, trainingSize)
+                    testSample, trainingSample = generate_random_sample(full_training_image_set, testSize, trainingSize, seed=j)
                 else:
-                    disregard, trainingSample = generate_random_sample(full_training_image_set, 0, trainingSize)
-                    testSample, disregard = generate_random_sample(full_test_image_set, testSize, 0)
+                    disregard, trainingSample = generate_random_sample(full_training_image_set, 0, trainingSize, seed=j)
+                    testSample, disregard = generate_random_sample(full_test_image_set, testSize, 0, seed=j)
 
                 # Generating a sampleEstimator and SampleTester with the input parameters
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(j), trainingImageSet=trainingSample, embeddingType=embType,

@@ -86,7 +86,7 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for up to 5 different image products
-
+"""
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
                                                         imageProductTypes=["ncc", "ncc"],
                                                         startingConstr=2, endingConstr=192, interval=1,
@@ -94,7 +94,7 @@ graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, fil
                                                         progressive=True,
                                                         weights=["", "", ""],
                                                         embeddings=["pencorr", "pencorr_python"])
-
+"""
 # Investigate changes in weight matrix for up to 9 different image products
 """
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
@@ -102,4 +102,15 @@ graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
                                      startingConstr=0, endingConstr=20, interval=1,
                                      specifiedKArr=[5], plotFrob=False, rank=192)
 """
+
+# Investigate changes in plateau rank as image set size increases
+
+graphing.investigate_plateau_rank(image_types=["quadrilaterals", "triangles", "shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_5_2", "shapes_4_dims_5_2"],
+                                  filters=["unique"],
+                                  image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
+                                  embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
+                                  weights=["", "", "", "", "", "", ""],
+                                  k=5, prox=3, overwrite=None)
+
+
 plt.show()

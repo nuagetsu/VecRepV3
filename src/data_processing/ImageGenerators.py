@@ -72,6 +72,10 @@ def get_image_set(imageType: str, filters=None):
     return image_set
 
 
+def get_image_set_size(imageType: str, filters=None) -> int:
+    return len(get_image_set(imageType, filters=filters))
+
+
 def get_island_image_set(imageLength, maxOnesPercentage, numImages):
     """
     :param imageLength: side length of image grid

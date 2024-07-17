@@ -51,6 +51,7 @@ def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     matrixGprime = octave.pull("X")
     return matrixGprime
 
+
 def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
@@ -60,7 +61,8 @@ def pencorr_python(matrixG: NDArray, nDim: int) -> NDArray:
 
     Python version of pencorr translated from the matlab version.
     Although in Python, this version runs more slowly than the matlab version.
-    Can be more easily used in AI Stack, but matlab version is still recommended.
+    Can be more easily used in AI Stack. More details found in the Pencorr.py file in matlab functions.
+    This version is used for larger image sets since it can be run on AI Stack/other servers.
     """
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
     n = len(matrixG)
@@ -82,7 +84,7 @@ def pencorr_weighted(matrixG: NDArray, nDim: int, matrixH: NDArray) -> NDArray:
     :return: matrix G', a symmetric matrix with the same dimension as matrix G, which is the nearest correlation matrix with
     nDim non-zero eigenvalues
 
-    Weighted version of the above code included in the same link.
+    Weighted version of the above code included in the same link. Uses Octave/matlab implementation.
     """
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
 
