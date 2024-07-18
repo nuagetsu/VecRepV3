@@ -352,7 +352,7 @@ def plot_plateau_ranks(set_groups: dict):
     fig = plt.figure()
     fig.suptitle("Plateau Rank on Image Set Sizes")
     axes = plt.axes()
-    cmap = plt.get_cmap("hsv", len(set_groups.keys()))
+    cmap = plt.get_cmap("tab20", len(set_groups.keys()))
 
     for index, group in enumerate(set_groups):
         plateau_ranks = np.array(set_groups[group]["plateau ranks"])
@@ -360,4 +360,7 @@ def plot_plateau_ranks(set_groups: dict):
         indexes = np.argsort(set_sizes)
         plateau_ranks = plateau_ranks[indexes]
         set_sizes = set_sizes[indexes]
-        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(4 * index))     # TODO add legend
+        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(index))
+    axes.set_xlabel("Image Set Size")
+    axes.set_ylabel("Plateau Rank")
+    axes.legend(loc="lower right")
