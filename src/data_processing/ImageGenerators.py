@@ -32,20 +32,20 @@ def get_image_set(imageType: str, filters=None):
         imageLength = int(re.search(r'^\d+', imageType).group())
         maxOnesPercentage = int(re.search(r'\d+', imageType[2:]).group())
         image_set = get_binary_image_set(imageLength, maxOnesPercentage=maxOnesPercentage)
-        logging.info("Image set generated, applying filters...")
+        logging.info("Applying filters...")
         image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search('[0-9]?[0-9]bin$', imageType) is not None:  # Searching if the image type follows the format 2bin
         imageLength = int(re.search(r'\d+', imageType).group())
         image_set = get_binary_image_set(imageLength)
-        logging.info("Image set generated, applying filters...")
+        logging.info("Applying filters...")
         image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif imageType == "triangles":
         image_set = get_triangles_image_set()
-        logging.info("Image set generated, applying filters...")
+        logging.info("Applying filters...")
         image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif imageType == "quadrilaterals":
         image_set = get_quadrilaterals_image_set()
-        logging.info("Image set generated, applying filters...")
+        logging.info("Applying filters...")
         image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search(r'randomshapes', imageType) is not None:
         size, border_size, sides, number = parse_shapes_set(imageType, number=True)
@@ -56,7 +56,7 @@ def get_image_set(imageType: str, filters=None):
         for j in sides:
             image_set.extend(get_shapes_set(size, j, border_size).tolist())
         image_set = np.array(image_set)
-        logging.info("Image set generated, applying filters...")
+        logging.info("Applying filters...")
         image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
     elif re.search('[0-9]?[0-9]island[0-9]?[0-9]max_ones[0-9]?[0-9]images$', imageType) is not None:  # Searching if image type follows the
         # format of 3bin40max_ones

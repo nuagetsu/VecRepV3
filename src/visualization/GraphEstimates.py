@@ -360,4 +360,4 @@ def plot_plateau_ranks(set_groups: dict):
         indexes = np.argsort(set_sizes)
         plateau_ranks = plateau_ranks[indexes]
         set_sizes = set_sizes[indexes]
-        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(4 * index))
+        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(4 * index))     # TODO add legend

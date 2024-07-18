@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import visualization.Metrics as metrics
+import src.visualization.Metrics as metrics
 from src.data_processing.BruteForceEstimator import BruteForceEstimator
 from src.data_processing.ImageGenerators import get_image_set_size
 from src.data_processing.TestableEstimator import TestableEstimator
-from visualization import GraphEstimates
+from src.visualization import GraphEstimates
 
 logging.basicConfig(
     level=logging.INFO,
@@ -389,7 +389,7 @@ def investigate_plateau_rank(*, image_types: list, filters=None, image_product_t
             # Test next iteration at low estimate
             selected_rank = low
             iterations += 1
-            logging.info("Finishing iteration" + str(iterations))
+            logging.info("Finishing iteration " + str(iterations))
             logging.info("Next Rank " + str(low))
 
         # Once loop ends, save high estimate plateau rank for currently tested image set
