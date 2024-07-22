@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import src.visualization.Metrics as metrics
+from src.helpers.FilepathUtils import get_image_set_filepath
 from src.data_processing.BruteForceEstimator import BruteForceEstimator
-from src.data_processing.ImageGenerators import get_image_set_size
 from src.data_processing.TestableEstimator import TestableEstimator
+from src.data_processing.Utilities import get_image_set_size
 from src.visualization import GraphEstimates
+import src.visualization.Metrics as metrics
 
 logging.basicConfig(
     level=logging.INFO,
@@ -326,7 +327,8 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
         image_product = image_product_types[index]
         weight = weights[index]
         embedding = embeddings[index]
-        image_set_size = get_image_set_size(image_type, filters=filters)
+        image_set_filepath = get_image_set_filepath(image_type, filters)
+        image_set_size = get_image_set_size(image_type, filters, image_set_filepath)
         data["Set Size"].append(image_set_size)
         logging.info("Image set size is " + str(image_set_size))
         image_size = 0
@@ -421,7 +423,8 @@ def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None,
         image_product = image_product_types[index]
         weight = weights[index]
         embedding = embeddings[index]
-        image_set_size = get_image_set_size(image_type, filters=filters)
+        image_set_filepath = get_image_set_filepath(image_type, filters)
+        image_set_size = get_image_set_size(image_type, filters, image_set_filepath)
         data["Set Size"].append(image_set_size)
         logging.info("Image set size is " + str(image_set_size))
         image_size = 0

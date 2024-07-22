@@ -454,7 +454,7 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
             while high - low > prox:
                 logging.info("Starting iteration " + str(iterations + 1))
                 selected_embedding = embedding + "_" + str(selected_rank)
-                sampleName = test_prefix + "_constraint_" + str(selected_rank)
+                sampleName = test_prefix + "_" + trainingSet + "_constraint_" + str(selected_rank)
                 sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(i),
                                                   trainingImageSet=training_sample, embeddingType=selected_embedding,
                                                   imageProductType=image_product, weight=weight)

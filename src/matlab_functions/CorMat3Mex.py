@@ -301,14 +301,14 @@ def omega_mat(lambda_):     # Tested with 1e-16 error
             dp = lambda_[:r]
             dn = lambda_[r:n]
 
-            # TODO Check the following function later
+            # Alternate implementation
             # Omega12 = np.matmul(dp.reshape(-1, 1), np.ones((1, s))) / (np.abs(dp).reshape(-1, 1) + np.abs(dn))
             Omega12 = (dp[:, np.newaxis] * np.ones((1, s))) / (
                         np.abs(dp)[:, np.newaxis] * np.ones((1, s)) + np.ones((r, 1)) * np.abs(dn.T[np.newaxis, :]))
 
     else:
         Omega12 = np.array([])
-    return Omega12
+    return np.atleast_2d(Omega12)
 
 
 # PCG method
@@ -443,6 +443,7 @@ def Jacobian_matrix(x, I, J, Omega12, P):
 def precond_matrix(I, J, Omega12, P):       # Tested 1x
     n = len(P)
     k = len(I)
+    Omega12 = np.atleast_2d(Omega12)
     r, s = Omega12.shape
 
     c = np.ones(k)

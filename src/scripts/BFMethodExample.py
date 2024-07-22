@@ -96,23 +96,23 @@ graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, fil
                                                         embeddings=["pencorr", "pencorr_python"])
 """
 # Investigate changes in weight matrix for up to 9 different image products
-
+"""
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
                                      imageProductTypes=["ncc", "ncc_base_10"],
                                      startingConstr=0, endingConstr=20, interval=1,
                                      specifiedKArr=[5], plotFrob=False, rank=192)
-
+"""
 
 # Investigate changes in plateau rank as image set size increases
-"""
-graphing.investigate_plateau_rank_for_set_sizes(image_types=["shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2"],
+
+graphing.investigate_plateau_rank_for_set_sizes(image_types=["shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2", "shapes_3_5_6_dims_4_2", "shapes_7_dims_4_2", "shapes_3_7_dims_4_2", "shapes_4_7_dims_4_2", "shapes_5_7_dims_4_2", "shapes_6_7_dims_4_2", "shapes_3_4_7_dims_4_2", "shapes_3_5_7_dims_4_2", "shapes_3_6_7_dims_4_2", "shapes_4_5_7_dims_4_2", "shapes_4_6_7_dims_4_2", "shapes_5_6_7_dims_4_2", "shapes_3_4_5_7_dims_4_2", "shapes_3_4_6_7_dims_4_2", "shapes_3_5_6_7_dims_4_2", "shapes_4_5_6_7_dims_4_2", "shapes_3_4_5_6_7_dims_4_2"],
                                                 filters=["unique"],
-                                                image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
-                                                embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
-                                                weights=["", "", "", "", "", "", "", "", "", "", "", "", ""],
+                                                image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
+                                                embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
+                                                weights=["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                                                 k=5, prox=3, overwrite=None)
 
-"""
+
 
 # Investigate changes in plateau rank as the image set size remains constant but image size increases
 """

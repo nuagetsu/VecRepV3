@@ -39,6 +39,18 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     return filteredImageSet
 
 
+def get_image_set_size(imageType: str, filters: List[str], imageSetFilepath:str, overwrite=False):
+    """
+    :param imageType: Name of the image set
+    :param filters: Filters applied to the image set
+    :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
+    :param overwrite: If true, generates and saves the filtered image set even if it is saved
+    :return: An NDArray of filtered image sets as specified by imageType and filters
+    Returns the size of an image set
+    """
+    return len(generate_filtered_image_set(imageType, filters, imageSetFilepath, overwrite=overwrite))
+
+
 def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imageProductFilepath: str,
                                   overwrite=False) -> NDArray:
     """
