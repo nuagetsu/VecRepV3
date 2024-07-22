@@ -44,7 +44,7 @@ Sample input: dblcorr_200
 imageProductType = "ncc_pow_2"
 embeddingType = "pencorr_500"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
-weight = "ncc_factor_1"
+weight = "ncc_factor_2"
 training_image_type = "randomshapes_3_4_dims_4_2_500"
 training_filters = ["unique"]
 test_image_type = "shapes_3_4_dims_4_2"

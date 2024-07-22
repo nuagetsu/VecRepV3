@@ -249,7 +249,7 @@ def gradient(y, I, J, lambda_, P, X, b0):   # Tested wrong!! Check again.
             if r > 1:
                 P1 = P1 @ np.diag(lambda1)
             else:
-                P1 = lambda1 @ P1
+                P1 = lambda1[0] * P1        # lambda1 has length 1 since r = 1
             P1T = P1.T
 
             if k <= const_sparse * n:

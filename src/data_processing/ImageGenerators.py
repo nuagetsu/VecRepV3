@@ -128,6 +128,7 @@ def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
     if filters is None:
         filters = []
     unique = "unique" in filters
+    filter_copy = filters.copy()
     all_permutations = set()
     image_set = []
     indexes = list(range(0, size ** 2))
@@ -185,11 +186,11 @@ def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
             all_permutations = add_permutations(all_permutations, comb, size)
 
     if unique:
-        filters.remove("unique")
+        filter_copy.remove("unique")
 
     image_set = np.array(image_set)
     image_set = np.unique(image_set, axis=0)
-    image_set = get_filtered_image_sets(imageSet=image_set, filters=filters)
+    image_set = get_filtered_image_sets(imageSet=image_set, filters=filter_copy)
 
     return image_set
 
@@ -236,8 +237,9 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
     if filters is None:
         filters = []
     unique = "unique" in filters
+    filter_copy = filters.copy()
     if unique:
-        filters.remove("unique")
+        filter_copy.remove("unique")
     indexes = list(range(0, size ** 2))
     all_permutations = set()
     while len(image_set) < number:
@@ -298,7 +300,7 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
         else:
             all_permutations.add(comb)
         if len(image_set) == number:
-            image_set = get_filtered_image_sets(imageSet=np.array(image_set), filters=filters)
+            image_set = get_filtered_image_sets(imageSet=np.array(image_set), filters=filter_copy)
             image_set = np.unique(image_set, axis=0)
             image_set = image_set.tolist()
     image_set = np.array(image_set)

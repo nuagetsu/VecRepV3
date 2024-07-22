@@ -348,7 +348,7 @@ def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[A
         neighbourAx.legend(loc="lower right")
 
 
-def plot_plateau_ranks(set_groups: dict):
+def plot_plateau_ranks_categorised(set_groups: dict):
     fig = plt.figure()
     fig.suptitle("Plateau Rank on Image Set Sizes")
     axes = plt.axes()
@@ -364,3 +364,6 @@ def plot_plateau_ranks(set_groups: dict):
     axes.set_xlabel("Image Set Size")
     axes.set_ylabel("Plateau Rank")
     axes.legend(loc="lower right")
+
+
+
