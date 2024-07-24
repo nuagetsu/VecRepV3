@@ -92,6 +92,35 @@ def Lagrangian_Method2(A, b):
     return x_final, final_dist, selected_lambda
 
 
+def alt_lagrangian_method(A, b):
+    A = np.array(A)
+    b = np.array(b)
+    M = np.dot(A, A.T)
+    D = np.diag(M)
+    eigenvalues = D.copy()
+    D_len = len(D)
+    y = np.dot(A, b)
+    sorted(eigenvalues, reverse=True)
+
+    def f(x):
+        """
+        Equation to solve. Must take in a numpy array and output a numpy array.
+        :param x: Input variable lambda.
+        :return: Output variable, to be equal to 0.
+        """
+        total = 0
+        x = x[0]
+        for index, eigenvalue in enumerate(D):
+            term = (y[index] / (eigenvalue + x)) ** 2
+            total += term
+        return np.array([total - 1])
+
+    # Use Scipy to code min max search etc. Or root find
+
+
+
+
+
 def get_embedding_estimate(image_input, training_image_set, image_product: str, embedding_matrix):
     """
     :param image_input: Image of the same dimensions as that used in the training image set
