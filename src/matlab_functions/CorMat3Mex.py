@@ -474,7 +474,7 @@ def precond_matrix(I, J, Omega12, P):       # Tested 1x
                     for i in range(k):
                         if I[i] == J[i]:
                             c[i] = np.sum(H[:r, I[i]]) * np.matmul(d.T, H[:r, J[i]])
-                            c[i] = c[i] + 2.0 * np.matmul(H12[I[i], :], H[r:n, J[i]])
+                            c[i] = c[i] + 2.0 * np.dot(H12[I[i], :], H[r:n, J[i]])
                         else:
                             j += 1
                             c[i] = np.sum(H[:r, I[i]]) * np.matmul(d.T, H[:r, J[i]])

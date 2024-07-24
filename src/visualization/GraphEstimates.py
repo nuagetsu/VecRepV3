@@ -348,20 +348,23 @@ def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[A
         neighbourAx.legend(loc="lower right")
 
 
-def plot_plateau_ranks_categorised(set_groups: dict):
+def plot_plateau_ranks_categorised(set_groups: dict, tag=None):
+
+    if tag is None:
+        tag = "Image Set Size"
     fig = plt.figure()
-    fig.suptitle("Plateau Rank on Image Set Sizes")
+    fig.suptitle("Plateau Rank on " + tag)
     axes = plt.axes()
     cmap = plt.get_cmap("tab20", len(set_groups.keys()))
 
     for index, group in enumerate(set_groups):
         plateau_ranks = np.array(set_groups[group]["plateau ranks"])
-        set_sizes = np.array(set_groups[group]["set size"])
-        indexes = np.argsort(set_sizes)
+        img_sizes = np.array(set_groups[group][tag])
+        indexes = np.argsort(img_sizes)
         plateau_ranks = plateau_ranks[indexes]
-        set_sizes = set_sizes[indexes]
-        axes.plot(set_sizes, plateau_ranks, label=group, c=cmap(index))
-    axes.set_xlabel("Image Set Size")
+        img_sizes = img_sizes[indexes]
+        axes.plot(img_sizes, plateau_ranks, label=group, c=cmap(index))
+    axes.set_xlabel(tag)
     axes.set_ylabel("Plateau Rank")
     axes.legend(loc="lower right")
 

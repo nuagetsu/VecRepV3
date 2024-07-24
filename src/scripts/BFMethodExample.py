@@ -86,15 +86,15 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for up to 5 different image products
-"""
+
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc"],
-                                                        startingConstr=2, endingConstr=192, interval=1,
+                                                        imageProductTypes=["ncc", "ncc_pow_2"],
+                                                        startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
-                                                        progressive=True,
-                                                        weights=["", "", ""],
-                                                        embeddings=["pencorr", "pencorr_python"])
-"""
+                                                        progressive=False,
+                                                        weights=["", ""],
+                                                        embeddings=["pencorr", "pencorr"])
+
 # Investigate changes in weight matrix for up to 9 different image products
 """
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
@@ -104,23 +104,31 @@ graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in plateau rank as image set size increases
-
-graphing.investigate_plateau_rank_for_set_sizes(image_types=["shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2", "shapes_3_5_6_dims_4_2", "shapes_7_dims_4_2", "shapes_3_7_dims_4_2", "shapes_4_7_dims_4_2", "shapes_5_7_dims_4_2", "shapes_6_7_dims_4_2", "shapes_3_4_7_dims_4_2", "shapes_3_5_7_dims_4_2", "shapes_3_6_7_dims_4_2", "shapes_4_5_7_dims_4_2", "shapes_4_6_7_dims_4_2", "shapes_5_6_7_dims_4_2", "shapes_3_4_5_7_dims_4_2", "shapes_3_4_6_7_dims_4_2", "shapes_3_5_6_7_dims_4_2", "shapes_4_5_6_7_dims_4_2", "shapes_3_4_5_6_7_dims_4_2"],
+"""
+graphing.investigate_plateau_rank_for_set_sizes(image_types=["shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2", "shapes_3_5_6_dims_4_2", "shapes_7_dims_4_2", "shapes_3_7_dims_4_2", "shapes_4_7_dims_4_2", "shapes_5_7_dims_4_2", "shapes_6_7_dims_4_2", "shapes_3_4_7_dims_4_2", "shapes_3_5_7_dims_4_2", "shapes_3_6_7_dims_4_2", "shapes_4_5_7_dims_4_2", "shapes_4_6_7_dims_4_2", "shapes_5_6_7_dims_4_2", "shapes_3_5_6_7_dims_4_2", "shapes_3_4_5_7_dims_4_2", "shapes_3_4_6_7_dims_4_2", "shapes_4_5_6_7_dims_4_2", "shapes_3_4_5_6_7_dims_4_2"],
                                                 filters=["unique"],
                                                 image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
                                                 embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
                                                 weights=["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                                                 k=5, prox=3, overwrite=None)
-
+"""
+"""
+graphing.investigate_plateau_rank_for_set_sizes(image_types=["randomshapes_3_4_5_dims_10_3_500", "randomshapes_3_4_5_dims_10_3_600", "randomshapes_3_4_5_dims_10_3_700", "randomshapes_3_4_5_dims_10_3_800", "randomshapes_3_4_5_dims_10_3_900", "randomshapes_3_4_5_dims_10_3_1000", "randomshapes_3_4_5_dims_10_3_1200", "randomshapes_3_4_5_dims_10_3_1400", "randomshapes_3_4_5_dims_10_3_1600", "randomshapes_3_4_5_dims_10_3_1800", "randomshapes_3_4_5_dims_10_3_2000", "randomshapes_3_4_5_dims_10_3_2500", "randomshapes_3_4_5_dims_10_3_3000", "randomshapes_3_4_5_dims_10_3_3500", "randomshapes_3_4_5_dims_10_3_4000"],
+                                                filters=["unique"],
+                                                image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
+                                                embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
+                                                weights=["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                                                k=5, prox=3, overwrite=None)
+"""
 
 
 # Investigate changes in plateau rank as the image set size remains constant but image size increases
 """
-graphing.investigate_plateau_rank_for_image_sizes(image_types=["shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_3_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2"],
+graphing.investigate_plateau_rank_for_image_sizes(image_types=["randomshapes_3_4_dims_4_2_800", "randomshapes_3_4_dims_5_2_800", "randomshapes_3_4_dims_6_2_800", "randomshapes_3_4_dims_7_2_800", "randomshapes_3_4_dims_8_2_800", "randomshapes_3_4_dims_9_2_800", "randomshapes_3_4_dims_10_2_800", "randomshapes_3_4_dims_11_2_800", "randomshapes_3_4_dims_12_2_800", "randomshapes_3_4_dims_4_2_1500", "randomshapes_3_4_dims_5_2_1500", "randomshapes_3_4_dims_6_2_1500", "randomshapes_3_4_dims_7_2_1500", "randomshapes_3_4_dims_8_2_1500", "randomshapes_3_4_dims_9_2_1500", "randomshapes_3_4_dims_10_2_1500", "randomshapes_3_4_dims_11_2_1500", "randomshapes_3_4_dims_12_2_1500"],
                                                   filters=["unique"],
-                                                  image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
-                                                  embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
-                                                  weights=["", "", "", "", "", "", "", "", "", "", "", "", ""],
+                                                  image_product_types=["ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc", "ncc"],
+                                                  embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
+                                                  weights=["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                                                   k=5, prox=3, overwrite=None)
 """
 

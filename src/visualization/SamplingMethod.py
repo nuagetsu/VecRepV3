@@ -428,6 +428,7 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
         training_size = training_sizes[index]
         ave_neigh_arr = []
         average_plateau_rank_arr = []
+        avg_non_zero = []
 
         training_set_filepath = fputils.get_image_set_filepath(trainingSet, filters)
         full_training_image_set = utils.generate_filtered_image_set(trainingSet, filters, training_set_filepath)
@@ -469,11 +470,9 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
                         max_k_score = k_score  # k_score value where plateau occurs
                         ave_neigh_arr.append(max_k_score)
                         nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in sampleEstimator.embeddingMatrix]))
-                        data["Non_zero"].append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                        avg_non_zero.append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
                         high = training_size
                         low = training_size // 2
-                        image_size = len(sampleEstimator.trainingImageSet[0])
-                        data["Image Size"].append(image_size)
                     elif k_score == max_k_score:
                         # Not first iteration, k_score has yet to change. Continue lowering rank constraint.
                         high = low
@@ -511,6 +510,7 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
             average_plateau_rank_arr.append(high)
         data["K_scores"].append(sum(ave_neigh_arr) / len(ave_neigh_arr))
         data["Plateau Rank"].append(sum(average_plateau_rank_arr) / len(average_plateau_rank_arr))
+        data["Non_zero"].append(sum(avg_non_zero) / len(avg_non_zero))
     df = pd.DataFrame(data)
     return df
 

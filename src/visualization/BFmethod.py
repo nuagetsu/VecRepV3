@@ -400,14 +400,14 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
 
         label = image_product + ", " + embedding + ", size " + str(image_size) + " by " + str(image_size)
         if label not in set_groups:
-            set_groups[label] = {"plateau ranks": [], "set size": []}
+            set_groups[label] = {"plateau ranks": [], "Image Set Size": []}
         set_groups[label]["plateau ranks"].append(high)
-        set_groups[label]["set size"].append(image_set_size)
+        set_groups[label]["Image Set Size"].append(image_set_size)
 
     df = pd.DataFrame(data)
     print(df)
 
-    GraphEstimates.plot_plateau_ranks_categorised(set_groups)
+    GraphEstimates.plot_plateau_ranks_categorised(set_groups, tag="Image Set Size")
 
 
 def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
@@ -494,13 +494,13 @@ def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None,
         logging.info("Plateau rank " + str(high))
         data["Plateau Rank"].append(high)
 
-        label = image_product + ", " + embedding + ", set size " + image_set_size
+        label = image_product + ", " + embedding + ", set size " + str(image_set_size)
         if label not in set_groups:
-            set_groups[label] = {"plateau ranks": [], "set size": []}
+            set_groups[label] = {"plateau ranks": [], "Image Size": []}
         set_groups[label]["plateau ranks"].append(high)
-        set_groups[label]["set size"].append(image_set_size)
+        set_groups[label]["Image Size"].append(image_size)
 
     df = pd.DataFrame(data)
     print(df)
 
-    GraphEstimates.plot_plateau_ranks_categorised(data)
+    GraphEstimates.plot_plateau_ranks_categorised(set_groups, tag="Image Size")
