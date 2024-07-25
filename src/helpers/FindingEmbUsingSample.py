@@ -8,7 +8,7 @@ from src.data_processing.ImageProducts import get_image_product, calculate_image
 
 
 # The following method was written by Lim Cheng Ze Jed
-def alt_Lagrangian_Method2(A, b):
+def Lagrangian_Method1(A, b):
     """
     :INPUTS:
     A: The vector embedding matrix
@@ -107,10 +107,10 @@ def Lagrangian_Method2(A, b, tol=1e-10):
     b = np.array(b)
     M = np.dot(A, A.T)
     D = np.diag(M)
-    eigenvalues = D.copy()
+    eigenvalues = D.copy() * -1
     D_len = len(D)
     y = np.dot(A, b)
-    sorted(eigenvalues, reverse=True)
+    eigenvalues = sorted(eigenvalues, reverse=False)
 
     # Create a helper function to act as equation
     def f(x):
@@ -120,11 +120,12 @@ def Lagrangian_Method2(A, b, tol=1e-10):
         :return: Output variable, to be equal to 0.
         """
         total = 0
-        x = x[0]
+        # x = x[0]
         for index, eigenvalue in enumerate(D):
             term = (y[index] / (eigenvalue + x)) ** 2
             total += term
-        return np.array([total - 1])
+        # return np.array([total - 1])
+        return total - 1
 
     root_list = []
 
@@ -138,8 +139,15 @@ def Lagrangian_Method2(A, b, tol=1e-10):
     # Middle Roots
     for range_indexes in range(1, D_len):
         roots_in_range = []
+        if eigenvalues[range_indexes - 1] == eigenvalues[range_indexes]:
+            continue
         left_bound = eigenvalues[range_indexes - 1] + tol
         right_bound = eigenvalues[range_indexes] - tol
+
+        # This method can be used to force lower bound to be less than upper bound if eigenvalues are close.
+        # diff = right_bound - left_bound
+        # left_bound += 0.001 * diff
+        # right_bound -= 0.001 * diff
 
         minimum = optimize.minimize_scalar(f, bounds=(left_bound, right_bound))
         if not minimum.success:
@@ -149,7 +157,7 @@ def Lagrangian_Method2(A, b, tol=1e-10):
         minimum_x = minimum.x
         minimum_f = minimum.fun
 
-        if minimum_f < 0:
+        if minimum_f < 0:       # Minimum less than 0, 2 roots in range
             root_one_solutions = optimize.root_scalar(f, bracket=(left_bound, minimum_x))
             if root_one_solutions.converged and root_one_solutions.root != "nan":
                 roots_in_range.append(root_one_solutions.root)
@@ -160,7 +168,7 @@ def Lagrangian_Method2(A, b, tol=1e-10):
                 roots_in_range.append(root_two_solutions.root)
             else:
                 logging.info("Issue in Lagrangian Method: Failed to find root 2 solution.")
-        elif minimum_f == 0:
+        elif minimum_f == 0:    # Minimum is 0, minimum is only root in range
             roots_in_range.append(minimum_x)
         root_list.extend(roots_in_range)
 
@@ -177,12 +185,12 @@ def Lagrangian_Method2(A, b, tol=1e-10):
 
     # Test all found values of lambda
     for lambda_ in root_list:
-        x = np.dot((S + lambda_ * eye(D_len)) ** (-1), y)
-        x = x.astype(np.float32)
+        x = np.dot((np.diag(D) + lambda_ * eye(D_len)) ** (-1), y)
+        x = x.astype(np.float64)
 
         mat = np.dot(A.T, x) - b
         dist = np.dot(mat, mat)
-        if dist < final_dist and 1 - tol <= np.dot(x, x) <= 1 + tol:
+        if dist < final_dist and 0.999 <= np.dot(x, x) <= 1.001:
             x_final = x
             final_dist = dist
             selected_lambda = lambda_
