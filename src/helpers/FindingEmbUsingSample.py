@@ -3,11 +3,14 @@ import logging
 import numpy as np
 from scipy import optimize
 from sympy import *
+from line_profiler import profile
 
 from src.data_processing.ImageProducts import get_image_product, calculate_image_product_vector
 
 
 # The following method was written by Lim Cheng Ze Jed
+# This method is not currently being used as Lagrangian_Method2 below cuts out Sympy. It is left here as a failsafe
+# in case something breaks in Lagrangian_Method2
 def Lagrangian_Method1(A, b):
     """
     :INPUTS:
@@ -94,6 +97,8 @@ def Lagrangian_Method1(A, b):
     return x_final, final_dist, selected_lambda
 
 
+
+@profile
 def Lagrangian_Method2(A, b, tol=1e-10):
     """
     Implementation to the previous Lagrangian Method function that does not use Sympy
@@ -130,8 +135,14 @@ def Lagrangian_Method2(A, b, tol=1e-10):
     root_list = []
 
     # First Root
-    leftmost_init = eigenvalues[0] - tol        # Positive
-    leftmost_far_bound = eigenvalues[0] - 100   # Negative
+    leftmost_init = eigenvalues[0] - tol        # Should be positive
+    leftmost_far_bound = eigenvalues[0] - 100   # Should be negative
+    while f(leftmost_init) < 0:                    # If this is negative when it shouldn't be
+        leftmost_init = (leftmost_init + eigenvalues[0]) / 2    # Bring closer to bound
+    while f(leftmost_far_bound) > 0:                # If this is positive when it shouldn't be
+        leftmost_init = leftmost_far_bound          # Further right bound to tighten search area
+        leftmost_far_bound -= 100                   # Push left bound further
+
     first_result = optimize.root_scalar(f, bracket=(leftmost_far_bound, leftmost_init))
 
     root_list.append(first_result.root)         # first_result is a optimize.RootResult object
@@ -141,13 +152,13 @@ def Lagrangian_Method2(A, b, tol=1e-10):
         roots_in_range = []
         if eigenvalues[range_indexes - 1] == eigenvalues[range_indexes]:
             continue
-        left_bound = eigenvalues[range_indexes - 1] + tol
-        right_bound = eigenvalues[range_indexes] - tol
+        left_bound = eigenvalues[range_indexes - 1]
+        right_bound = eigenvalues[range_indexes]
 
         # This method can be used to force lower bound to be less than upper bound if eigenvalues are close.
-        # diff = right_bound - left_bound
-        # left_bound += 0.001 * diff
-        # right_bound -= 0.001 * diff
+        diff = right_bound - left_bound
+        left_bound += tol * diff
+        right_bound -= tol * diff
 
         minimum = optimize.minimize_scalar(f, bounds=(left_bound, right_bound))
         if not minimum.success:
@@ -158,11 +169,16 @@ def Lagrangian_Method2(A, b, tol=1e-10):
         minimum_f = minimum.fun
 
         if minimum_f < 0:       # Minimum less than 0, 2 roots in range
+            while f(left_bound) < 0:        # if left_bound produces negative somehow, push closer to bound
+                left_bound = (left_bound + eigenvalues[range_indexes - 1]) / 2
             root_one_solutions = optimize.root_scalar(f, bracket=(left_bound, minimum_x))
             if root_one_solutions.converged and root_one_solutions.root != "nan":
                 roots_in_range.append(root_one_solutions.root)
             else:
                 logging.info("Issue in Lagrangian Method: Failed to find root 1 solution.")
+
+            while f(right_bound) < 0:       # if right_bound produces positive somehow, push closer to bound
+                right_bound = (right_bound + eigenvalues[range_indexes]) / 2
             root_two_solutions = optimize.root_scalar(f, bracket=(minimum_x, right_bound))
             if root_two_solutions.converged and root_two_solutions.root != "nan":
                 roots_in_range.append(root_two_solutions.root)
@@ -175,6 +191,12 @@ def Lagrangian_Method2(A, b, tol=1e-10):
     # Last Root
     rightmost_init = eigenvalues[-1] + tol  # Positive
     rightmost_far_bound = eigenvalues[-1] + 100  # Negative
+    while f(rightmost_init) < 0:        # If this is negative when it shouldn't be
+        rightmost_init = (rightmost_init + eigenvalues[-1]) / 2     # Bring closer to bound
+    while f(rightmost_far_bound) > 0:   # If this is positive when it shouldn't be
+        rightmost_init = rightmost_far_bound    # Further left bound to tighten search area
+        rightmost_far_bound += 100              # Push right bound futher
+
     last_result = optimize.root_scalar(f, bracket=(rightmost_init, rightmost_far_bound))
 
     root_list.append(last_result.root)
@@ -185,7 +207,8 @@ def Lagrangian_Method2(A, b, tol=1e-10):
 
     # Test all found values of lambda
     for lambda_ in root_list:
-        x = np.dot((np.diag(D) + lambda_ * eye(D_len)) ** (-1), y)
+        denominator = (D + lambda_) ** -1
+        x = np.dot(np.diag(denominator), y)
         x = x.astype(np.float64)
 
         mat = np.dot(A.T, x) - b
@@ -198,6 +221,7 @@ def Lagrangian_Method2(A, b, tol=1e-10):
     return x_final, final_dist, selected_lambda
 
 
+@profile
 def get_embedding_estimate(image_input, training_image_set, image_product: str, embedding_matrix):
     """
     :param image_input: Image of the same dimensions as that used in the training image set

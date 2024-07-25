@@ -105,17 +105,7 @@ class ShapeMatchingTester:
             for index, image in enumerate(self.full_image_set):
                 embedding = self.embedding_set[index]
                 self.image_dict[index] = {"image": image, "embedding": embedding}
-        """
-        Add: Embedding Set: Set of all embeddings? Maybe dictionary? Done
-             Find closest images for each? Or relegate to method Done
-             Match images not in matching set Done
-             Repeated random matching Done
-             Add more logging Done
-             Add actual matches Done
-             Clustering??? Find out if image embeddings are evenly spaced? How to cluster against cosine similarity?
-             Can we categorise shapes?
-             Compare actual closest shapes to generated closest shapes from embedding Done
-        """
+
 
     def match_shapes(self, input_image: NDArray, k=5):
         # Search for actual nearest images

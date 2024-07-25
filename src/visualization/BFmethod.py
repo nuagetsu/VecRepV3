@@ -316,7 +316,7 @@ def investigate_image_product_type(*, imageType: str, filters=None, imageProduct
 
 
 def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
-                                         weights: list, k=5, prox=3, overwrite=None):
+                                           weights: list, k=5, prox=3, overwrite=None):
     data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings, "Weights": weights,
             "K_scores": [], "Set Size": [], "Non_zero": [], "Plateau Rank": []}
     set_groups = {}
@@ -387,6 +387,7 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
                 diff = (high - low) // 4
                 low += diff
                 same_rank += 1
+            logging.info("k score is " + str(k_score))
 
             # Test next iteration at low estimate
             selected_rank = low
@@ -402,6 +403,152 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
         if label not in set_groups:
             set_groups[label] = {"plateau ranks": [], "Image Set Size": []}
         set_groups[label]["plateau ranks"].append(high)
+        set_groups[label]["Image Set Size"].append(image_set_size)
+
+    df = pd.DataFrame(data)
+    print(df)
+
+    GraphEstimates.plot_plateau_ranks_categorised(set_groups, tag="Image Set Size")
+
+
+def investigate_goal_rank_for_set_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
+                                        weights: list, k=5, prox=3, overwrite=None):
+    data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings,
+            "Weights": weights,
+            "K_scores": [], "Set Size": [], "Non_zero": [], "Goal Rank": []}
+    set_groups = {}
+    goal_k_score = 2
+    for index, image_type in enumerate(image_types):
+        logging.info("Investigating " + image_type)
+
+        # Setting variables
+        image_product = image_product_types[index]
+        weight = weights[index]
+        embedding = embeddings[index]
+        image_set_filepath = get_image_set_filepath(image_type, filters)
+        image_set_size = get_image_set_size(image_type, filters, image_set_filepath)
+        data["Set Size"].append(image_set_size)
+        logging.info("Image set size is " + str(image_set_size))
+        image_size = 0
+
+        # Loop variables
+        high = image_set_size
+        low = 0
+        selected_rank = high
+        iterations = 0
+        same_rank = 0
+        score_change = False
+        max_score_rank = []
+
+        if index == 0:
+            # Begin binary search. Search ends when high estimate is within "prox" of low estimate
+            # For the first set, do plateau rank search and look for when max k_score is achieved
+            while high - low > prox:
+                logging.info("Starting iteration " + str(iterations + 1))
+                selected_embedding = embedding + "_" + str(selected_rank)
+                bfEstimator = BruteForceEstimator(imageType=image_type, filters=filters, imageProductType=image_product,
+                                                  embeddingType=selected_embedding, overwrite=overwrite, weightType=weight)
+                k_score = metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG, bfEstimator.matrixGprime, k)
+                if not score_change:
+                    # k_score is the same as previous tested rank constraint
+                    if iterations == 0:
+                        # First iteration, no rank constraint placed
+                        goal_k_score = k_score  # k_score value where plateau occurs
+                        data["K_scores"].append(goal_k_score)
+                        nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in bfEstimator.matrixA]))
+                        data["Non_zero"].append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                        high = nonzero  # bound for plateau rank
+                        low = nonzero // 2
+                        image_size = len(bfEstimator.imageSet[0])
+                        data["Image Size"].append(image_size)
+                    elif k_score == goal_k_score:
+                        # Not first iteration, k_score has yet to change. Continue lowering rank constraint.
+                        high = low
+                        low = high // 2
+                    else:
+                        # Not first iteration, k_score has changed. Begin looking for plateau rank.
+                        score_change = True
+                        low = ((high - low) // 2) + low
+                elif k_score != goal_k_score:
+                    # Before plateau area. Raise rank constraint.
+                    low = ((high - low) // 2) + low
+                    max_score_rank = []
+                    same_rank = 0
+                elif same_rank == 2:
+                    # Successively within plateau area. Break loop
+                    high = max_score_rank[0]
+                    iterations += 1
+                    logging.info("Finishing iteration" + str(iterations))
+                    break
+                else:
+                    # Within plateau area. Raise rank constraint slowly in case plateau rank not yet reached.
+                    max_score_rank.append(low)
+                    diff = (high - low) // 4
+                    low += diff
+                    same_rank += 1
+                logging.info("k score is " + str(k_score))
+
+                # Test next iteration at low estimate
+                selected_rank = low
+                iterations += 1
+                logging.info("Finishing iteration " + str(iterations))
+                logging.info("Next Rank " + str(low))
+        else:
+            # For subsequent sets, we want to find the rank where we hit the goal k_score
+            while high - low > prox:
+                logging.info("Starting iteration " + str(iterations + 1))
+                selected_embedding = embedding + "_" + str(selected_rank)
+                bfEstimator = BruteForceEstimator(imageType=image_type, filters=filters, imageProductType=image_product,
+                                                  embeddingType=selected_embedding, overwrite=overwrite, weightType=weight)
+                k_score = metrics.get_mean_normed_k_neighbour_score(bfEstimator.matrixG, bfEstimator.matrixGprime, k)
+                if not score_change:
+                    # k_score is the same as previous tested rank constraint
+                    if iterations == 0:
+                        # First iteration, no rank constraint placed
+                        max_k_score = k_score  # k_score value where plateau occurs
+                        data["K_scores"].append(max_k_score)
+                        nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in bfEstimator.matrixA]))
+                        data["Non_zero"].append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                        high = nonzero  # bound for plateau rank
+                        low = nonzero // 2
+                        image_size = len(bfEstimator.imageSet[0])
+                        data["Image Size"].append(image_size)
+                        if max_k_score < goal_k_score:
+                            logging.info("Goal k-score cannot be achieved! Skipping this image set.")
+                            break
+                    elif k_score > goal_k_score:
+                        # Not first iteration, k_score is still higher. Continue lowering rank constraint.
+                        high = low
+                        low = high // 2
+                    elif k_score == goal_k_score:
+                        logging.info("Goal k-score achieved.")
+                    else:
+                        # Not first iteration, k_score has is lower. Begin looking for goal rank.
+                        score_change = True
+                        low = ((high - low) // 2) + low
+                elif k_score < goal_k_score:
+                    # Before goal k-score
+                    low = ((high - low) // 2) + low
+                elif k_score == goal_k_score:
+                    # Goal k-score found
+                    high = low
+                    iterations += 1
+                    logging.info("Finishing iteration" + str(iterations))
+                    break
+                else:
+                    # Above goal k-score
+                    high = low
+                    low = 3 * (low // 4)
+                logging.info("k score is " + str(k_score))
+
+            # Once loop ends, save high estimate plateau rank for currently tested image set
+            logging.info("Goal rank " + str(high))
+            data["Goal Rank"].append((high + low) // 2)
+
+        label = image_product + ", " + embedding + ", size " + str(image_size) + " by " + str(image_size)
+        if label not in set_groups:
+            set_groups[label] = {"goal ranks": [], "Image Set Size": []}
+        set_groups[label]["goal ranks"].append(high)
         set_groups[label]["Image Set Size"].append(image_set_size)
 
     df = pd.DataFrame(data)
@@ -483,6 +630,7 @@ def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None,
                 diff = (high - low) // 4
                 low += diff
                 same_rank += 1
+            logging.info("k score is " + str(k_score))
 
             # Test next iteration at low estimate
             selected_rank = low

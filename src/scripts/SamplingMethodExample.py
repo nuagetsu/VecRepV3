@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from line_profiler import profile
 
 from src.data_processing.ImageGenerators import get_island_image_set
 from src.data_processing.ImageGenerators import get_triangles_image_set
@@ -122,7 +123,26 @@ SamplingMethod.investigate_sample_and_test_sets(trainingSet="shapes_3_4_dims_4_2
 """
 
 # Example of finding plateau rank for a sample
+LINE_PROFILE=1
+sampleName = "Shapes example sample"
+test_prefix = "Shapes example test"
+training_sets = ["shapes_3_dims_4_2"]
+test_sets = ["shapes_3_dims_4_2"]
+training_sizes = [150]
+image_product_types = ["ncc"]
+weights = [""]
+embeddings = ["pencorr_python"]
+filters = ["unique"]
 
+@profile
+def main():
+    SamplingMethod.investigate_sample_plateau_rank(training_sets=training_sets, test_sets=test_sets,
+                                                        training_sizes= training_sizes, image_product_types=image_product_types,
+                                                        weights=weights, embeddings=embeddings, filters=filters, test_prefix=test_prefix,
+                                                        prox=3, trials=1, k=5)
+    # print(df)
 
+if __name__ == "__main__":
+    main()
 
 plt.show()

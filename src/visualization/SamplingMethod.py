@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 import pandas as pd
+from line_profiler import profile
 
 import src.data_processing.Utilities as utils
 import src.helpers.FilepathUtils as fputils
@@ -404,6 +405,7 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
                                                                          imageProducts=imageProductTypes, weights=weights)
 
 
+@profile
 def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, training_sizes: list,
                                     image_product_types: list, test_prefix: str,
                                     k=5, trials=5, prox=3,
@@ -429,18 +431,24 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
         ave_neigh_arr = []
         average_plateau_rank_arr = []
         avg_non_zero = []
+        different_sets = testSet != trainingSet
 
         training_set_filepath = fputils.get_image_set_filepath(trainingSet, filters)
         full_training_image_set = utils.generate_filtered_image_set(trainingSet, filters, training_set_filepath)
-
-        test_set_filepath = fputils.get_image_set_filepath(testSet, filters)
-        test_sample = utils.generate_filtered_image_set(testSet, filters, test_set_filepath)
+        if different_sets:
+            test_set_filepath = fputils.get_image_set_filepath(testSet, filters)
+            test_sample = utils.generate_filtered_image_set(testSet, filters, test_set_filepath)
+        else:
+            test_set_filepath = training_set_filepath
 
         image_size = len(full_training_image_set[0])
         data["Image Size"].append(image_size)
 
         for i in range(trials):
-            disregard, training_sample = generate_random_sample(full_training_image_set, 0, training_size, seed=i)
+            if different_sets:
+                disregard, training_sample = generate_random_sample(full_training_image_set, 0, training_size, seed=i)
+            else:
+                test_sample, training_sample = generate_random_sample(full_training_image_set, len(full_training_image_set) - training_size, training_size, seed=i)
 
             # Loop variables
             high = training_size
@@ -498,6 +506,7 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
                     diff = (high - low) // 4
                     low += diff
                     same_rank += 1
+                logging.info("k score is " + str(k_score))
 
                 # Test next iteration at low estimate
                 selected_rank = low
@@ -513,5 +522,209 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
         data["Non_zero"].append(sum(avg_non_zero) / len(avg_non_zero))
     df = pd.DataFrame(data)
     return df
+
+
+def investigate_goal_k_score_rank(*, training_sets: list, test_set: str, test_size: int,
+                                  image_product_type: str, test_prefix: str,
+                                  k=5, trials=5, prox=3,
+                                  weight=None, embedding=None, filters=None):
+    # Idea: For a set of images to be used as a test set, if remove it from all training sets and use sample estimation,
+    # At what k_score do you reach certain accuracy?
+    if weight is None:
+        weight = ""
+    if embedding is None:
+        embedding = "pencorr_python"
+    if filters is None:
+        filters = ["unique"]
+
+    data = {"Training Set": training_sets, "Test Set": [test_set for training_set in training_sets],
+            "Image Products": [image_product_type for training_Set in training_sets],
+            "Embeddings": [embedding for training_set in training_sets],
+            "Weights": [weight for training_set in training_sets],
+            "Max_K_scores": [], "Training Set Size": [], "Non_zero": [], "Goal Rank": []}
+    set_data = {"Max_K_scores": {}, "Training Set Size": {}, "Non_zero": {}, "Goal Rank": {}}
+
+    for trial in range(trials):
+        test_set_filepath = fputils.get_image_set_filepath(test_set, filters)
+        full_test_image_set = utils.generate_filtered_image_set(test_set, filters, test_set_filepath)
+        test_images = generate_random_sample(full_test_image_set, test_size, 0, seed=trial)[0]
+
+        for index, training_set in enumerate(training_sets):
+
+            training_set_filepath = fputils.get_image_set_filepath(training_set, filters)
+            full_training_image_set = utils.generate_filtered_image_set(training_set, filters, training_set_filepath)
+            training_image_set = [image for image in full_training_image_set.tolist() if image not in test_images.tolist()]
+            training_image_set = np.asarray(training_image_set)
+            training_size = len(training_image_set)
+
+            if training_set not in set_data["Training Set Size"]:
+                set_data["Training Set Size"][training_set] = []
+            set_data["Training Set Size"][training_set].append(len(training_image_set[0]))
+
+            # Loop variables
+            high = training_size
+            low = 0
+            selected_rank = high
+            goal_k_score = 2
+            iterations = 0
+            same_rank = 0
+            score_change = False
+            max_score_rank = []
+
+            if index == 0:
+                # Begin binary search. Search ends when high estimate is within "prox" of low estimate
+                # For the first set, do plateau rank search and look for when max k_score is achieved
+                while high - low > prox:
+                    logging.info("Starting iteration " + str(iterations + 1))
+                    selected_embedding = embedding + "_" + str(selected_rank)
+                    sample_name = test_prefix + "_" + training_set + "_constraint_" + str(selected_rank)
+                    sample_estimator = SampleEstimator(sampleName=sample_name, trainingImageSet=training_image_set,
+                                                       embeddingType=embedding, imageProductType=image_product_type,
+                                                       weight=weight)
+
+                    test_name = test_prefix + "_test"
+                    sample_tester = SampleTester(testImages=test_images, sampleEstimator=sample_estimator,
+                                                 testName=test_name)
+
+                    k_score = metrics.get_mean_normed_k_neighbour_score(sample_tester.matrixG,
+                                                                        sample_tester.matrixGprime, k)
+
+                    if not score_change:
+                        # k_score is the same as previous tested rank constraint
+                        if iterations == 0:
+                            # First iteration, no rank constraint placed
+                            goal_k_score = k_score  # k_score value where plateau occurs
+                            if training_set not in set_data["Max_K_scores"]:
+                                set_data["Max_K_scores"][training_set] = []
+                            set_data["Max_K_scores"][training_set].append(goal_k_score)
+                            nonzero = np.count_nonzero(
+                                np.array([np.max(b) - np.min(b) for b in sample_estimator.embeddingMatrix]))
+                            if training_set not in set_data["Non_zero"]:
+                                set_data["Non_zero"][training_set] = []
+                            set_data["Non_zero"][training_set].append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                            high = training_size
+                            low = training_size // 2
+                        elif k_score == goal_k_score:
+                            # Not first iteration, k_score has yet to change. Continue lowering rank constraint.
+                            high = low
+                            low = high // 2
+                        else:
+                            # Not first iteration, k_score has changed. Begin looking for plateau rank.
+                            score_change = True
+                            low = ((high - low) // 2) + low
+                    elif k_score != goal_k_score:
+                        # Before plateau area. Raise rank constraint.
+                        low = ((high - low) // 2) + low
+                        max_score_rank = []
+                        same_rank = 0
+                    elif same_rank == 2:
+                        # Successively within plateau area. Break loop
+                        high = max_score_rank[0]
+                        iterations += 1
+                        logging.info("Finishing iteration" + str(iterations))
+                        break
+                    else:
+                        # Within plateau area. Raise rank constraint slowly in case plateau rank not yet reached.
+                        max_score_rank.append(low)
+                        diff = (high - low) // 4
+                        low += diff
+                        same_rank += 1
+                    logging.info("k score is " + str(k_score))
+
+                    # Test next iteration at low estimate
+                    selected_rank = low
+                    iterations += 1
+                    logging.info("Finishing iteration" + str(iterations))
+                    logging.info("Next Rank " + str(low))
+
+                # Once loop ends, save high estimate plateau rank for currently tested image set
+                logging.info("Goal rank " + str(high))
+                if training_set not in set_data["Goal Rank"]:
+                    set_data["Goal Rank"][training_set] = []
+                set_data["Goal Rank"][training_set].append(high)
+            else:
+                while high - low > prox:
+                    logging.info("Starting iteration " + str(iterations + 1))
+                    selected_embedding = embedding + "_" + str(selected_rank)
+                    sample_name = test_prefix + "_" + training_set + "_constraint_" + str(selected_rank)
+                    sample_estimator = SampleEstimator(sampleName=sample_name, trainingImageSet=training_image_set,
+                                                       embeddingType=embedding, imageProductType=image_product_type,
+                                                       weight=weight)
+
+                    test_name = test_prefix + "_test"
+                    sample_tester = SampleTester(testImages=test_images, sampleEstimator=sample_estimator,
+                                                 testName=test_name)
+
+                    k_score = metrics.get_mean_normed_k_neighbour_score(sample_tester.matrixG,
+                                                                        sample_tester.matrixGprime, k)
+
+                    if not score_change:
+                        # k_score is the same as previous tested rank constraint
+                        if iterations == 0:
+                            # First iteration, no rank constraint placed
+                            max_k_score = k_score  # k_score value where plateau occurs
+                            if training_set not in set_data["Max_K_scores"]:
+                                set_data["Max_K_scores"][training_set] = []
+                            set_data["Max_K_scores"][training_set].append(max_k_score)
+                            nonzero = np.count_nonzero(
+                                np.array([np.max(b) - np.min(b) for b in sample_estimator.embeddingMatrix]))
+                            if training_set not in set_data["Non_zero"]:
+                                set_data["Non_zero"][training_set] = []
+                            set_data["Non_zero"][training_set].append(
+                                nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                            high = training_size
+                            low = training_size // 2
+                            if max_k_score < goal_k_score:
+                                logging.info("Goal k-score cannot be reached!")
+                                break
+                        elif k_score > goal_k_score:
+                            # Not first iteration, k_score still higher. Continue lowering rank constraint.
+                            high = low
+                            low = high // 2
+                        elif k_score == goal_k_score:
+                            high = low
+                            break
+                        else:
+                            # Not first iteration, k_score is lower. Begin looking for goal rank.
+                            score_change = True
+                            low = ((high - low) // 2) + low
+                    elif k_score < goal_k_score:
+                        # Before goal score. Raise rank constraint.
+                        low = ((high - low) // 2) + low
+                    elif k_score == goal_k_score:
+                        # Successively found goal k-score. Break loop
+                        high = low
+                        iterations += 1
+                        logging.info("Finishing iteration" + str(iterations))
+                        break
+                    else:
+                        # Higher than goal. Raise rank constraint slowly in case plateau rank not yet reached.
+                        high = low
+                        low += 3 * (low // 4)
+                    logging.info("k score is " + str(k_score))
+
+                    # Test next iteration at low estimate
+                    selected_rank = low
+                    iterations += 1
+                    logging.info("Finishing iteration" + str(iterations))
+                    logging.info("Next Rank " + str(low))
+
+                # Once loop ends, save high estimate plateau rank for currently tested image set
+                logging.info("Goal rank " + str((high + low) / 2))
+                if training_set not in set_data["Goal Rank"]:
+                    set_data["Goal Rank"][training_set] = []
+                set_data["Goal Rank"][training_set].append(high)
+
+        for param in set_data:
+            for training_set in set_data[param]:
+                set_data[param][training_set] = sum(set_data[param][training_set]) / len(set_data[param][training_set])
+                data[param].append(set_data[param][training_set])
+
+    df = pd.DataFrame(data)
+    return df
+
+
+
+
 
 
