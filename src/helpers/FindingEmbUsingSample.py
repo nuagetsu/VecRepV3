@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from scipy import optimize
 from sympy import *
@@ -6,7 +8,7 @@ from src.data_processing.ImageProducts import get_image_product, calculate_image
 
 
 # The following method was written by Lim Cheng Ze Jed
-def Lagrangian_Method2(A, b):
+def alt_Lagrangian_Method2(A, b):
     """
     :INPUTS:
     A: The vector embedding matrix
@@ -92,7 +94,15 @@ def Lagrangian_Method2(A, b):
     return x_final, final_dist, selected_lambda
 
 
-def alt_lagrangian_method(A, b):
+def Lagrangian_Method2(A, b, tol=1e-10):
+    """
+    Implementation to the previous Lagrangian Method function that does not use Sympy
+    :param A: Matrix A
+    :param b: Vector b calculated as the NCC score between image to estimate and images in A
+    :param tol: Tolerance level
+    :return: best solution for x, minimised distance and selected value of lambda
+    """
+    # Set up parameters according to previous Lagrangian Method
     A = np.array(A)
     b = np.array(b)
     M = np.dot(A, A.T)
@@ -102,6 +112,7 @@ def alt_lagrangian_method(A, b):
     y = np.dot(A, b)
     sorted(eigenvalues, reverse=True)
 
+    # Create a helper function to act as equation
     def f(x):
         """
         Equation to solve. Must take in a numpy array and output a numpy array.
@@ -115,10 +126,68 @@ def alt_lagrangian_method(A, b):
             total += term
         return np.array([total - 1])
 
-    # Use Scipy to code min max search etc. Or root find
+    root_list = []
 
+    # First Root
+    leftmost_init = eigenvalues[0] - tol        # Positive
+    leftmost_far_bound = eigenvalues[0] - 100   # Negative
+    first_result = optimize.root_scalar(f, bracket=(leftmost_far_bound, leftmost_init))
 
+    root_list.append(first_result.root)         # first_result is a optimize.RootResult object
 
+    # Middle Roots
+    for range_indexes in range(1, D_len):
+        roots_in_range = []
+        left_bound = eigenvalues[range_indexes - 1] + tol
+        right_bound = eigenvalues[range_indexes] - tol
+
+        minimum = optimize.minimize_scalar(f, bounds=(left_bound, right_bound))
+        if not minimum.success:
+            # Failed to find minimum but there should be a minimum. Check for error.
+            logging.info("Issue in Lagrangian Method: Failed to find minimum between bounds.")
+            continue
+        minimum_x = minimum.x
+        minimum_f = minimum.fun
+
+        if minimum_f < 0:
+            root_one_solutions = optimize.root_scalar(f, bracket=(left_bound, minimum_x))
+            if root_one_solutions.converged and root_one_solutions.root != "nan":
+                roots_in_range.append(root_one_solutions.root)
+            else:
+                logging.info("Issue in Lagrangian Method: Failed to find root 1 solution.")
+            root_two_solutions = optimize.root_scalar(f, bracket=(minimum_x, right_bound))
+            if root_two_solutions.converged and root_two_solutions.root != "nan":
+                roots_in_range.append(root_two_solutions.root)
+            else:
+                logging.info("Issue in Lagrangian Method: Failed to find root 2 solution.")
+        elif minimum_f == 0:
+            roots_in_range.append(minimum_x)
+        root_list.extend(roots_in_range)
+
+    # Last Root
+    rightmost_init = eigenvalues[-1] + tol  # Positive
+    rightmost_far_bound = eigenvalues[-1] + 100  # Negative
+    last_result = optimize.root_scalar(f, bracket=(rightmost_init, rightmost_far_bound))
+
+    root_list.append(last_result.root)
+
+    # iterates through all the possible lagrangian values and output the one that provides the minimum ||Ax-b||
+    final_dist = float('inf')
+    selected_lambda = x_final = 0
+
+    # Test all found values of lambda
+    for lambda_ in root_list:
+        x = np.dot((S + lambda_ * eye(D_len)) ** (-1), y)
+        x = x.astype(np.float32)
+
+        mat = np.dot(A.T, x) - b
+        dist = np.dot(mat, mat)
+        if dist < final_dist and 1 - tol <= np.dot(x, x) <= 1 + tol:
+            x_final = x
+            final_dist = dist
+            selected_lambda = lambda_
+
+    return x_final, final_dist, selected_lambda
 
 
 def get_embedding_estimate(image_input, training_image_set, image_product: str, embedding_matrix):
