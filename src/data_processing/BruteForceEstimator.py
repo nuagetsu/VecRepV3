@@ -1,4 +1,5 @@
 from typing import List
+from line_profiler import profile
 
 import helpers.FilepathUtils as fpUtils
 import src.data_processing.Utilities as utils
@@ -6,6 +7,7 @@ from src.data_processing.TestableEstimator import TestableEstimator
 
 
 class BruteForceEstimator(TestableEstimator):
+    @profile
     def __init__(self, *, imageType: str, filters: List[str], imageProductType: str, embeddingType: str,
                  weightType=None, overwrite=None, weightMatrix=None):
         self.imageType = imageType

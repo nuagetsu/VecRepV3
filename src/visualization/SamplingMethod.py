@@ -579,7 +579,7 @@ def investigate_goal_k_score_rank(*, training_sets: list, test_set: str, test_si
                     selected_embedding = embedding + "_" + str(selected_rank)
                     sample_name = test_prefix + "_" + training_set + "_constraint_" + str(selected_rank)
                     sample_estimator = SampleEstimator(sampleName=sample_name, trainingImageSet=training_image_set,
-                                                       embeddingType=embedding, imageProductType=image_product_type,
+                                                       embeddingType=selected_embedding, imageProductType=image_product_type,
                                                        weight=weight)
 
                     test_name = test_prefix + "_test"
@@ -648,7 +648,7 @@ def investigate_goal_k_score_rank(*, training_sets: list, test_set: str, test_si
                     selected_embedding = embedding + "_" + str(selected_rank)
                     sample_name = test_prefix + "_" + training_set + "_constraint_" + str(selected_rank)
                     sample_estimator = SampleEstimator(sampleName=sample_name, trainingImageSet=training_image_set,
-                                                       embeddingType=embedding, imageProductType=image_product_type,
+                                                       embeddingType=selected_embedding, imageProductType=image_product_type,
                                                        weight=weight)
 
                     test_name = test_prefix + "_test"

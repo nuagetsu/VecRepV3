@@ -369,4 +369,22 @@ def plot_plateau_ranks_categorised(set_groups: dict, tag=None):
     axes.legend(loc="lower right")
 
 
+def plot_goal_ranks_categorised(set_groups: dict, k_score: float, tag=None):
 
+    if tag is None:
+        tag = "Image Set Size"
+    fig = plt.figure()
+    fig.suptitle("Goal Rank on " + tag + " for k_score of " + str(k_score))
+    axes = plt.axes()
+    cmap = plt.get_cmap("tab20", len(set_groups.keys()))
+
+    for index, group in enumerate(set_groups):
+        plateau_ranks = np.array(set_groups[group]["goal ranks"])
+        img_sizes = np.array(set_groups[group][tag])
+        indexes = np.argsort(img_sizes)
+        plateau_ranks = plateau_ranks[indexes]
+        img_sizes = img_sizes[indexes]
+        axes.plot(img_sizes, plateau_ranks, label=group, c=cmap(index))
+    axes.set_xlabel(tag)
+    axes.set_ylabel("Goal Rank")
+    axes.legend(loc="lower right")

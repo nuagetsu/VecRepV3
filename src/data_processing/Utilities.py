@@ -3,8 +3,10 @@ import os
 import sys
 from pathlib import Path
 from typing import List
+from line_profiler import profile
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 
 from src.data_processing import EmbeddingFunctions
@@ -18,7 +20,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-
+@profile
 def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, overwrite=False) -> NDArray:
     """
     :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
@@ -38,7 +40,7 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
         filteredImageSet = np.load(imageSetFilepath)
     return filteredImageSet
 
-
+@profile
 def get_image_set_size(imageType: str, filters: List[str], imageSetFilepath:str, overwrite=False):
     """
     :param imageType: Name of the image set

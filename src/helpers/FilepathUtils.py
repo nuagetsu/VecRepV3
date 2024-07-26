@@ -73,6 +73,18 @@ def get_sample_directory(sampleName: str, category="uncategorized") -> str:
     return os.path.join(get_project_root(), "data", "samples", category, sampleName)
 
 
+def get_set_size_df_filepath(image_types: list):
+    number = len(image_types)
+    name = str(number) + " types of size "
+    split = image_types[0].split("_")
+    dim_index = split.index("dims")
+    shape_size = split[dim_index + 1]
+    image_size = split[dim_index + 2]
+    name += str(shape_size) + " in " + str(image_size) + ".csv"
+    return os.path.join(get_project_root(), "data", "dataframes", name)
+
+
+
 def get_sample_embedding_matrix_filepath(embeddingType, sampleDirectory: str, weight=None):
     if weight is None or weight == "":
         weight = "unweighted"

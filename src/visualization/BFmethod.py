@@ -1,13 +1,16 @@
 import logging
 import math
+import os.path
 import random
 import sys
+from pathlib import Path
+from line_profiler import profile
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.helpers.FilepathUtils import get_image_set_filepath
+from src.helpers.FilepathUtils import get_image_set_filepath, get_set_size_df_filepath
 from src.data_processing.BruteForceEstimator import BruteForceEstimator
 from src.data_processing.TestableEstimator import TestableEstimator
 from src.data_processing.Utilities import get_image_set_size
@@ -314,7 +317,7 @@ def investigate_image_product_type(*, imageType: str, filters=None, imageProduct
         GraphEstimates.plot_ave_k_neighbours_for_type(plotPoint, aveKNeighArr, kArr, imageProductType)
         count += 1
 
-
+@profile
 def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
                                            weights: list, k=5, prox=3, overwrite=None):
     data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings, "Weights": weights,
@@ -406,6 +409,10 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
         set_groups[label]["Image Set Size"].append(image_set_size)
 
     df = pd.DataFrame(data)
+    filepath = get_set_size_df_filepath(image_types)
+    if not os.path.isfile(filepath):
+        Path(filepath).parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(filepath, index=False)
     print(df)
 
     GraphEstimates.plot_plateau_ranks_categorised(set_groups, tag="Image Set Size")
@@ -541,6 +548,12 @@ def investigate_goal_rank_for_set_sizes(*, image_types: list, filters=None, imag
                     low = 3 * (low // 4)
                 logging.info("k score is " + str(k_score))
 
+                # Test next iteration at low estimate
+                selected_rank = low
+                iterations += 1
+                logging.info("Finishing iteration " + str(iterations))
+                logging.info("Next Rank " + str(low))
+
             # Once loop ends, save high estimate plateau rank for currently tested image set
             logging.info("Goal rank " + str(high))
             data["Goal Rank"].append((high + low) // 2)
@@ -554,7 +567,7 @@ def investigate_goal_rank_for_set_sizes(*, image_types: list, filters=None, imag
     df = pd.DataFrame(data)
     print(df)
 
-    GraphEstimates.plot_plateau_ranks_categorised(set_groups, tag="Image Set Size")
+    GraphEstimates.plot_goal_ranks_categorised(set_groups, goal_k_score, tag="Image Set Size")
 
 
 def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
