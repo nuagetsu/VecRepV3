@@ -174,6 +174,11 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         index = int(re.search(r'\d+$', embeddingType).group())
         matrixGprime = dblcorr(imageProductMatrix, index, weight=weightMatrix)
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, index, abs_tol=100)
+    elif re.search(r'dblcorr2_[0-9]*[0-9]$', embeddingType) is not None:
+        index = int(re.search(r'\d+$', embeddingType).group())
+        matrixGprime = eigencorr(imageProductMatrix, len(imageProductMatrix))
+        matrixGprime = pencorr(matrixGprime[0] / matrixGprime[1], index)
+        embeddingMatrix = get_embeddings_mPCA(matrixGprime, index)
     elif re.search(r'pencorr_python_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
         matrixGprime = pencorr_python(imageProductMatrix, nDim)

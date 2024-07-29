@@ -75,7 +75,7 @@ graphing.investigate_estimator(bruteForceEstimator, 16)
 # Example to investigate rank constraint
 """
 graphing.investigate_BF_rank_constraint(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                    startingConstr=1, endingConstr=60, specifiedKArr=[3, 5],
+                                    startingConstr=1, endingConstr=64, specifiedKArr=[5],
                                     plotFrob=False, weight=None)
 """
 
@@ -87,15 +87,15 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for up to 5 different image products
-"""
+
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
-                                                        imageProductTypes=["ncc", "ncc_pow_2"],
+                                                        imageProductTypes=["ncc", "ncc", "ncc"],
                                                         startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         progressive=False,
-                                                        weights=["", ""],
-                                                        embeddings=["pencorr", "pencorr"])
-"""
+                                                        weights=["", "", ""],
+                                                        embeddings=["pencorr", "dblcorr", "dblcorr2"])
+
 # Investigate changes in weight matrix for up to 9 different image products
 """
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,
@@ -136,6 +136,7 @@ graphing.investigate_plateau_rank_for_image_sizes(image_types=["randomshapes_3_4
 """
 
 # Investigate changes of rank at which lowest maximum k_score is reached as image set size increases
+"""
 @profile
 def main():
     graphing.investigate_goal_rank_for_set_sizes(image_types=["shapes_3_dims_4_2", "shapes_3_4_dims_4_2", "shapes_3_4_5_dims_4_2", "shapes_3_5_dims_4_2", "shapes_4_dims_4_2", "shapes_5_dims_4_2", "shapes_6_dims_4_2", "shapes_3_4_6_dims_4_2", "shapes_3_6_dims_4_2", "shapes_4_6_dims_4_2", "shapes_5_6_dims_4_2", "shapes_4_5_6_dims_4_2", "shapes_3_4_5_6_dims_4_2", "shapes_3_5_6_dims_4_2", "shapes_7_dims_4_2", "shapes_3_7_dims_4_2", "shapes_4_7_dims_4_2", "shapes_5_7_dims_4_2", "shapes_6_7_dims_4_2", "shapes_3_4_7_dims_4_2", "shapes_3_5_7_dims_4_2", "shapes_3_6_7_dims_4_2", "shapes_4_5_7_dims_4_2", "shapes_4_6_7_dims_4_2", "shapes_5_6_7_dims_4_2", "shapes_3_5_6_7_dims_4_2", "shapes_3_4_5_7_dims_4_2", "shapes_3_4_6_7_dims_4_2", "shapes_4_5_6_7_dims_4_2", "shapes_3_4_5_6_7_dims_4_2"],
@@ -148,5 +149,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+"""
 plt.show()

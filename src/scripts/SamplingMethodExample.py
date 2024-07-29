@@ -136,10 +136,10 @@ filters = ["unique"]
 
 @profile
 def main():
-    SamplingMethod.investigate_sample_plateau_rank(training_sets=training_sets, test_sets=test_sets,
-                                                        training_sizes= training_sizes, image_product_types=image_product_types,
-                                                        weights=weights, embeddings=embeddings, filters=filters, test_prefix=test_prefix,
-                                                        prox=3, trials=1, k=5)
+    SamplingMethod.investigate_sample_plateau_rank(training_sets=training_sets, test_set=test_sets,
+                                                   training_sizes= training_sizes, image_product_types=image_product_types,
+                                                   weights=weights, embeddings=embeddings, filters=filters, test_prefix=test_prefix,
+                                                   prox=3, trials=1, k=5)
     # print(df)
 
 if __name__ == "__main__":

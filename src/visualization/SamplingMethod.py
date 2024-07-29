@@ -406,55 +406,44 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
 
 
 @profile
-def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, training_sizes: list,
-                                    image_product_types: list, test_prefix: str,
-                                    k=5, trials=5, prox=3,
-                                    weights=None, embeddings=None, filters=None):
+def investigate_sample_plateau_rank(*, training_sets: list, test_set: str, test_size: int,
+                                    image_product: str, test_prefix: str, embedding: str, weight: str,
+                                    filters: list, k=5, trials=5, prox=3,):
 
-    if weights is None:
-        weights = ["" for image_product_type in image_product_types]
-    if embeddings is None:
-        embeddings = ["pencorr_python" for image_product_type in image_product_types]
     if filters is None:
         filters = []
 
-    data = {"Training Set": training_sets, "Test Set": test_sets, "Image Size": [], "Image Products": image_product_types,
-            "Embeddings": embeddings, "Weights": weights,
+    data = {"Training Set": training_sets, "Test Set": [test_set for i in training_sets], "Image Size": [],
+            "Image Products": [image_product for i in training_sets], "Embeddings": [embedding for i in training_sets],
+            "Weights": [weight for i in training_sets],
             "K_scores": [], "Training Set Size": [], "Non_zero": [], "Plateau Rank": []}
+    set_data = {"K_scores": {}, "Training Set Size": {}, "Non_zero": {}, "Plateau Rank": {}}
 
-    for index, trainingSet in enumerate(training_sets):
-        testSet = test_sets[index]
-        embedding = embeddings[index]
-        weight = weights[index]
-        image_product = image_product_types[index]
-        training_size = training_sizes[index]
-        ave_neigh_arr = []
-        average_plateau_rank_arr = []
-        avg_non_zero = []
-        different_sets = testSet != trainingSet
+    for trial in range(trials):
+        test_set_filepath = fputils.get_image_set_filepath(test_set, filters)
+        full_test_image_set = utils.generate_filtered_image_set(test_set, filters, test_set_filepath)
+        data["Image Size"] = [len(full_test_image_set[0]) for i in training_sets]
+        test_images = generate_random_sample(full_test_image_set, test_size, 0, seed=trial)[0]
 
-        training_set_filepath = fputils.get_image_set_filepath(trainingSet, filters)
-        full_training_image_set = utils.generate_filtered_image_set(trainingSet, filters, training_set_filepath)
-        if different_sets:
-            test_set_filepath = fputils.get_image_set_filepath(testSet, filters)
-            test_sample = utils.generate_filtered_image_set(testSet, filters, test_set_filepath)
-        else:
-            test_set_filepath = training_set_filepath
+        for index, training_set in enumerate(training_sets):
 
-        image_size = len(full_training_image_set[0])
-        data["Image Size"].append(image_size)
+            training_set_filepath = fputils.get_image_set_filepath(training_set, filters)
+            full_training_image_set = utils.generate_filtered_image_set(training_set, filters,
+                                                                        training_set_filepath)
+            training_image_set = [image for image in full_training_image_set.tolist() if
+                                  image not in test_images.tolist()]
+            training_image_set = np.asarray(training_image_set)
+            training_size = len(training_image_set)
 
-        for i in range(trials):
-            if different_sets:
-                disregard, training_sample = generate_random_sample(full_training_image_set, 0, training_size, seed=i)
-            else:
-                test_sample, training_sample = generate_random_sample(full_training_image_set, len(full_training_image_set) - training_size, training_size, seed=i)
+            if training_set not in set_data["Training Set Size"]:
+                set_data["Training Set Size"][training_set] = []
+            set_data["Training Set Size"][training_set].append(len(training_image_set[0]))
 
             # Loop variables
             high = training_size
             low = 0
             selected_rank = high
-            max_k_score = 2
+            goal_k_score = 2
             iterations = 0
             same_rank = 0
             score_change = False
@@ -463,12 +452,12 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
             while high - low > prox:
                 logging.info("Starting iteration " + str(iterations + 1))
                 selected_embedding = embedding + "_" + str(selected_rank)
-                sampleName = test_prefix + "_" + trainingSet + "_constraint_" + str(selected_rank)
-                sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(i),
-                                                  trainingImageSet=training_sample, embeddingType=selected_embedding,
+                sampleName = test_prefix + "_" + training_set + "_constraint_" + str(selected_rank)
+                sampleEstimator = SampleEstimator(sampleName=sampleName + "_sample_" + str(trial),
+                                                  trainingImageSet=training_image_set, embeddingType=selected_embedding,
                                                   imageProductType=image_product, weight=weight)
                 testName = test_prefix + "_test"
-                sample_tester = SampleTester(testImages=test_sample, sampleEstimator=sampleEstimator, testName=testName)
+                sample_tester = SampleTester(testImages=test_images, sampleEstimator=sampleEstimator, testName=testName)
 
                 k_score = metrics.get_mean_normed_k_neighbour_score(sample_tester.matrixG, sample_tester.matrixGprime, k)
                 if not score_change:
@@ -476,9 +465,14 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
                     if iterations == 0:
                         # First iteration, no rank constraint placed
                         max_k_score = k_score  # k_score value where plateau occurs
-                        ave_neigh_arr.append(max_k_score)
+                        if training_set not in set_data["Max_K_scores"]:
+                            set_data["K_scores"][training_set] = []
+                        set_data["K_scores"][training_set].append(max_k_score)
                         nonzero = np.count_nonzero(np.array([np.max(b) - np.min(b) for b in sampleEstimator.embeddingMatrix]))
-                        avg_non_zero.append(nonzero)  # Number of nonzero eigenvalues after pencorr acts as upper
+                        if training_set not in set_data["Non_zero"]:
+                            set_data["Non_zero"][training_set] = []
+                        set_data["Non_zero"][training_set].append(nonzero)
+                        # Number of nonzero eigenvalues after pencorr acts as upper bound
                         high = training_size
                         low = training_size // 2
                     elif k_score == max_k_score:
@@ -516,10 +510,14 @@ def investigate_sample_plateau_rank(*, training_sets: list, test_sets: list, tra
 
             # Once loop ends, save high estimate plateau rank for currently tested image set
             logging.info("Plateau rank " + str(high))
-            average_plateau_rank_arr.append(high)
-        data["K_scores"].append(sum(ave_neigh_arr) / len(ave_neigh_arr))
-        data["Plateau Rank"].append(sum(average_plateau_rank_arr) / len(average_plateau_rank_arr))
-        data["Non_zero"].append(sum(avg_non_zero) / len(avg_non_zero))
+            if training_set not in set_data["Plateau Rank"]:
+                set_data["Plateau Rank"][training_set] = []
+            set_data["Plateau Rank"][training_set].append(high)
+
+        for param in set_data:
+            for training_set in set_data[param]:
+                set_data[param][training_set] = sum(set_data[param][training_set]) / len(set_data[param][training_set])
+                data[param].append(set_data[param][training_set])
     df = pd.DataFrame(data)
     return df
 
@@ -722,9 +720,3 @@ def investigate_goal_k_score_rank(*, training_sets: list, test_set: str, test_si
 
     df = pd.DataFrame(data)
     return df
-
-
-
-
-
-
