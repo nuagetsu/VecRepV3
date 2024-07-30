@@ -93,8 +93,8 @@ graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, fil
                                                         startingConstr=1, endingConstr=192, interval=1,
                                                         specifiedKArr=[5],
                                                         progressive=False,
-                                                        weights=["", "", ""],
-                                                        embeddings=["pencorr", "dblcorr", "dblcorr2"])
+                                                        weights=["", "ncc_factor_1", "ncc_factor_2"],
+                                                        embeddings=["pencorr", "pencorr", "pencorr"])
 
 # Investigate changes in weight matrix for up to 9 different image products
 """

@@ -793,6 +793,20 @@ def test_pencorr():
     return Gprime1, Gprime2, np.max(np.max(np.abs(Gprime1 - Gprime2))), G
 
 
+def show_graph(data):
+    fig = plt.figure()
+    fig.suptitle("k-scores on Image Set Sizes ")
+    axes = plt.axes()
+    set_sizes = np.array(data["Set Size"])
+    k_scores = np.array(data["K_scores"])
+    indexes = np.argsort(set_sizes)
+    set_sizes = set_sizes[indexes]
+    k_scores = k_scores[indexes]
+    axes.plot(set_sizes, k_scores)
+    axes.set_xlabel("Image Set Sizes")
+    axes.set_ylabel("k-score")
+    plt.show()
+
 
 """
 def generate_weightings(matrixG: NDArray, index, k=5, base=None, filters=None) -> NDArray:
