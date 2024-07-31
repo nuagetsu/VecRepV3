@@ -123,7 +123,6 @@ SamplingMethod.investigate_sample_and_test_sets(trainingSet="shapes_3_4_dims_4_2
 """
 
 # Example of finding plateau rank for a sample
-LINE_PROFILE=1
 sampleName = "Shapes example sample"
 test_prefix = "Shapes example test"
 training_sets = ["shapes_3_dims_4_2"]

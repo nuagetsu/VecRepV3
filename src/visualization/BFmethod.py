@@ -182,6 +182,19 @@ def investigate_BF_rank_constraint(*, imageType: str, filters=None, imageProduct
 def investigate_BF_weight_power(*, imageType: str, filters=None, imageProductTypes: list,
                                 startingConstr: int, endingConstr: int, interval=1,
                                 specifiedKArr=None, plotFrob=False, rank=192):
+    """
+    Investigates the effect of increasing powers of G being used as a weighting matrix.
+    :param imageType: Image set type to use.
+    :param filters: Filters to apply.
+    :param imageProductTypes: Image product types to plot for.
+    :param startingConstr: Starting power of NCC score to use.
+    :param endingConstr: Ending power of NCC score to use.
+    :param interval: Interval of increase.
+    :param specifiedKArr: Specified values of k to use for k-score
+    :param plotFrob: Whether to plot Frobenius Erro (Broken but feature can be removed).
+    :param rank: Rank constraint to apply.
+    :return: Graph of k-score achieved for a specified rank constraint when weighted pencorr is applied.
+    """
     if startingConstr >= endingConstr:
         raise ValueError("Starting rank constraint must be lower than ending constraint")
     if specifiedKArr is None:
@@ -320,6 +333,19 @@ def investigate_image_product_type(*, imageType: str, filters=None, imageProduct
 @profile
 def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
                                            weights: list, k=5, prox=3, overwrite=None):
+    """
+    Investigates and plots plateau rank for image sets of increasing set sizes.
+    :param image_types: Image sets to use
+    :param filters: Filters to apply
+    :param image_product_types: Image product types to be used.
+    :param embeddings: Embedding methods to use.
+    :param weights: Weights to be used if applicable.
+    :param k: k values for which to find k-score.
+    :param prox: Proximity of binary search for plateau rank.
+    :param overwrite: Whether to overwrite data.
+    :return: Plots a graph of plateau rank against image set sizes for image sets of increasing size, ideally
+    with the same image sizes.
+    """
     data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings, "Weights": weights,
             "K_scores": [], "Set Size": [], "Non_zero": [], "Plateau Rank": []}
     set_groups = {}
@@ -420,6 +446,19 @@ def investigate_plateau_rank_for_set_sizes(*, image_types: list, filters=None, i
 
 def investigate_goal_rank_for_set_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
                                         weights: list, k=5, prox=3, overwrite=None):
+    """
+    Investigates and plots a graph of goal rank against image set sizes for several image sets.
+    WIP. TODO Fix this
+    :param image_types: Image sets to plot for.
+    :param filters: Filters to apply.
+    :param image_product_types: Image products to be used for each image set.
+    :param embeddings: Embedding methods to be used fpr each image set.
+    :param weights: Weighting types to be used.
+    :param k: values of k for which k-score is calculated
+    :param prox: Proximity at which the binary search is terminated.
+    :param overwrite: Whether to overwrite data.
+    :return: Plots a graph of goal rank against image set sizes.
+    """
     data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings,
             "Weights": weights,
             "K_scores": [], "Set Size": [], "Non_zero": [], "Goal Rank": []}
@@ -572,6 +611,19 @@ def investigate_goal_rank_for_set_sizes(*, image_types: list, filters=None, imag
 
 def investigate_plateau_rank_for_image_sizes(*, image_types: list, filters=None, image_product_types: list, embeddings: list,
                              weights: list, k=5, prox=3, overwrite=None):
+    """
+    Investigates and plots a graph for plateau rank against several image sets of different sizes, preferably keeping
+    image set size constant.
+    :param image_types: Image types to plot for.
+    :param filters: Filters to be applied.
+    :param image_product_types: Image product types to use for each image set.
+    :param embeddings: Embedding methods to use for each image set.
+    :param weights: Weight types to use for each image set.
+    :param k: k values to use for calculating k-scores.
+    :param prox: Proximity at which to terminate the binary search.
+    :param overwrite: Whether to generate new data even if saved data is found.
+    :return: Plots a graph of plateau rank against image set size. Also generates a dataframe to refer to.
+    """
     data = {"Image Set": image_types, "Image Size": [], "Image Products": image_product_types, "Embeddings": embeddings,
             "Weights": weights,
             "K_scores": [], "Set Size": [], "Non_zero": [], "Plateau Rank": []}

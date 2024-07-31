@@ -154,6 +154,14 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
     GraphEstimates.plot_error_against_sample_size(neighAx, sampleSizeArr, allAveNeighArr, specifiedKArr)
 
 def generate_random_sample(imageSet: NDArray, testSampleSize: int, trainingSampleSize: int, seed=0):
+    """
+    Separates an image set into a test and training set randomly. Consider looking into n-folds method as an alternative
+    :param imageSet: Image set to separate.
+    :param testSampleSize: Size of the test sample.
+    :param trainingSampleSize: Size of the training sample.
+    :param seed: Seed for random sampling to ensure results are consistent and can be retested if needed.
+    :return: Random test and training samples.
+    """
     if testSampleSize + trainingSampleSize > len(imageSet):
         raise ValueError("Training and test sample size too large! Use size less than " + str(len(imageSet)) + ".")
     rng = np.random.default_rng(seed=500 + seed)
@@ -195,14 +203,13 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
 
         sampleName = testPrefix + "_sample_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
         testName = testPrefix + "_test_" + str(sampleSizeTested) + " of " + str(endingTrainingSize)
-        # TODO Start Random Sampling here
+
         frobDistanceArr = [[] for imageProductType in imageProductTypes]
         aveNeighArr = [[[] for imageProductType in imageProductTypes] for i in specifiedKArr]
 
         for index in range(len(imageProductTypes)):
             imageProductType = imageProductTypes[index]
             weight = weights[index]
-            # TODO Start Random Sampling here
             for j in range(trials):
                 # Taking random training and testing samples
                 testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested, seed=j)
@@ -287,7 +294,6 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
 
             aveNeighArr = [[] for i in specifiedKArr]
             frobDistanceArr = []
-            # TODO Start Random Sampling Here
             for j in range(trials):
                 # Taking training and testing samples as random samples of the image set
                 testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize, seed=j)
@@ -324,6 +330,26 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
                                      imageProductTypes: list, testPrefix: str,
                                      startingConstr: int, endingConstr: int, increment=1, specifiedKArr=None, trials=5,
                                      weights=None, progressive=False, embeddings=None, filters=None, plotFrob=False):
+    """
+    Function to investigate sweeping the rank constraint on a training and test set.
+    :param trainingSet: Training set to use.
+    :param testSet: Test set to use.
+    :param trainingSize: Size of the training set.
+    :param testSize: Size of the test set.
+    :param imageProductTypes: Image product type to use.
+    :param testPrefix: Name of the folder to save the test data.
+    :param startingConstr: Starting rank constraint.
+    :param endingConstr: Ending rank constraint.
+    :param increment: Rank constraint increment.
+    :param specifiedKArr: Specified values of k to use.
+    :param trials: Number of random trials to conduct.
+    :param weights: Weighting types to use for each set.
+    :param progressive: Whether to use progressive increase in rank constraint. Useful when training set is very large.
+    :param embeddings: Embedding type to use.
+    :param filters: Filters to use.
+    :param plotFrob: Whether to plot the Frobenius error. May or may not be currently broken.
+    :return: Graph of k-scores against rank constraints.
+    """
     if startingConstr >= endingConstr:
         raise ValueError("Starting rank constraint must be lower than ending constraint")
     if specifiedKArr is None:
@@ -367,7 +393,6 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
 
             aveNeighArr = [[] for i in specifiedKArr]
             frobDistanceArr = []
-            # TODO Start Random Sampling Here
             for j in range(trials):
                 # Taking training and testing samples as random samples of the image set
                 if sameSet:
@@ -409,6 +434,22 @@ def investigate_sample_and_test_sets(*, trainingSet: str, testSet: str, training
 def investigate_sample_plateau_rank(*, training_sets: list, test_set: str, test_size: int,
                                     image_product: str, test_prefix: str, embedding: str, weight: str,
                                     filters: list, k=5, trials=5, prox=3,):
+    """
+    Function to investigate the plateau rank on sampling method.
+    :param training_sets: Training sets to analyze. May or may not contain the test set which will be separated first
+    :param test_set: Test set to analyze.
+    :param test_size: Size of the test set. If smaller than the test set, takes a random sample.
+    :param image_product: Image product type used.
+    :param test_prefix: Name of the test sample folder to save the data.
+    :param embedding: Embedding method to use.
+    :param weight: Weighting matrix to be used. Currently unavailable for server/python pencorr testing.
+    :param filters: Filters to be used.
+    :param k: k value for k-score calculated
+    :param trials: number of random trials to conduct. Average values of data will be returned.
+    :param prox: Proximity of binary search to find goal/minimum k-score. Search terminates when search
+    range is within this proximity.
+    :return: Graph of goal/minimum rank constraint at which a k-score is achieved against the
+    """
 
     if filters is None:
         filters = []
@@ -526,6 +567,22 @@ def investigate_goal_k_score_rank(*, training_sets: list, test_set: str, test_si
                                   image_product_type: str, test_prefix: str,
                                   k=5, trials=5, prox=3,
                                   weight=None, embedding=None, filters=None):
+    """
+    WIP function for investigating the minimum rank at which the Sampling method achieves a k-score
+    :param training_sets: Training sets to analyze. May or may not contain the test set which will be separated first
+    :param test_set: Test set to analyze.
+    :param test_size: Size of the test set. If smaller than the test set, takes a random sample.
+    :param image_product_type: Image product type used.
+    :param test_prefix: Name of the test sample folder to save the data.
+    :param k: k value for k-score calculated
+    :param trials: number of random trials to conduct. Average values of data will be returned.
+    :param prox: Proximity of binary search to find goal/minimum k-score. Search terminates when search
+    range is within this proximity.
+    :param weight: Weighting matrix to be used. Currently unavailable for server/python pencorr testing.
+    :param embedding: Embedding method to use.
+    :param filters: Filters to be used.
+    :return: Graph of goal/minimum rank constraint at which a k-score is achieved against the
+    """
     # Idea: For a set of images to be used as a test set, if remove it from all training sets and use sample estimation,
     # At what k_score do you reach certain accuracy?
     if weight is None:

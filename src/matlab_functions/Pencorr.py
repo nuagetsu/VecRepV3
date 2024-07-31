@@ -24,7 +24,7 @@ def PenCorr(G, ConstrA, Rank, OPTIONS):
     Also, this Python version is slower than the matlab/Octave version since matlab runs matrix calculations
     much more quickly and can utilise MEX functions (like mexeig.m, though at this point I am unfamiliar with
     why MEX functions are better or faster).
-    Current maximum inaccuracy (maximum difference from Octave pencorr result) is 1e-6
+    Current maximum inaccuracy (maximum difference from Octave pencorr result) is 1e-6.
     """
     # get constraints infos from constrA
     e = ConstrA['e']

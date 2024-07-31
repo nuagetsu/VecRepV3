@@ -98,6 +98,15 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
 
 def generate_weighting_matrix(imageProductMatrix, imageSet, weightingType, weightingFilepath,
                               imageProductFilepath, overwrite=False):
+    """
+    :param imageProductMatrix: Image product matrix G
+    :param imageSet: Image set for which G is calculated
+    :param weightingType: Type of weighting matrix to use. Generally follows the format: "IMAGEPRODCT/copy_factor_INT"
+    :param weightingFilepath: Filepath to save/load weighting matrix
+    :param imageProductFilepath: Filepath of G to be used if G is weighting matrix
+    :param overwrite: Setting to overwrite weighting matrix even if previously calculated
+    :return: Appropriate weighting matrix H for weighted version of pencorr
+    """
     if weightingType == "" or weightingType is None:
         return np.ones_like(imageProductMatrix)
     components = weightingType.split("_factor_")

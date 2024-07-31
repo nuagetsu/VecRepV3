@@ -13,6 +13,12 @@ from src.helpers.IslandCreator import grid_creation
 
 
 def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int]:
+    """
+    Gets a image set of binary images. Set generated is a random sample.
+    :param imageLength: Length of images generated.
+    :param maxOnesPercentage: Maximum number of ones.
+    :return: Binary image set.
+    """
     if maxOnesPercentage > 100:
         raise ValueError(str(maxOnesPercentage) + " > 100. Maximum percentage of ones has to be less than 100")
     cutoff = maxOnesPercentage * (imageLength ** 2) // 100
@@ -25,6 +31,29 @@ def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int
 
 
 def get_image_set(imageType: str, filters=None):
+    """
+    Generates an image set of specified type.
+    :param imageType: Image type to generate.
+    :param filters: Filters to be used.
+    :return: Image set.
+
+    The image sets that are allowed are:
+    1. Binary max ones: "NbinMmax_ones" where N and M are integers
+        Binary images of length N and M% maximum number of ones
+    2. Binary: "Nbin" where N is an integer
+        Binary images of length N
+    3. Triangles: "triangles"
+        Set of 4x4 triangles in an 8x8 matrix. Functionally the same as "shapes_3_dims_4_2" below.
+    4. Quadrilaterals: "quadrilaterals"
+        Set of 4x4 quadrilaterals in an 8x8 matrix. Functionally the same as "shapes_4_dims_4_2" below.
+    5. Random Shapes: "randomshapes_s1_s2_dims_L_B_N" where sn, L, B and N are integers.
+        Random set of shapes of side lengths s1, s2 etc. with L length, B border size and N number of images.
+    6. Shapes: "shapes_s1_s2_dims_L_B" where sn, L and b are integers.
+        Full set of shapes of side lengths s1, s2 etc. with L length and B border size.
+    7. Island max ones images: "NislandMmax_onesPimages"
+        Set of island images with M max ones and P size. Imported from another function that was
+        structurally out of place. Only used in sampling method. May need revision.
+    """
     if filters is None:
         filters = []
     if re.search('[0-9]?[0-9]bin[0-9]?[0-9]max_ones$', imageType) is not None:  # Searching if image type follows the
@@ -121,6 +150,16 @@ def parse_shapes_set(imageType: str, number=False):
     return size, border_size, sides
 
 def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
+    """
+    Generates a full set of shapes. If a translationally unique filter is requested, applies a modified version
+    to avoid having to generate an exponentially larger number of images. May require checking against the
+    translationally unique filter.
+    :param size: Size of shapes
+    :param sides: Number of sides of shapes.
+    :param border_size: Size of the border.
+    :param filters: Filters to apply
+    :return: Full image set of shapes.
+    """
     if filters is None:
         filters = []
     unique = "unique" in filters
@@ -193,6 +232,8 @@ def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
 
 def cross_test(p1, p2, p3):
     """
+    Checks for intersecting lines to prevent crossed shapes e.g. quadrilaterals. Only occurs for shapes of sides
+    4 or greater.
     :param p1: Point 1
     :param p2: Point 2
     :param p3: Point 3
@@ -304,6 +345,12 @@ def get_randomized_shapes(size: int, side_list: list, border_size: int, number: 
 
 
 def shift_down(comb: tuple, side: int):
+    """
+    Translates the image downwards.
+    :param comb: Combination of vertices.
+    :param side: Length of image.
+    :return: Shapes simulated to be shifted downwards.
+    """
     new = []
     for i in comb:
         j = i + side
@@ -315,6 +362,12 @@ def shift_down(comb: tuple, side: int):
 
 
 def shift_right(comb: tuple, side: int):
+    """
+    Translates the image to the right.
+    :param comb: Combination of vertices.
+    :param side: Length of image.
+    :return: Shapes simulated to be shifted right.
+    """
     new = []
     for i in comb:
         whole = i // side
@@ -327,6 +380,13 @@ def shift_right(comb: tuple, side: int):
 
 
 def add_permutations(permutations: set, comb_tuple: tuple, size: int):
+    """
+    Finds translationally similar permutations of an image. Simulates the translationally unique filter.
+    :param permutations: Set of all current translations.
+    :param comb_tuple: Combination tuple to test.
+    :param size: Size of image.
+    :return: Set of translationally similar permutations with new translations added.
+    """
     for dr in range(size):
         comb_tuple_down = comb_tuple
         for dc in range(size):

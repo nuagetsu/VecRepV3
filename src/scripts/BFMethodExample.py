@@ -114,6 +114,9 @@ def main():
                                                     embeddings=["pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python", "pencorr_python"],
                                                     weights=["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                                                     k=5, prox=3, overwrite=None)
+                                                    
+if __name__ == "__main__":
+    main()
 """
 """
 graphing.investigate_plateau_rank_for_set_sizes(image_types=["randomshapes_3_4_5_dims_10_3_500", "randomshapes_3_4_5_dims_10_3_600", "randomshapes_3_4_5_dims_10_3_700", "randomshapes_3_4_5_dims_10_3_800", "randomshapes_3_4_5_dims_10_3_900", "randomshapes_3_4_5_dims_10_3_1000", "randomshapes_3_4_5_dims_10_3_1200", "randomshapes_3_4_5_dims_10_3_1400", "randomshapes_3_4_5_dims_10_3_1600", "randomshapes_3_4_5_dims_10_3_1800", "randomshapes_3_4_5_dims_10_3_2000", "randomshapes_3_4_5_dims_10_3_2500", "randomshapes_3_4_5_dims_10_3_3000", "randomshapes_3_4_5_dims_10_3_3500", "randomshapes_3_4_5_dims_10_3_4000"],

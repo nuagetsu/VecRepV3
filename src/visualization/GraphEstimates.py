@@ -302,6 +302,16 @@ def plot_error_against_sample_size_for_image_types(neighbourAxArr: List[Axes], s
 
 def plot_frob_error_against_rank_constraint_for_image_products(frobAx: Axes, rankArr: List[int], frobArr: List,
                                                                imageProducts: List, weights=None):
+    """
+    Note that the choosing of colour in this function can be replaced with an appropriate colour map, as done in
+    following functions. However, the colour choice was manual here to ensure a range of colours are used.
+    :param frobAx: Axes on which to plot frob error
+    :param rankArr: Array or list of ranks
+    :param frobArr: Array of frobenius error
+    :param imageProducts: List of image products plotted
+    :param weights: Weights used in calculating pencorr for each image product
+    :return: Plots a graph of error against samplesize for all image products in imageProducts
+    """
     colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
     for index in range(len(imageProducts)):
         weight = weights[index]
@@ -349,6 +359,11 @@ def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[A
 
 
 def plot_plateau_ranks_categorised(set_groups: dict, tag=None):
+    """
+    :param set_groups: sorted dictionary or data frame according to groups which should be plotted
+    :param tag: parameter against which to plot plateau ranks
+    :return: Plots a graph of plateau ranks against a parameter indicated by the tag
+    """
 
     if tag is None:
         tag = "Image Set Size"
@@ -370,6 +385,12 @@ def plot_plateau_ranks_categorised(set_groups: dict, tag=None):
 
 
 def plot_goal_ranks_categorised(set_groups: dict, k_score: float, tag=None):
+    """
+    :param set_groups: sorted dictionary or data frame according to groups which should be plotted
+    :param k_score: k-score for which the rank is measured
+    :param tag: parameter against which to plot goal ranks
+    :return: Plots a graph of goal ranks against a parameter indicated by the tag
+    """
 
     if tag is None:
         tag = "Image Set Size"

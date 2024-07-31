@@ -38,6 +38,15 @@ def get_base_image_product(imageProductType: str):
 
 
 def edit_image_product(imageProduct, mod: str, factor=None):
+    """
+    Applies a modification to the image product matrix G.
+    Modification is a monotonic (increasing) transformation.
+    :param imageProduct: Current image product with all previous modifications applied.
+    :param mod: Modification to apply.
+    :param factor: Factor for the modification. Indicates some parameter.
+    For example, for the "pow" modification, indicates the power to raise the image product to.
+    :return: Modified image product.
+    """
     if mod == "scaled":
         return scale_min(imageProduct, factor)
     elif mod == "pow":

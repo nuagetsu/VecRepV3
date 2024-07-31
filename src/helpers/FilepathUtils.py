@@ -50,6 +50,13 @@ def get_embedding_matrix_filepath(imageType: str, filters: List[str], imageProdu
 
 
 def get_weighting_matrix_filepath(imageType: str, filters: List[str], weightingType: str, copy="") -> str:
+    """
+    :param imageType: Image set name
+    :param filters: Filters used
+    :param weightingType: Type of weighting matrix
+    :param copy: Whether a copy of G is used as the weighting matrix
+    :return: Filepath of weighting matrix
+    """
     filepath = get_filepath(imageType=imageType, filters=filters)
 
     components = weightingType.split("_factor_")
@@ -74,6 +81,13 @@ def get_sample_directory(sampleName: str, category="uncategorized") -> str:
 
 
 def get_set_size_df_filepath(image_types: list):
+    """
+    Function to get a filepath to save a dataframe in the dataframe folder of data. Dataframes are not used for
+    any particular function yet but can be viewed for analysis
+    :param image_types: Image types analyzed
+    :return: Dataframe containing data for analyzed image types.
+
+    """
     number = len(image_types)
     name = str(number) + " types of size "
     split = image_types[0].split("_")
@@ -86,12 +100,24 @@ def get_set_size_df_filepath(image_types: list):
 
 
 def get_sample_embedding_matrix_filepath(embeddingType, sampleDirectory: str, weight=None):
+    """
+    :param embeddingType: Type of embedding used
+    :param sampleDirectory: Directory of sample
+    :param weight: Weighting matrix type
+    :return: Filepath for embedding matrix for sampling method
+    """
     if weight is None or weight == "":
         weight = "unweighted"
     return os.path.join(sampleDirectory, embeddingType, weight, "sample_embeddings")
 
 
 def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy=""):
+    """
+    :param sampleDirectory: Directory/filepath of sample
+    :param weightingType: Weighting matrix type
+    :param copy: Whether G is used as weighting matrix
+    :return: Filepath for weighting matrix when used in sampling method
+    """
     components = weightingType.split("_factor_")
     if components[0] == "copy":
         weightingType = copy + "_factor_" + components[1]

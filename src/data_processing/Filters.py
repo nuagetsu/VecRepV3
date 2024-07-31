@@ -34,6 +34,11 @@ def apply_filter(imageSet: NDArray, filter: str) -> NDArray:
 
 
 def apply_one_island_filter(imageSet: NDArray) -> NDArray:
+    """
+    Applies the "one island" filter. Filters out "noisy" images that are not just 1 object.
+    :param imageSet: Image set to filter
+    :return: Filtered image set
+    """
     final_arr = []
     for image in imageSet:
         if countIslands(image) == 1:
@@ -44,9 +49,9 @@ def apply_one_island_filter(imageSet: NDArray) -> NDArray:
 
 def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
     """
-    For each item in the image set, if it is not in the all_permutations set, add it to the final list
-    Then store all possible translations of the image in the all_permutations.
-    Otherwise
+    Applies the translationally unique filter. Might not be working properly, do check.
+    :param imageSet: Image set to be filtered.
+    :return: Filtered image set.
     """
     unique = []
     squareLength = len(imageSet[0])
@@ -73,6 +78,12 @@ def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
 
 
 def apply_max_ones_filter(imageSet: NDArray, onesMaxPercentage: float) -> NDArray:
+    """
+    Applies the "max ones" filter which filters out all images with greater 1s than percentage allowed
+    :param imageSet: Image set to be filtered
+    :param onesMaxPercentage: Maximum percentage of 1s allowed
+    :return: Filtered image set
+    """
     total = len(imageSet[0]) * len(imageSet[0][0])
     total = (total * onesMaxPercentage) // 100
     finalArr = []

@@ -5,6 +5,9 @@ from src.matlab_functions.CorMat3Mex import CorMat3Mex
 
 
 def IntPoint(G, e, I_e, J_e, Rank, X, P, lmbda, opt_disp):
+    """
+    Finds the initial point to be used in pencorr algorithm.
+    """
     G = (G + G.T)/2
     k_e = len(e)
     Ind = np.where(I_e == J_e)[0]

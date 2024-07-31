@@ -240,6 +240,12 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
 
 
 def check_symmetric(a, atol=1e-05):
+    """
+    Checks if a is symmetric.
+    :param a: Matrix
+    :param atol: Tolerance between values.
+    :return: Boolean.
+    """
     return np.allclose(a, a.T, atol=atol)
 
 

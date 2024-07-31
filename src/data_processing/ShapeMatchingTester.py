@@ -17,6 +17,14 @@ from src.helpers.FindingEmbUsingSample import get_embedding_estimate
 
 def get_matching_set(matching_set_name: str, matching_set_filters=None, matching_images=None,
                      overwrite=False):
+    """
+    Function to get the image set used for testing.
+    :param matching_set_name: Name of the matching set.
+    :param matching_set_filters: Filters to be used for the matching set.
+    :param matching_images: Images that are being used for matching. Might be None.
+    :param overwrite: Whether to overwrite saved data.
+    :return: Matching image set.
+    """
     filename = matching_set_name
     for i in matching_set_filters:
         filename += "-" + i
@@ -108,6 +116,13 @@ class ShapeMatchingTester:
 
 
     def match_shapes(self, input_image: NDArray, k=5):
+        """
+        Looks for nearest shapes found using both embeddings and using the actual NCC score.
+        :param input_image: An image to match.
+        :param k: number of neighbours.
+        :return: Tuple containing nearest images from embeddings, followed by
+        actual nearest images from image product score.
+        """
         # Search for actual nearest images
         image_product = get_image_product(self.training_estimator.imageProductType)
         c = [image_product(input_image, self.image_dict[image]["image"]) for image in self.image_dict]
