@@ -425,7 +425,7 @@ rank constraint is imposed.
 
 ### Concave Transformations
 
-Concave transformations such as $x^0.2$ have the opposite effect, decreasing the k-score but also decreasing the rank at which it stabilizes.
+Concave transformations such as $x^(0.2)$ have the opposite effect, decreasing the k-score but also decreasing the rank at which it stabilizes.
 
 The explanation is similar in that increasingly concave transformations cause elements of G to tend towards 1. G therefore tends
 towards a matrix of 1s which has eigenvalues of 0 (of multiplicity n-1) and n. This causes information to be concentrated in one
