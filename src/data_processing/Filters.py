@@ -34,6 +34,11 @@ def apply_filter(imageSet: NDArray, filter: str) -> NDArray:
 
 
 def apply_one_island_filter(imageSet: NDArray) -> NDArray:
+    """
+    Applies the "one island" filter. Filters out "noisy" images that are not just 1 object.
+    :param imageSet: Image set to filter
+    :return: Filtered image set
+    """
     final_arr = []
     for image in imageSet:
         if countIslands(image) == 1:
@@ -44,9 +49,9 @@ def apply_one_island_filter(imageSet: NDArray) -> NDArray:
 
 def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
     """
-    For each item in the image set, if it is not in the all_permutations set, add it to the final list
-    Then store all possible translations of the image in the all_permutations.
-    Otherwise
+    Applies the translationally unique filter. Might not be working properly, do check.
+    :param imageSet: Image set to be filtered.
+    :return: Filtered image set.
     """
     unique = []
     squareLength = len(imageSet[0])
@@ -63,9 +68,9 @@ def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
             unique.append(matrix)
             # All translational invariant permutations for given nxn matrix
             for dr in range(squareLength):
-                matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in horizontal axis
+                matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in vertical axis
                 for dc in range(squareLength):
-                    matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in vertical axis
+                    matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in horizontal axis
                     to_store = np.reshape(matrix, (1, squareLength ** 2))
                     all_permutations.add(tuple(to_store[0]))  # store in dictionary
     unique = np.array(unique)
@@ -73,6 +78,12 @@ def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
 
 
 def apply_max_ones_filter(imageSet: NDArray, onesMaxPercentage: float) -> NDArray:
+    """
+    Applies the "max ones" filter which filters out all images with greater 1s than percentage allowed
+    :param imageSet: Image set to be filtered
+    :param onesMaxPercentage: Maximum percentage of 1s allowed
+    :return: Filtered image set
+    """
     total = len(imageSet[0]) * len(imageSet[0][0])
     total = (total * onesMaxPercentage) // 100
     finalArr = []
@@ -81,4 +92,3 @@ def apply_max_ones_filter(imageSet: NDArray, onesMaxPercentage: float) -> NDArra
             finalArr.append(square)
     finalArr = np.array(finalArr)
     return finalArr
-

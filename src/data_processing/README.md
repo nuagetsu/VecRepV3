@@ -2,13 +2,15 @@
 The following will exemplify how we process our data to obtain our desired values.
 
 # Overview
-The methods described in the main readme are implemented here
+The methods described in the main readme are implemented here.
 
 Each method, the brute force and sampling method, are made into their own object (BruteForceEstimator and SampleEstimator respectively)
 
+Shape matching tests are also made into its own object.
+
 Since the Sample method needs a test set in order to get meaningful results, the object SampleTester is needed.
 
-Both BruteForceEstimator and SampleTester have inheritance from TestableEstimator, which is done so the same visualization functions can be used on both later.
+BruteForceEstimator and SampleTester have inheritance from TestableEstimator, which is done so the same visualization functions can be used on both later.
 
 ## BruteForceEstimator
 After the initialization function is called, it carries out the following 
@@ -20,6 +22,19 @@ After the initialization function is called, it carries out the following
 After the initialization function is called, it carries out the following
 1. Uses the input image set to generate an image product matrix (TAKE NOTE: This is NOT the matrix G used in visualization, as this is the training set. The data from the test set should be the one used in visualization)
 2. Applies the embedding method based on embeddingType to find the nearest correlation matrix (matrix G') and the embedding matrix (matrix A)
+## ShapeMatchingTester
+After the initialization function is called, it carries out the following
+1. Generates training images using ImageGenerators. Embeddings for these images are generated using the BF method.
+2. Generates test images similarly. Embeddings for these images are generated using the Lagrangian method
+3. Combines these two sets to create the full matching image set.
+4. Creates a dictionary with an index/entry for each image. The key for each image is its index of the image
+    in the full matching set. Each entry is another dictionary containing an "image" and an "embedding".
+5. The tester also has a method to look for closest images to a particular shape. It takes images as inputs
+    First, the image product scores between the input image and all other images is calculated
+    When the input is within the matching set, it then looks for the corresponding entry in the dictionary and retrieves
+        the corresponding embedding.
+    When the input is not within the matching set, it generates a new embedding using the Lagrangian method.
+
 
 SampleEstimators have a function get_embedding_estimate() which takes in an input image (of the same dimensions as images in the training set) and uses the sample images to calculate an image embedding for the input image
 
@@ -37,14 +52,63 @@ We can also obtain an image product vector, known as $b$, which is essentially j
 
 ![Matrix and vector representations](../../assets/Matrix_and_vector.png)
 
+Monotonic transformations of the image product are also carried out here. The following monotonic transformations have
+been implemented.
+1. "scaled", e.g. "ncc_scaled_0.5"
+    Scales the image product to fit a range of n to 1, e.g. 0.5 to 1
+2. "pow", e.g. "ncc_pow_2"
+    Image product to the power of n, e.g. power of 2 (squared)
+3. "exp"
+    e to the product of (image product - 1)
+4. "log", e.g. "ncc_log_2"
+    Log base n of image (n + image product - 1)
+5. "base", e.g. "ncc_base_10"
+    n raised to the power of (image product - 1)
+6. "mult", e.g. "ncc_mult_0.5"
+    Image product multiplied by scalar multiple
 
 ## Sampling Method
 Allows us to sample a population of images. 
 (i.e. take a small subset of matrices from the total set of matrices)
 
-For example the total population of 3x3 binary images is 64, while the total population of 4x4 binary images is 900+. This sampling method allows us to take a small sample of around 50 images from the 900+ population of images.
+For example the total population of 3x3 binary images is 64, while the total population of 4x4 binary images is 4000+. This sampling method allows us to take a small sample of around 50 images from the 4000+ population of images.
 
-Advantages include not having to produce all 900+ images which takes a super signficant amount of time, and that we are able to obtain a function that can have a vector representation of an image without having the image itself. 
+Advantages include not having to produce all 900+ images which takes a significant amount of time, and that we are able to obtain a function that can have a vector representation of an image without having the image itself.
+
+In testing, the main difference between the "Sampling Method" and BF Method is the set on which embeddings are tested on.
+
+For the BF method, k-score is calculated on images within the training set.
+
+For the Sampling Method, a separate test set is used and embeddings are calculated using the Lagrangian method before testing. I.e., Sampling Method tests the Lagrangian Method.
+
+## EmbeddingFunctions
+
+Contains methods used to generate embeddings as well as to find the nearest Positive Semidefinite matrix (mainly the latter).
+
+The main method of note here is the Pencorr method and its corresponding Pencorr_Python method. The Pencorr_Python method is a translation of
+the Matlab code used in Pencorr into Python for purposes of running on different devices (more details in matlab_functions).
+
+The weighted version of Pencorr is also of note as this is required to use weighting matrices.
+
+## ImageGenerators
+
+Contains methods used to generate image sets. The following image sets are implemented:
+1. "Nbin"
+    Set of all NxN binary images.
+2. "NbinMmax_ones"
+    Set of all NxN binary images but with M% maximum elements occupied with 1s.
+3. "triangles"
+    Set of all 4x4 binary triangles within an 8x8 matrix. Examples are as follows.
+    ![Examples of Triangles](../../assets/Triangle_examples.png)
+4. "quadrilaterals"
+    Set of all 4x4 binary quadrilaterals within an 8x8 matrix.
+5. "shapes_s1_s2_dims_l_b"
+    Set of all shapes of side lengths s1, s2,... with size of lxl and border size b. Example of 4 sided 5x5 shape in 9x9 matrix:
+    ![Example of Quadrilateral](../../assets/Quad_example.png)
+6. "randomshapes_s1_s2_dims_l_b_n"
+    Random set of n shapes of side lengths s1, s2,... with size of lxl and border size b.
+7. "NislandMmax_onesXimages"
+    Set of X random images of size N, with M max ones. Imported from SamplingMethod file for organisation.
 
 ## Filters
 A filter is a specific restriction we place on our sample of images, filters available are shown below:

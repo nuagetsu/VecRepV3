@@ -30,7 +30,7 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
 
-    res = len(similar_neighbours) - 1  # Take into account that the closest neighbour is itself
+    res = max(len(similar_neighbours) - 1, 0)  # Take into account that the closest neighbour is itself
     return res
 
 
@@ -63,5 +63,20 @@ def get_frob_distance(imageProductMatrix: NDArray, embeddingMatrix: NDArray) -> 
     frobNorm = np.linalg.norm(diff)
     return frobNorm
 
-
-
+def get_progressive_range(startingConstr: int, endingConstr: int, interval: int):
+    """
+    :param startingConstr: Starting constraint for progressive range
+    :param endingConstr: Ending constraint for progressive range
+    :param interval: Starting interval for progressive range that increases by 1 for each cycle of 10
+    :return: The progressive range as a list
+    """
+    constraints = []
+    top = startingConstr
+    while top < endingConstr:
+        curr = list(range(top, top + (interval * 10), interval))
+        constraints.extend(curr)
+        interval += 1
+        top = curr[-1] + interval
+    while constraints[-1] >= endingConstr:
+        constraints.pop()
+    return constraints

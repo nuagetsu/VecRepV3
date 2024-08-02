@@ -1,5 +1,6 @@
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from numpy._typing import NDArray
@@ -190,8 +191,43 @@ def plot_error_against_rank_constraint(neighbourAxArr: List[Axes], rankArr: List
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="lower right")
 
+def plot_ave_k_neighbours_for_weights_in_one(neighbourAxArr: List[Axes], weightArr: List, fullNeighArrList: List,
+                                             specifiedKArr: List, imageProductTypes: List, imageSet=None):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param weightArr: array of rank constrain values to plot (x-axis for both graphs)
+    :param fullNeighArrList: List of all the data for the neighbour graphs (y-axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :param imageProductTypes: Image product types for which we are plotting
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
+        and all image product types
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+        idealPlot = [1 for i in range(len(fullNeighArrList[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(weightArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for imageProductIndex in range(len(imageProductTypes)):
+            neighArr = fullNeighArrList[count][imageProductIndex]
+            label = imageProductTypes[imageProductIndex]
+            neighbourAx.plot(weightArr, neighArr, color=colours[imageProductIndex],
+                             label=label)
+
+        title = "Mean norm k neighbour score against weight"
+        if imageSet is not None:
+            title += " for " + imageSet
+        title += " (k = " + str(specifiedK) + ")"
+
+        neighbourAx.set_title(title)
+        neighbourAx.set_xlabel("Weight")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0.6, 1.05)
+        neighbourAx.legend(loc="lower right")
+
 def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: List, fullNeighArrList: List,
-                                          specifiedKArr: List, imageProductTypes: List):
+                                          specifiedKArr: List, imageProductTypes: List, weights: List, embeddings, imageSet=None):
     """
     :param neighbourAxArr: Axes to plot the neighbour graph
     :param rankArr: array of rank constrain values to plot (x axis for both graphs)
@@ -201,7 +237,7 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
     :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
         and all image product types
     """
-    colours = ['r', 'g', 'c', 'm', 'y']
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
     for count in range(len(specifiedKArr)):
         neighbourAx = neighbourAxArr[count]
         specifiedK = specifiedKArr[count]
@@ -210,9 +246,109 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
 
         for imageProductIndex in range(len(imageProductTypes)):
             neighArr = fullNeighArrList[count][imageProductIndex]
+            weight = weights[imageProductIndex]
+            embedding = embeddings[imageProductIndex]
+            label = imageProductTypes[imageProductIndex] + ", " + embedding
+            if weight != "":
+                label += ", weight " + weight
             neighbourAx.plot(rankArr, neighArr, color=colours[imageProductIndex],
-                             label=imageProductTypes[imageProductIndex])
+                             label=label)
 
+        title = "Mean norm k neighbour score against the rank constraint "
+        if imageSet is not None:
+            title += "for " + imageSet + " "
+        title += "(k = " + str(specifiedK) + ")"
+
+        neighbourAx.set_title(title)
+        neighbourAx.set_xlabel("Rank Constraint")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="lower right")
+
+def plot_error_against_sample_size_for_image_types(neighbourAxArr: List[Axes], sampleSizeArr: List, fullNeighArr: List,
+                                   specifiedKArr: List, imageProductTypes: List, weights: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param sampleSizeArr: array of sample size values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return: Plots a graph of error against samplesize for all the values of k in specifiedKArr
+
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+
+        idealPlot = [1 for i in range(len(fullNeighArr[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(sampleSizeArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for imageProductIndex in range(len(imageProductTypes)):
+            neighArr = fullNeighArr[count][imageProductIndex]
+            weight = weights[imageProductIndex]
+            label = imageProductTypes[imageProductIndex]
+            if weight != "":
+                label += "_weight_" + weight
+            neighbourAx.plot(sampleSizeArr, neighArr, color=colours[imageProductIndex],
+                             label=label)
+
+        neighbourAx.set_title(
+            "Mean norm k neighbour score against sample size (k = " + str(
+                specifiedK) + ")")
+        neighbourAx.set_xlabel("Sample size")
+        neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
+        neighbourAx.set_ylim(0, 1.05)
+        neighbourAx.legend(loc="lower right")
+
+def plot_frob_error_against_rank_constraint_for_image_products(frobAx: Axes, rankArr: List[int], frobArr: List,
+                                                               imageProducts: List, weights=None):
+    """
+    Note that the choosing of colour in this function can be replaced with an appropriate colour map, as done in
+    following functions. However, the colour choice was manual here to ensure a range of colours are used.
+    :param frobAx: Axes on which to plot frob error
+    :param rankArr: Array or list of ranks
+    :param frobArr: Array of frobenius error
+    :param imageProducts: List of image products plotted
+    :param weights: Weights used in calculating pencorr for each image product
+    :return: Plots a graph of error against samplesize for all image products in imageProducts
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+    for index in range(len(imageProducts)):
+        weight = weights[index]
+        label = imageProducts[index]
+        if weight != "":
+            label += "_weight_" + weight
+        frobAx.plot(rankArr, frobArr[index], color=colours[index], label=label)
+    frobAx.set_title("Average frobenius error against rank constraint")
+    frobAx.set_xlabel("Rank Constraint")
+    frobAx.set_ylabel("Average frobenius error")
+    frobAx.legend(loc="lower right")
+
+def plot_error_against_rank_constraint_for_image_products(neighbourAxArr: List[Axes], rankArr: List, fullNeighArr: List,
+                                                          specifiedKArr: List, imageProducts: List, weights: List):
+    """
+    :param neighbourAxArr: Axes to plot the neighbour graph
+    :param rankArr: array of rank constrain values to plot (x axis for both graphs)
+    :param fullNeighArr: List of all the data for the neighbour graphs (y axis)
+    :param specifiedKArr: The list k neighbour scores to be used
+    :return: Plots a graph of error against rank constraint for all the values of k in specifiedKArr
+    """
+    colours = ['r', 'g', 'c', 'm', 'y', 'k', 'slategray', 'pink', 'orange']
+
+    for count in range(len(specifiedKArr)):
+        neighbourAx = neighbourAxArr[count]
+        specifiedK = specifiedKArr[count]
+
+        idealPlot = [1 for i in range(len(fullNeighArr[0][0]))]  # for plotting the max possible score
+        neighbourAx.plot(rankArr, idealPlot, color='b', linestyle=':', label="Ideal")
+
+        for index in range(len(imageProducts)):
+            neighArr = fullNeighArr[count][index]
+            weight = weights[index]
+            label = imageProducts[index]
+            if weight != "":
+                label += "_weight_" + weight
+            neighbourAx.plot(rankArr, neighArr, color=colours[index], label=label)
         neighbourAx.set_title(
             "Mean norm k neighbour score against the rank constraint (k = " + str(
                 specifiedK) + ")")
@@ -220,3 +356,56 @@ def plot_ave_k_neighbours_for_type_in_one(neighbourAxArr: List[Axes], rankArr: L
         neighbourAx.set_ylabel("Mean K neighbour score (k = " + str(specifiedK) + ")")
         neighbourAx.set_ylim(0, 1.05)
         neighbourAx.legend(loc="lower right")
+
+
+def plot_plateau_ranks_categorised(set_groups: dict, tag=None):
+    """
+    :param set_groups: sorted dictionary or data frame according to groups which should be plotted
+    :param tag: parameter against which to plot plateau ranks
+    :return: Plots a graph of plateau ranks against a parameter indicated by the tag
+    """
+
+    if tag is None:
+        tag = "Image Set Size"
+    fig = plt.figure()
+    fig.suptitle("Plateau Rank on " + tag)
+    axes = plt.axes()
+    cmap = plt.get_cmap("tab20", len(set_groups.keys()))
+
+    for index, group in enumerate(set_groups):
+        plateau_ranks = np.array(set_groups[group]["plateau ranks"])
+        img_sizes = np.array(set_groups[group][tag])
+        indexes = np.argsort(img_sizes)
+        plateau_ranks = plateau_ranks[indexes]
+        img_sizes = img_sizes[indexes]
+        axes.plot(img_sizes, plateau_ranks, label=group, c=cmap(index))
+    axes.set_xlabel(tag)
+    axes.set_ylabel("Plateau Rank")
+    axes.legend(loc="lower right")
+
+
+def plot_goal_ranks_categorised(set_groups: dict, k_score: float, tag=None):
+    """
+    :param set_groups: sorted dictionary or data frame according to groups which should be plotted
+    :param k_score: k-score for which the rank is measured
+    :param tag: parameter against which to plot goal ranks
+    :return: Plots a graph of goal ranks against a parameter indicated by the tag
+    """
+
+    if tag is None:
+        tag = "Image Set Size"
+    fig = plt.figure()
+    fig.suptitle("Goal Rank on " + tag + " for k_score of " + str(k_score))
+    axes = plt.axes()
+    cmap = plt.get_cmap("tab20", len(set_groups.keys()))
+
+    for index, group in enumerate(set_groups):
+        plateau_ranks = np.array(set_groups[group]["goal ranks"])
+        img_sizes = np.array(set_groups[group][tag])
+        indexes = np.argsort(img_sizes)
+        plateau_ranks = plateau_ranks[indexes]
+        img_sizes = img_sizes[indexes]
+        axes.plot(img_sizes, plateau_ranks, label=group, c=cmap(index))
+    axes.set_xlabel(tag)
+    axes.set_ylabel("Goal Rank")
+    axes.legend(loc="lower right")

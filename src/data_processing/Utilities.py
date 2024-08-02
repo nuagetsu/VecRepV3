@@ -3,12 +3,13 @@ import os
 import sys
 from pathlib import Path
 from typing import List
+from line_profiler import profile
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 
 from src.data_processing import EmbeddingFunctions
-from src.data_processing import Filters
 from src.data_processing import ImageGenerators
 from src.data_processing import ImageProducts
 from src.data_processing.ImageProducts import calculate_image_product_matrix
@@ -19,7 +20,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-
+@profile
 def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, overwrite=False) -> NDArray:
     """
     :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
@@ -30,10 +31,7 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
-        imageSet = ImageGenerators.get_image_set(imageType=imageType)
-
-        logging.info("Image set generated, applying filters...")
-        filteredImageSet = Filters.get_filtered_image_sets(imageSet=imageSet, filters=filters)
+        filteredImageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters)
 
         # Creating the directory and saving the image set
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -41,6 +39,18 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     else:
         filteredImageSet = np.load(imageSetFilepath)
     return filteredImageSet
+
+@profile
+def get_image_set_size(imageType: str, filters: List[str], imageSetFilepath:str, overwrite=False):
+    """
+    :param imageType: Name of the image set
+    :param filters: Filters applied to the image set
+    :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
+    :param overwrite: If true, generates and saves the filtered image set even if it is saved
+    :return: An NDArray of filtered image sets as specified by imageType and filters
+    Returns the size of an image set
+    """
+    return len(generate_filtered_image_set(imageType, filters, imageSetFilepath, overwrite=overwrite))
 
 
 def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imageProductFilepath: str,
@@ -65,7 +75,8 @@ def generate_image_product_matrix(imageSet: NDArray, imageProductType: str, imag
     return imageProductMatrix
 
 
-def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False):
+def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepath, overwrite=False,
+                              weight=None):
     """
     :param imageProductMatrix: The image product matrix used to generate the vector embeddings
     :param embeddingType: Method used to generate the vector embeddings
@@ -75,7 +86,8 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     """
     if not os.path.isfile(embeddingFilepath) or overwrite:
         logging.info("Embedding matrix not found/overwrite. Generating embedding matrix...")
-        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType)
+        embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType,
+                                                                  weightMatrix=weight)
 
         # Creating the directory and saving the embedding matrix
         Path(embeddingFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -83,3 +95,35 @@ def generate_embedding_matrix(imageProductMatrix, embeddingType, embeddingFilepa
     else:
         embeddingMatrix = np.loadtxt(embeddingFilepath)
     return embeddingMatrix
+
+def generate_weighting_matrix(imageProductMatrix, imageSet, weightingType, weightingFilepath,
+                              imageProductFilepath, overwrite=False):
+    """
+    :param imageProductMatrix: Image product matrix G
+    :param imageSet: Image set for which G is calculated
+    :param weightingType: Type of weighting matrix to use. Generally follows the format: "IMAGEPRODCT/copy_factor_INT"
+    :param weightingFilepath: Filepath to save/load weighting matrix
+    :param imageProductFilepath: Filepath of G to be used if G is weighting matrix
+    :param overwrite: Setting to overwrite weighting matrix even if previously calculated
+    :return: Appropriate weighting matrix H for weighted version of pencorr
+    """
+    if weightingType == "" or weightingType is None:
+        return np.ones_like(imageProductMatrix)
+    components = weightingType.split("_factor_")
+    if len(components) == 1:
+        raise ValueError("Weighting type must indicate weight factor by _factor_[factor]!")
+    factor = int(components[1])
+    base = components[0]
+    if not os.path.isfile(weightingFilepath) or overwrite:
+        logging.info("Weighting matrix not found/overwrite. Generating weighting matrix...")
+        if base == "copy":
+            weightingMatrix = imageProductMatrix ** factor
+        else:
+            weightingMatrix = generate_image_product_matrix(imageSet, base, imageProductFilepath) ** factor
+
+        # Creating the directory and saving the weighting matrix
+        Path(weightingFilepath).parent.mkdir(parents=True, exist_ok=True)
+        np.savetxt(weightingFilepath, weightingMatrix)
+    else:
+        weightingMatrix = np.loadtxt(weightingFilepath)
+    return weightingMatrix

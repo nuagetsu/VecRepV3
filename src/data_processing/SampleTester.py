@@ -35,7 +35,7 @@ class SampleTester(TestableEstimator):
 
         # Loading/saving test images
         logging.info("Loading test images...")
-        testImagesFilepath = FilepathUtils.get_test_images_filepath(sampleEstimator.sampleDirectory, testName)
+        testImagesFilepath = FilepathUtils.get_test_images_filepath(sampleEstimator.embeddingFilepath, testName)
         if not os.path.isfile(testImagesFilepath) or overwrite['imgSet']:
             if testImages is None:
                 raise ValueError("Test images must be given, unless test has already been previously created")
@@ -47,7 +47,7 @@ class SampleTester(TestableEstimator):
             testImages = np.load(testImagesFilepath)
 
         logging.info("Calculating test image product table...")
-        testIptFilepath = FilepathUtils.get_test_ipm_filepath(sampleEstimator.sampleDirectory, testName)
+        testIptFilepath = FilepathUtils.get_test_ipm_filepath(sampleEstimator.embeddingFilepath, testName)
         if not os.path.isfile(testIptFilepath) or overwrite['imgProd']:
             testImageProductMatrix = calculate_image_product_matrix(testImages, sampleEstimator.imageProduct)
             Path(testIptFilepath).parent.mkdir(parents=True, exist_ok=True)
@@ -56,7 +56,7 @@ class SampleTester(TestableEstimator):
             testImageProductMatrix = np.loadtxt(testIptFilepath)
 
         logging.info("Generating test embeddings...")
-        self.testEmbeddingsFilepath = FilepathUtils.get_test_embeddings_filepath(sampleEstimator.sampleDirectory,
+        self.testEmbeddingsFilepath = FilepathUtils.get_test_embeddings_filepath(sampleEstimator.embeddingFilepath,
                                                                                  testName)
         if not os.path.isfile(self.testEmbeddingsFilepath) or overwrite['embedding']:
             logging.info("Embeddings not found, calculating embeddings images...")
