@@ -61,16 +61,16 @@ weight = None
 # Example to investigate k histograms
 """
 bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
-                                                      embeddingType=embeddingType, overwrite=overwrite, weight=weight)
+                                                      embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_k(bruteForceEstimator)
 """
 
 # Example to investigate a specific set of parameters for BF estimator
-"""
+
 bruteForceEstimator = bfEstimator.BruteForceEstimator(imageType=imageType, filters=filters, imageProductType=imageProductType,
                                                               embeddingType=embeddingType, overwrite=overwrite)
 graphing.investigate_estimator(bruteForceEstimator, 16)
-"""
+
 
 # Example to investigate rank constraint
 """
@@ -87,7 +87,7 @@ graphing.investigate_image_product_type(imageType=imageType, filters=filters,
 """
 
 # Investigate changes in rank constraint for up to 5 different image products
-
+"""
 graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, filters=filters,
                                                         imageProductTypes=["ncc", "ncc", "ncc"],
                                                         startingConstr=1, endingConstr=192, interval=1,
@@ -95,7 +95,7 @@ graphing.investigate_BF_rank_constraint_for_image_types(imageType=imageType, fil
                                                         progressive=False,
                                                         weights=["", "ncc_factor_1", "ncc_factor_2"],
                                                         embeddings=["pencorr", "pencorr", "pencorr"])
-
+"""
 # Investigate changes in weight matrix for up to 9 different image products
 """
 graphing.investigate_BF_weight_power(imageType=imageType, filters=filters,

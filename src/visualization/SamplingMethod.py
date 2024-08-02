@@ -27,7 +27,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
-    of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
+    of the image set, and the test set takes from the tail of the image set.
     :param imageProductType: Image product type to investigate
     :param startingConstr: Starting lowest rank constraint to start the sweep inclusive
     :param endingConstr: Final largest rank constraint to end the sweep inclusive
@@ -62,7 +62,7 @@ def investigate_tester_rank_constraint(*, imageSet: NDArray, imageProductType: s
 
         aveNeighArr = [[] for i in specifiedKArr]
         frobDistanceArr = []
-        # TODO Start Random Sampling Here
+        # Trials for random sampling
         for j in range(trials):
             # Taking training and testing samples as random samples of the image set
             testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSize, seed=j)
@@ -97,7 +97,7 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
                               testPrefix: str, specifiedKArr=None, plotFrob=True, trials=5, weight=""):
     """
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
-    of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
+    of the image set, and the test set takes from the tail of the image set.
     :param imageProductType: Image product type to investigate
     :param embeddingType: Embedding type to investigate
     :param startingTrainingSize: Starting point for the sweep (inclusive)
@@ -125,7 +125,7 @@ def investigate_training_size(*, imageSet: NDArray, imageProductType: str, embed
         frobDistanceArr = []
         aveNeighArr = [[] for i in specifiedKArr]
 
-        # TODO Start Random Sampling here
+        # Trials for random sampling
         for j in range(trials):
             # Taking random training and testing samples
             testSample, trainingSample = generate_random_sample(imageSet, testSize, sampleSizeTested, seed=j)
@@ -176,7 +176,7 @@ def investigate_training_size_for_image_products(*, imageSet: NDArray, imageProd
                                                  weights=None, trials=5):
     """
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
-    of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
+    of the image set, and the test set takes from the tail of the image set.
     :param imageProductTypes: Image product types to investigate
     :param embeddingType: Embedding type to investigate
     :param startingTrainingSize: Starting point for the sweep (inclusive)
@@ -248,7 +248,7 @@ def investigate_tester_rank_constraint_for_image_products(*, imageSet: NDArray, 
     """
     :param specifiedKArr: value of k for the k neighbour score
     :param imageSet: Set of images used to the test and sample image sets. Currently, the training set takes from the front
-    of the image set, and the test set takes from the tail of the image set TODO Do a proper monte carlo simulation.
+    of the image set, and the test set takes from the tail of the image set.
     :param imageProductTypes: Image product types to investigate
     :param startingConstr: Starting lowest rank constraint to start the sweep inclusive
     :param endingConstr: Final largest rank constraint to end the sweep inclusive
