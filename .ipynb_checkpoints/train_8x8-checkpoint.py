@@ -29,8 +29,8 @@ EMBEDDING_TYPES = ["pencorr_D"]
 
 dimensions = 128
 
-imageType = "triangles"
-filters = ["100max_ones"]
+imageType = "8bin"
+filters = ["unique"]
 imageProductType = "ncc_scaled_-1"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 weight = None
@@ -272,7 +272,7 @@ for epoch in range(epochs):
 #             print(f"Early stopping at epoch {epoch+1}")
 #             plot_epoch = epoch+1
 #             break
-        # torch.save(model.state_dict(), 'best_model_batch_greyscale.pth')
+        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_8bin.pth')
         print(f"Validation Loss: {avg_val_loss:.4f}")
 
         
@@ -285,7 +285,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend()
-# plt.savefig("loss_batch_greyscale.png")    
+plt.savefig("loss_batch_greyscale_8bin.png")    
 
 differences = torch.tensor(differences).cpu().numpy()
 x_values = np.arange(len(differences))  # 
@@ -298,7 +298,7 @@ plt.xlabel("Per Input Data")
 plt.ylabel("Differences")
 plt.title("Difference between PENCORR and Model Methods")
 plt.legend()
-# plt.savefig("difference_greyscale.png")
+plt.savefig("difference_greyscale_8bin.png")
 plt.show() 
     
     
