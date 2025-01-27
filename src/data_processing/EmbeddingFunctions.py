@@ -16,7 +16,7 @@ from src.matlab_functions.Pencorr import PenCorr
 class NonPositiveSemidefiniteError(Exception):
     pass
 
-
+#!DEBIAN_FRONTEND=noninteractive apt-get install -y octave
 def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
@@ -164,7 +164,7 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
         if not default_weight:
             matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weightMatrix)
         else:
-            matrixGprime = pencorr(imageProductMatrix, nDim)
+            matrixGprime = pencorr(imageProductMatrix, nDim) #nDim extracted from the string passed, s
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     elif re.search(r'eigencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
@@ -200,7 +200,6 @@ def get_eig_for_symmetric(matrixG: NDArray) -> (NDArray, NDArray):
     eigenvectors = eigenvectors.T[::-1].T
     return eigenvalues, eigenvectors
 
-
 def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     """
     :param matrixG: Matrix G to be decomposed
@@ -230,8 +229,11 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     Droot = np.sqrt(np.diag(eigenvalues))
 
     # Slices the diagonal matrix to remove smaller eigenvalues
+    
+    # Minimizing the squared error of G and dot product to obtain the matrix A
+    # SC4000 Lecture 12 PCA
     Drootm = Droot[:nDim, :]
-
+    
     matrixA = np.matmul(Drootm, eigenvectors.T)
 
     # Normalizing matrix A

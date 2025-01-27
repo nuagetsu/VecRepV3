@@ -1,7 +1,7 @@
 from typing import List
 from line_profiler import profile
 
-import helpers.FilepathUtils as fpUtils
+import src.helpers.FilepathUtils as fpUtils
 import src.data_processing.Utilities as utils
 from src.data_processing.TestableEstimator import TestableEstimator
 
