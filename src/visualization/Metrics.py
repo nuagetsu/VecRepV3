@@ -3,6 +3,64 @@ from statistics import mean
 import numpy as np
 from numpy.typing import NDArray
 
+import src.data_processing.ImageCalculations as imgcalc
+
+def get_unique_index(array, indices_array, input_images, k):
+    index_unique = set()
+    while len(index_unique) < k:
+        max_index = np.argmax(array)
+        index_unique.add(max_index)
+        is_unique = True
+        for index in indices_array:
+            print(f"Comparing index {max_index} and index {index}")
+            if not imgcalc.check_translationally_unique(input_images[max_index], input_images[index]):
+                is_unique = False
+                print(f"Not translationally unique")
+                indices_array.remove(index)
+                break
+        array[max_index] = -np.inf
+        if is_unique:
+            print(f"Adding index {max_index}")
+            index_unique.add(max_index)
+    return sorted(list(index_unique))
+
+def get_k_neighbour_score_unique(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int, input_images: NDArray) -> tuple[float, np.ndarray, np.ndarray]:
+    if k > len(imageProducts) + 1:
+        raise ValueError("Value of k in K neighbour score must be less than the number of images")
+    k = k + 1  # This takes into account that the closest neighbour to the vector is itself
+
+    # Get the index of the k largest elements in each list
+    imgProd_max_index = np.argpartition(imageProducts, -k)[-k:]
+    embProd_max_index = np.argpartition(embeddingDotProducts, -k)[-k:]
+    # Get the kth largest element of the image products array
+    kth_element = imageProducts[imgProd_max_index[0]]
+    # Get the index of elements with the same value as the kth element
+    kth_element_index = np.where(imageProducts == kth_element)
+    # Add the kth elements to the set of k closest neighbours for the image products array
+    imgProd_max_index = np.union1d(imgProd_max_index, kth_element_index)          
+
+    print("embProd_max_index: ", embProd_max_index)
+    print("imgProd_max_index: ", imgProd_max_index)
+    
+    print("\nAfter modication: ")
+    imgProd_max_index_unique = get_unique_index(imageProducts, imgProd_max_index, input_images, k)
+    embProd_max_index_unique = get_unique_index(embeddingDotProducts, embProd_max_index, input_images, k)
+    
+    print("embProd_max_index_unique: ", embProd_max_index_unique)
+    print("imgProd_max_index_unique: ", imgProd_max_index_unique)
+    
+    # Get number of neighbours which remain closest
+    similar_neighbours = np.intersect1d(imgProd_max_index_unique, embProd_max_index_unique)
+    
+    # Used for modified KNN-IoU K-Score calculation
+    union = np.union1d(imgProd_max_index_unique, embProd_max_index_unique)
+    
+    print("\nIntersection sets: ", similar_neighbours)
+    print("Union sets: ", union)
+    k_score = len(similar_neighbours) / len(union) if len(union) > 0 else 0
+    
+    return k_score, union, similar_neighbours
+
 
 def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> tuple[float, np.ndarray, np.ndarray]:
     """
@@ -27,14 +85,16 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     kth_element_index = np.where(imageProducts == kth_element)
     # Add the kth elements to the set of k closest neighbours for the image products array
     imgProd_max_index = np.union1d(imgProd_max_index, kth_element_index)
+    
+    print("embProd_max_index: ", embProd_max_index)
+    print("imgProd_max_index: ", imgProd_max_index)
+    
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
-
-    # res = max(len(similar_neighbours) - 1, 0)  # Take into account that the closest neighbour is itself
-    # return res
     
     # Used for modified KNN-IoU K-Score calculation
     union = np.union1d(imgProd_max_index, embProd_max_index)
+    
     print("\nIntersection sets: ", similar_neighbours)
     print("Union sets: ", union)
     k_score = len(similar_neighbours) / len(union) if len(union) > 0 else 0

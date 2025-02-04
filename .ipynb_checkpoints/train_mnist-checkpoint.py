@@ -220,18 +220,18 @@ for epoch in range(epochs):
         avg_val_loss = total_loss_validation / (len(test_dataloader))
         val_loss_history.append(avg_val_loss)
 
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            epochs_no_improve = 0
-            #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
-        else:
-            epochs_no_improve += 1
+#         if avg_val_loss < best_val_loss:
+#             best_val_loss = avg_val_loss
+#             epochs_no_improve = 0
+#             #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
+#         else:
+#             epochs_no_improve += 1
  
-        # Early stopping
-        if epochs_no_improve == patience:
-            print(f"Early stopping at epoch {epoch+1}")
-            plot_epoch = epoch+1
-            break
+#         # Early stopping
+#         if epochs_no_improve == patience:
+#             print(f"Early stopping at epoch {epoch+1}")
+#             plot_epoch = epoch+1
+#             break
         torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
         print(f"Validation Loss: {avg_val_loss:.4f}")
 
