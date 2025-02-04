@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
+def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> tuple[float, np.ndarray, np.ndarray]:
     """
     :param imageProducts: 1 by N array of image product scores between an image and all another images
     :param embeddingDotProducts: 1 by N array of dot products with an embedding and all other embeddings
@@ -38,9 +38,8 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     print("\nIntersection sets: ", similar_neighbours)
     print("Union sets: ", union)
     k_score = len(similar_neighbours) / len(union) if len(union) > 0 else 0
-    return k_score
-
-
+    
+    return k_score, union, similar_neighbours
 
 def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
     """

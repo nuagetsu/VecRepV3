@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 
 import matplotlib.pyplot as plt
 from line_profiler import profile
+from itertools import combinations
 from sklearn.model_selection import train_test_split
 import numpy as np
 import random
@@ -57,7 +58,7 @@ for i in range(len(full_dataset)):
     # img = img.repeat(1, 3, 1, 1)  #1x3xHxW
     input_dataset.append((img, i))
 
-print("len(input_dataset): ",len(input_dataset))
+
 images, indices = zip(*input_dataset)  
 stacked_images = torch.stack(images)  
 stacked_images = stacked_images.cpu().numpy()
@@ -76,103 +77,69 @@ train_dataloader = DataLoader(
 
 test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True)
-
+print("len(test_dataloader): ",len(test_dataloader)) #3500
 # ----------------------------------Model Architecture----------------------------------
 class MNIST_CNN(nn.Module):
-    def __init__(self, dimensions=128): 
-        super(MNIST_CNN, self).__init__()
+    def __init__(self, dimensions=32):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 32, 3, padding=1),  # [B, 32, 28, 28]
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),  # [B, 32, 14, 14]
+            
+            nn.Conv2d(32, 64, 3, padding=1),  # [B, 64, 14, 14]
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),  # [B, 64, 7, 7]
+            
+            #should i do this
+            nn.AdaptiveAvgPool2d(1)  # [B, 64, 1, 1]
+        )
+        self.fc = nn.Linear(64, dimensions)
         
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(64)
-        
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(128)
-        self.pool1 = nn.MaxPool2d(2, 2)  
-        
-        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(256)
-        
-        self.conv4 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(256)
-        self.pool2 = nn.MaxPool2d(2, 2) 
-        
-        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(512)
-        
-        self.relu = nn.LeakyReLU(0.1)
-
-        self.fc1 = nn.Linear(512 * 7 * 7, 512)  
-        self.fc2 = nn.Linear(512, dimensions)
-
     def forward(self, x):
-        x = self.conv1(x)        
-        x = self.bn1(x)          
-        x = self.relu(x)        
-
-        x = self.conv2(x)        
-        x = self.bn2(x)          
-        x = self.relu(x)        
-
-        x = self.pool1(x)        
-        
-        x = self.conv3(x)        
-        x = self.bn3(x)          
-        x = self.relu(x)        
-
-        x = self.conv4(x)        
-        x = self.bn4(x)         
-        x = self.relu(x)        
-
-        x = self.pool2(x)       
-      
-        x = self.conv5(x)       
-        x = self.bn5(x)        
-        x = self.relu(x)       
-        
-        x = torch.flatten(x, start_dim=1)
-  
-        x = self.fc1(x)         
-        x = self.relu(x)   
-        x = self.fc2(x)         
-        
-        x = F.normalize(x, p=2, dim=1)
-
-        return x
-
+        x = self.features(x)
+        x = torch.flatten(x, 1)  # [B, 64]
+        x = self.fc(x)  # [B, dimensions]
+        return F.normalize(x, p=2, dim=1)
+    
 model = MNIST_CNN().to(device)
 
 # ----------------------------------Training Settings----------------------------------
-def loss_fn(A, G):
-    return torch.norm(A - G, p='fro')  
+# def loss_fn(A, G):
+#     return torch.norm(A - G, p='fro')  
 
-# def loss_fn(A,G):
-#     return F.mse_loss(A, G)
+def loss_fn(A,G):
+    return F.mse_loss(A, G)
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 train_loss_history = []
 val_loss_history = []
 
-epochs = 500 
+epochs = 150
 plot_epoch = epochs
-patience = 3 
+patience = 5 
 best_val_loss = float('inf')
 epochs_no_improve = 0
 
 # ----------------------------------Training Loop----------------------------------
 for epoch in range(epochs):
     model.train()
-    total_loss = 0
-    total_acc = 0.0
-    for batch_data, batch_indices in train_dataloader: 
+    training_loss, total_loss_training = 0, 0
+    for batch_data, batch_indices in train_dataloader: #3500
+        optimizer.zero_grad()
+        # print("len(batch_data): ",len(batch_data)) #16
+        loss_per_pair = 0
+        len_train = 0
         remaining_indices = list(range(len(batch_data)))
-        for k in range(len(batch_data) // 2):
-            idx1, idx2 = random.sample(remaining_indices, 2)
+        for idx1, idx2 in combinations(remaining_indices, 2): #16C2
             data1, data2 = batch_data[idx1], batch_data[idx2]
             index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()
-            remaining_indices.remove(idx1)
-            remaining_indices.remove(idx2)
-            
+            # print("idx1: ", idx1)
+            # print("idx2: ", idx2)
+            # print("remaining_indices: ", remaining_indices)
             img1 = data1.cuda().float()
             img2 = data2.cuda().float()
             
@@ -193,34 +160,35 @@ for epoch in range(epochs):
             if NCC_scaled_value.ndim == 0:
                 NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
             
-            loss = loss_fn(dot_product_value, NCC_scaled_value)
-            # print("loss: ",loss)
-            
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            loss = loss_fn(dot_product_value, NCC_scaled_value) #squared frobenius norm 
+            loss_per_pair += loss
+            len_train += 1
+        
+        # print("len_train: ", len_train) #120 = 16C2
+        # print("loss_per_pair: ",loss_per_pair)
+        training_loss = loss_per_pair/len_train
+        print("training_loss: ",training_loss)
+        
+        training_loss.backward()
+        optimizer.step()
 
-            total_loss += loss.item()  
+        total_loss_training += training_loss.item()  
 
-    avg_loss = total_loss /  (len(train_dataloader)*(len(batch_data)/2))
+    avg_loss = total_loss_training /  (len(train_dataloader))
     train_loss_history.append(avg_loss)
     print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
 
     # Validation loop
     model.eval()
-    val_loss = 0        
-
+    validation_loss, total_loss_validation = 0, 0        
     with torch.no_grad():
         for batch_data, batch_indices in test_dataloader:  
+            loss_per_pair = 0
+            len_test = 0
             remaining_indices = list(range(len(batch_data))) 
-
-            for _ in range(len(batch_data) // 2):
-                idx1, idx2 = random.sample(remaining_indices, 2)
+            for idx1, idx2 in combinations(remaining_indices, 2):
                 data1, data2 = batch_data[idx1], batch_data[idx2]
                 index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()  
-
-                remaining_indices.remove(idx1)
-                remaining_indices.remove(idx2)
 
                 img1 = data1.cuda().float()
                 img2 = data2.cuda().float()
@@ -238,30 +206,33 @@ for epoch in range(epochs):
                 if NCC_scaled_value.ndim == 0:
                     NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
 
-                # NCC_scaled_value = torch.tensor(
-                #     scale(data1.squeeze(0)[0].cpu().numpy(), data2.squeeze(0)[0].cpu().numpy()), device="cuda", dtype=torch.float)
-                # NCC_scaled_value = NCC_scaled_value.view(dot_product_value.shape)
-
-                pair_loss = loss_fn(dot_product_value, NCC_scaled_value)
-
-                val_loss += pair_loss.item()
-
-        avg_val_loss = val_loss / (len(test_dataloader)*(len(batch_data)/2))
+                loss = loss_fn(dot_product_value, NCC_scaled_value)
+                
+                loss_per_pair += loss.item()
+                len_test +=1
+            
+            print("len_test: ", len_test) #120 = 16C2
+            print("loss_per_pair: ",loss_per_pair)
+            validation_loss = loss_per_pair/len_test
+            total_loss_validation += validation_loss
+            print("validation_loss: ", validation_loss)
+        
+        avg_val_loss = total_loss_validation / (len(test_dataloader))
         val_loss_history.append(avg_val_loss)
 
-#         if avg_val_loss < best_val_loss:
-#             best_val_loss = avg_val_loss
-#             epochs_no_improve = 0
-#             torch.save(model.state_dict(), 'best_model_batch.pth')
-#         else:
-#             epochs_no_improve += 1
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            epochs_no_improve = 0
+            #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
+        else:
+            epochs_no_improve += 1
  
-#         # Early stopping
-#         if epochs_no_improve == patience:
-#             print(f"Early stopping at epoch {epoch+1}")
-#             plot_epoch = epoch+1
-#             break
-        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnist_500E.pth')
+        # Early stopping
+        if epochs_no_improve == patience:
+            print(f"Early stopping at epoch {epoch+1}")
+            plot_epoch = epoch+1
+            break
+        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
         print(f"Validation Loss: {avg_val_loss:.4f}")
 
         
@@ -274,6 +245,6 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend()
-plt.savefig("model/loss_batch_greyscale_mnist_500E.png")    
+plt.savefig("model/loss_batch_greyscale_mnistSimpleCNN.png")    
 
     
