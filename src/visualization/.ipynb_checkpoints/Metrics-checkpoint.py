@@ -86,17 +86,12 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Add the kth elements to the set of k closest neighbours for the image products array
     imgProd_max_index = np.union1d(imgProd_max_index, kth_element_index)
     
-    print("embProd_max_index: ", embProd_max_index)
-    print("imgProd_max_index: ", imgProd_max_index)
-    
     # Get number of neighbours which remain closest
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
     
     # Used for modified KNN-IoU K-Score calculation
     union = np.union1d(imgProd_max_index, embProd_max_index)
     
-    print("\nIntersection sets: ", similar_neighbours)
-    print("Union sets: ", union)
     k_score = len(similar_neighbours) / len(union) if len(union) > 0 else 0
     
     return k_score, union, similar_neighbours

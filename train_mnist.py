@@ -12,24 +12,43 @@ import matplotlib.pyplot as plt
 from line_profiler import profile
 from itertools import combinations
 from sklearn.model_selection import train_test_split
+from functools import partial
+
 import numpy as np
 import random
 
-import src.data_processing.BruteForceEstimator as bfEstimator
 import src.visualization.BFmethod as graphing
 import src.visualization.Metrics as metrics
 import src.data_processing.ImageProducts as ImageProducts
+import src.helpers.ModelUtilities as models
+
+from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
+from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
     
 # ----------------------------------Input Images----------------------------------
+transform = transforms.Compose([
+    transforms.Resize((32, 32)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
 
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+augmentation_transform = transforms.Compose([
+    transforms.Resize((32, 32)), 
+    transforms.RandomAffine(
+        degrees=0,  # No rotation
+        translate=(0.1, 0.1),  # Random horizontal/vertical shifts (10% of image size)
+        fill=0  # Pad with black (MNIST background)
+    ),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
 
 trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
-testset = torchvision.datasets.MNIST(root='./data', train=False, transform=transform)
-full_dataset = torch.utils.data.ConcatDataset([trainset, testset])
+augmented_trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=augmentation_transform)
 
+full_dataset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
 # ----------------------------------Preparing the Dataset----------------------------------
 class CustomDataset(Dataset):
     def __init__(self, input_data):
@@ -47,15 +66,11 @@ def custom_collate(batch):
     batch_indices = torch.tensor(batch_indices)  
     return batch_data, batch_indices  
 
+print(f"\nGenerating input dataset")
 input_dataset = []
 for i in range(len(full_dataset)):
     image,label = full_dataset[i]
-    image_array = (image.numpy() > 0.5).astype(np.uint8)
-    img = torch.from_numpy(image_array)
-    img = img.unsqueeze(0).cuda().double()  #1x1xHxW
-
-    # 3 channel for RGB like input
-    # img = img.repeat(1, 3, 1, 1)  #1x3xHxW
+    img = image.unsqueeze(0).cuda().double() 
     input_dataset.append((img, i))
 
 
@@ -77,41 +92,15 @@ train_dataloader = DataLoader(
 
 test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True)
-print("len(test_dataloader): ",len(test_dataloader)) #3500
+print("len(test_dataloader): ",len(test_dataloader)) #1500 -> 1,500 x 16 x 5 = 60,000 x 2 = 120,000
 # ----------------------------------Model Architecture----------------------------------
-class MNIST_CNN(nn.Module):
-    def __init__(self, dimensions=32):
-        super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 32, 3, padding=1),  # [B, 32, 28, 28]
-            nn.BatchNorm2d(32),
-            nn.LeakyReLU(0.1),
-            nn.MaxPool2d(2),  # [B, 32, 14, 14]
-            
-            nn.Conv2d(32, 64, 3, padding=1),  # [B, 64, 14, 14]
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(0.1),
-            nn.MaxPool2d(2),  # [B, 64, 7, 7]
-            
-            #should i do this
-            nn.AdaptiveAvgPool2d(1)  # [B, 64, 1, 1]
-        )
-        self.fc = nn.Linear(64, dimensions)
-        
-    def forward(self, x):
-        x = self.features(x)
-        x = torch.flatten(x, 1)  # [B, 64]
-        x = self.fc(x)  # [B, dimensions]
-        return F.normalize(x, p=2, dim=1)
-    
-model = MNIST_CNN().to(device)
 
+print(f"\nLoading model architecture")
+model = models.CNN().to(device)
+print(f"Model architecture: \n{model}")
 # ----------------------------------Training Settings----------------------------------
-# def loss_fn(A, G):
-#     return torch.norm(A - G, p='fro')  
 
-def loss_fn(A,G):
-    return F.mse_loss(A, G)
+loss_fn = models.loss_fn_MSE
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
@@ -120,7 +109,7 @@ val_loss_history = []
 
 epochs = 150
 plot_epoch = epochs
-patience = 5 
+patience = 10
 best_val_loss = float('inf')
 epochs_no_improve = 0
 
@@ -128,25 +117,18 @@ epochs_no_improve = 0
 for epoch in range(epochs):
     model.train()
     training_loss, total_loss_training = 0, 0
-    for batch_data, batch_indices in train_dataloader: #3500
+    for batch_data, batch_indices in train_dataloader: 
         optimizer.zero_grad()
-        # print("len(batch_data): ",len(batch_data)) #16
         loss_per_pair = 0
         len_train = 0
-        remaining_indices = list(range(len(batch_data)))
+        remaining_indices = list(range(len(batch_data))) #16
         for idx1, idx2 in combinations(remaining_indices, 2): #16C2
             data1, data2 = batch_data[idx1], batch_data[idx2]
             index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()
-            # print("idx1: ", idx1)
-            # print("idx2: ", idx2)
-            # print("remaining_indices: ", remaining_indices)
+
             img1 = data1.cuda().float()
             img2 = data2.cuda().float()
-            
-            # print(f"image 1 in epoch {epoch} for k = {k}: {img1}")
-            # print(f"image 2 in epoch {epoch} for k = {k}: {img2}")
-            # print(f"Using images from original dataset indices: {index1}, {index2}")
-            
+                        
             embedded_vector_image1 = model(img1)
             embedded_vector_image2 = model(img2)
 
@@ -164,10 +146,8 @@ for epoch in range(epochs):
             loss_per_pair += loss
             len_train += 1
         
-        # print("len_train: ", len_train) #120 = 16C2
-        # print("loss_per_pair: ",loss_per_pair)
         training_loss = loss_per_pair/len_train
-        print("training_loss: ",training_loss)
+        print(f"training_loss in epoch {epoch}: {training_loss}")
         
         training_loss.backward()
         optimizer.step()
@@ -178,15 +158,14 @@ for epoch in range(epochs):
     train_loss_history.append(avg_loss)
     print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
 
-    # Validation loop
     model.eval()
     validation_loss, total_loss_validation = 0, 0        
     with torch.no_grad():
         for batch_data, batch_indices in test_dataloader:  
             loss_per_pair = 0
             len_test = 0
-            remaining_indices = list(range(len(batch_data))) 
-            for idx1, idx2 in combinations(remaining_indices, 2):
+            remaining_indices = list(range(len(batch_data))) # 16
+            for idx1, idx2 in combinations(remaining_indices, 2): #16C2 = 120 
                 data1, data2 = batch_data[idx1], batch_data[idx2]
                 index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()  
 
@@ -211,8 +190,6 @@ for epoch in range(epochs):
                 loss_per_pair += loss.item()
                 len_test +=1
             
-            print("len_test: ", len_test) #120 = 16C2
-            print("loss_per_pair: ",loss_per_pair)
             validation_loss = loss_per_pair/len_test
             total_loss_validation += validation_loss
             print("validation_loss: ", validation_loss)
@@ -220,22 +197,19 @@ for epoch in range(epochs):
         avg_val_loss = total_loss_validation / (len(test_dataloader))
         val_loss_history.append(avg_val_loss)
 
-#         if avg_val_loss < best_val_loss:
-#             best_val_loss = avg_val_loss
-#             epochs_no_improve = 0
-#             #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
-#         else:
-#             epochs_no_improve += 1
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            epochs_no_improve = 0
+            #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
+        else:
+            epochs_no_improve += 1
  
-#         # Early stopping
-#         if epochs_no_improve == patience:
-#             print(f"Early stopping at epoch {epoch+1}")
-#             plot_epoch = epoch+1
-#             break
-        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
+        if epochs_no_improve == patience:
+            print(f"Early stopping at epoch {epoch+1}")
+            plot_epoch = epoch+1
+            break
+        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistComplexCNN1.pt')
         print(f"Validation Loss: {avg_val_loss:.4f}")
-
-        
         
 # ----------------------------------Plots----------------------------------
 plt.figure()
@@ -245,6 +219,6 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend()
-plt.savefig("model/loss_batch_greyscale_mnistSimpleCNN.png")    
+plt.savefig("model/loss_batch_greyscale_mnistComplexCNN1.png")    
 
     

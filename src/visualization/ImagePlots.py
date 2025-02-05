@@ -2,14 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from collections import defaultdict
+from scipy.stats import gaussian_kde
 
-import src.data_processing.BruteForceEstimator as bfEstimator
 import src.data_processing.ImageCalculations as imgcalc
-import src.visualization.BFmethod as graphing
-import src.visualization.Metrics as metrics
 import src.visualization.ImagePlots as imgplt
-import src.data_processing.ImageProducts as ImageProducts
-import src.helpers.ModelUtilities as models
 
 def plot_original_images(input1, input2, index1, index2):
     image1 = np.array(input1) 
@@ -96,12 +92,8 @@ def printing_translational_indices(dictionary, indices):
     
 def display_and_plot_results(vectorb, vectorc, method_name, index, k, input_images):
     """Handle result display, table generation, and plotting."""
-    kscore, indices, intersection_indices = metrics.get_k_neighbour_score(vectorb, vectorc, k)
+    kscore, indices, intersection_indices = imgcalc.get_kscore_and_sets(vectorb, vectorc, k)
     print(f"Estimating K-Score for Image {index}: K-Score = {kscore}")
-
-    # print(f"Excluding translationally similar images")
-    # kscore, indices, intersection_indices = metrics.get_k_neighbour_score_unique(vectorb, vectorc, k, input_images)
-    # print(f"Estimating K-Score for Image {index}: K-Score = {kscore}")
     
     for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
         top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:len(indices)]
@@ -123,3 +115,29 @@ def display_and_plot_results(vectorb, vectorc, method_name, index, k, input_imag
     print("\nComparing images in intersection & union sets")
     print_images(indices, intersection_indices, input_images)
     plot_unique_images(vectorb, indices, intersection_indices, input_images)
+    
+def plot_score_distribution(scores, score_name):
+    mean_score = np.mean(scores)
+    median_score = np.median(scores)
+    
+    kde = gaussian_kde(scores)
+    x_values = np.linspace(min(scores), max(scores), 100)
+    y_values = kde(x_values)
+
+    bins = np.linspace(min(scores), max(scores), num=20)  # Adjust bin count
+    hist_values, bin_edges = np.histogram(scores, bins=bins)
+    bin_midpoints = (bin_edges[:-1] + bin_edges[1:]) / 2
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(x_values, y_values, linestyle='-', color='b', label="KDE Curve")
+    plt.plot(bin_midpoints, hist_values, marker='o', linestyle='-', color='r', alpha=0.5, label="Count")
+    plt.axvline(mean_score, color='g', linestyle='--', label=f"Mean = {mean_score:.3f}")
+    plt.axvline(median_score, color='m', linestyle='-.', label=f"Median = {median_score:.3f}")
+    
+    plt.xlabel(f"{score_name}")
+    plt.ylabel("Count")
+    plt.title(f"{score_name} Distribution")
+    plt.legend()
+    plt.show()
+
+

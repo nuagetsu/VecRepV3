@@ -2,9 +2,9 @@ import torch
 import numpy as np
 from collections import defaultdict
 
-import src.data_processing.BruteForceEstimator as bfEstimator
-import src.data_processing.ImageCalculations as imgcalc
 import src.data_processing.ImageProducts as ImageProducts
+import src.visualization.Metrics as metrics
+import src.helpers.ModelUtilities as models
 
 
 def check_translationally_unique(img1: np.ndarray, img2: np.ndarray) -> bool:
@@ -36,7 +36,7 @@ def get_unique_images(indices, intersection_indices, input_images, vectorb=None)
         for j, index_2 in enumerate(indices[i+1:]):  
             #-------------------------Use if dataset gets too large-----------------------
             #if round(vectorb[index_1], 7) == round(vectorb[index_2], 7):
-            if not imgcalc.check_translationally_unique(images_union[i], images_union[i+1+j]):
+            if not check_translationally_unique(images_union[i], images_union[i+1+j]):
                 similar_groups[index_1].add(index_2)
                 if index_1 in unique_indices:
                     unique_indices.remove(index_1)
@@ -46,7 +46,7 @@ def get_unique_images(indices, intersection_indices, input_images, vectorb=None)
         for j, index_2 in enumerate(intersection_indices[i+1:]):
             #-------------------------Use if dataset gets too large-----------------------
             #if round(vectorb[index_1], 7) == round(vectorb[index_2], 7):
-            if not imgcalc.check_translationally_unique(images_intersection[i], images_intersection[i+1+j]):
+            if not check_translationally_unique(images_intersection[i], images_intersection[i+1+j]):
                 if index_1 in unique_intersection_indices:
                     unique_intersection_indices.remove(index_1)
     
@@ -77,3 +77,24 @@ def get_vectorb_model(index, model, input_dataset):
         vectorb.append(NCC_scaled_value)
         
     return vectorb
+
+def get_kscore_and_sets(vectorb, vectorc, k):
+    kscore, indices, intersection_indices = metrics.get_k_neighbour_score(vectorb, vectorc, k)
+    return kscore, indices, intersection_indices
+
+def get_NCC_score(input1, input2):
+    scale = ImageProducts.scale_min(ImageProducts.ncc, -1)
+    NCC_scaled_value = scale(input1, input2)
+    return NCC_scaled_value
+
+def get_dp_score(input_vector1, input_vector2):
+    dot_product_value = torch.sum(input_vector1 * input_vector2, dim=1) 
+    return dot_product_value
+
+def get_loss_value(dot_product_value, NCC_scaled_value):
+    NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
+    if NCC_scaled_value.ndim == 0:
+        NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
+
+    loss_value = models.loss_fn_frobenius(dot_product_value, NCC_scaled_value)
+    return loss_value.item()
