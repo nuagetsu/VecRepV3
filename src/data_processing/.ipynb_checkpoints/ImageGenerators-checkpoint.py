@@ -29,7 +29,6 @@ def get_binary_image_set(imageLength: int, maxOnesPercentage=100) -> NDArray[int
     fullList = np.array(fullList)
     return fullList
 
-
 def get_image_set(imageType: str, filters=None):
     """
     Generates an image set of specified type.

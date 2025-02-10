@@ -17,7 +17,6 @@ from functools import partial
 import numpy as np
 import random
 
-import src.visualization.BFmethod as graphing
 import src.visualization.Metrics as metrics
 import src.data_processing.ImageProducts as ImageProducts
 import src.helpers.ModelUtilities as models
@@ -79,7 +78,7 @@ stacked_images = torch.stack(images)
 stacked_images = stacked_images.cpu().numpy()
 tensor_dataset = [(torch.tensor(img), idx) for img, idx in zip(stacked_images, indices)]
 
-batch_size = 16
+batch_size = 24
 
 dataset = CustomDataset(tensor_dataset)
 
@@ -107,9 +106,9 @@ optimizer = optim.Adam(model.parameters(), lr=0.0001)
 train_loss_history = []
 val_loss_history = []
 
-epochs = 150
+epochs = 100
 plot_epoch = epochs
-patience = 10
+patience = 5
 best_val_loss = float('inf')
 epochs_no_improve = 0
 
@@ -153,7 +152,6 @@ for epoch in range(epochs):
         optimizer.step()
 
         total_loss_training += training_loss.item()  
-
     avg_loss = total_loss_training /  (len(train_dataloader))
     train_loss_history.append(avg_loss)
     print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
@@ -208,7 +206,7 @@ for epoch in range(epochs):
             print(f"Early stopping at epoch {epoch+1}")
             plot_epoch = epoch+1
             break
-        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistComplexCNN1.pt')
+        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_MNIST_circular1.pt')
         print(f"Validation Loss: {avg_val_loss:.4f}")
         
 # ----------------------------------Plots----------------------------------
@@ -219,6 +217,6 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend()
-plt.savefig("model/loss_batch_greyscale_mnistComplexCNN1.png")    
+plt.savefig("model/loss_batch_greyscale_MNIST_circular1.png")    
 
     

@@ -12,11 +12,15 @@ from itertools import combinations
 from sklearn.model_selection import train_test_split
 import numpy as np
 import random
+from functools import partial
 
 import src.data_processing.BruteForceEstimator as bfEstimator
 import src.visualization.BFmethod as graphing
 import src.visualization.Metrics as metrics
 import src.data_processing.ImageProducts as ImageProducts
+
+from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
+from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
     
@@ -74,7 +78,7 @@ stacked_images = torch.stack(images)
 stacked_images = stacked_images.cpu().numpy()
 tensor_dataset = [(torch.tensor(img), idx) for img, idx in zip(stacked_images, indices)]
 
-batch_size = 16
+batch_size = 24
 
 dataset = CustomDataset(tensor_dataset)
 print(len(dataset))
@@ -88,35 +92,52 @@ train_dataloader = DataLoader(
 test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True)
 
-matrixA = bruteForceEstimator.matrixA
-dot_product_matrix = np.dot(matrixA.T, matrixA)
+# matrixA = bruteForceEstimator.matrixA
+# dot_product_matrix = np.dot(matrixA.T, matrixA)
 # print("dot_product_matrix shape:", dot_product_matrix.shape)
 
 # ----------------------------------Model Architecture----------------------------------
 class SimpleCNN(nn.Module):
-    def __init__(self, dimensions=32):
+    def __init__(self, dimensions=32, padding_mode='zeros'):
         super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 32, 3, padding=1),  # [B, 32, 28, 28]
-            nn.BatchNorm2d(32),
-            nn.LeakyReLU(0.1),
-            nn.MaxPool2d(2),  # [B, 32, 14, 14]
-            
-            nn.Conv2d(32, 64, 3, padding=1),  # [B, 64, 14, 14]
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(0.1),
-            nn.MaxPool2d(2),  # [B, 64, 7, 7]
-            
-            #should i do this
-            nn.AdaptiveAvgPool2d(1)  # [B, 64, 1, 1]
-        )
-        self.fc = nn.Linear(64, dimensions)
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.lpd = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=128,h_ch=128)
+
+        self.bn1   = nn.BatchNorm2d(32)
+        self.relu = nn.LeakyReLU(0.1)
         
-    def forward(self, x):
-        x = self.features(x)
-        x = torch.flatten(x, 1)  # [B, 64]
-        x = self.fc(x)  # [B, dimensions]
-        return F.normalize(x, p=2, dim=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2   = nn.BatchNorm2d(64)
+        
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn3   = nn.BatchNorm2d(128)
+        
+        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
+        self.fc=nn.Linear(128, dimensions)
+        
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.relu(x)
+        
+        x = self.lpd(x)  # Use just as any down-sampling layer!
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
 
 model = SimpleCNN().to(device)
 
@@ -133,7 +154,7 @@ train_loss_history = []
 val_loss_history = []
 differences = []
 
-epochs = 300 
+epochs = 100 
 plot_epoch = epochs
 patience = 10
 best_val_loss = float('inf')
@@ -145,22 +166,15 @@ for epoch in range(epochs):
     training_loss, total_loss_training = 0, 0
     for batch_data, batch_indices in train_dataloader: #3500
         optimizer.zero_grad()
-        # print("len(batch_data): ",len(batch_data)) #16
         loss_per_pair = 0
         len_train = 0
         remaining_indices = list(range(len(batch_data)))
         for idx1, idx2 in combinations(remaining_indices, 2): #16C2
             data1, data2 = batch_data[idx1], batch_data[idx2]
             index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()
-            # print("idx1: ", idx1)
-            # print("idx2: ", idx2)
-            # print("remaining_indices: ", remaining_indices)
+            
             img1 = data1.cuda().float()
             img2 = data2.cuda().float()
-            
-            # print(f"image 1 in epoch {epoch} for k = {k}: {img1}")
-            # print(f"image 2 in epoch {epoch} for k = {k}: {img2}")
-            # print(f"Using images from original dataset indices: {index1}, {index2}")
             
             embedded_vector_image1 = model(img1)
             embedded_vector_image2 = model(img2)
@@ -178,11 +192,9 @@ for epoch in range(epochs):
             loss = loss_fn(dot_product_value, NCC_scaled_value) #squared frobenius norm 
             loss_per_pair += loss
             len_train += 1
-        
-        # print("len_train: ", len_train) #120 = 16C2
-        # print("loss_per_pair: ",loss_per_pair)
+
         training_loss = loss_per_pair/len_train
-        print("training_loss: ",training_loss)
+        print(f"training_loss in epoch {epoch}: {training_loss}")
         
         training_loss.backward()
         optimizer.step()
@@ -226,8 +238,6 @@ for epoch in range(epochs):
                 loss_per_pair += loss.item()
                 len_test +=1
             
-            print("len_test: ", len_test) #120 = 16C2
-            print("loss_per_pair: ",loss_per_pair)
             validation_loss = loss_per_pair/len_test
             total_loss_validation += validation_loss
             print("validation_loss: ", validation_loss)
@@ -247,7 +257,7 @@ for epoch in range(epochs):
             print(f"Early stopping at epoch {epoch+1}")
             plot_epoch = epoch+1
             break
-        #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_8bin.pt')
+        torch.save(model.state_dict(), 'model/best_model_batch_greyscale_8bin_LPS_zeros_32d.pt')
         print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
         
 # ----------------------------------Plots----------------------------------
@@ -258,7 +268,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend()
-#plt.savefig("model/loss_batch_greyscale_8bin.png")    
+plt.savefig("model/loss_batch_greyscale_8bin_LPS_zeros_32d.png")    
 
 
     
