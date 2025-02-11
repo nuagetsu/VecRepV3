@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../VecRepV3")
+import os
+path = os.path.abspath("../../VecRepV3") 
+sys.path.append(path)
 
 import math
 import torch
@@ -101,7 +103,7 @@ test_dataloader = DataLoader(
 
 # ----------------------------------Model Architecture----------------------------------
 class SimpleCNN(nn.Module):
-    def __init__(self, dimensions=32, padding_mode='zeros'):
+    def __init__(self, dimensions=32, padding_mode='circular'):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
         self.lpd = set_pool(partial(

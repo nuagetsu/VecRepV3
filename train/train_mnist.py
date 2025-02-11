@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../VecRepV3")
+import os
+path = os.path.abspath("../../VecRepV3") 
+sys.path.append(path)
 
 import math
 import torch

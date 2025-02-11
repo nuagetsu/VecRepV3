@@ -179,10 +179,15 @@ def get_matrix_embeddings(input_dataset, model_vectors):
             model_matrix[i, j] = dot_product_value
     return model_matrix
 
+# Compute the matrix solution of the orthogonal (or unitary) Procrustes problem
 def get_orthogonal_transformation(model_vectors, matrix):
+    '''Given matrices A and B of the same shape, find an orthogonal matrix R that most closely maps A to B using this algorithm.
+        matrix A in this case would be the embedding matrix obtained from the model, matrix B would be the Pencorr matrix (matrixA)'''
     embedding_model = torch.stack(model_vectors, dim=1)
     U, _ = orthogonal_procrustes(embedding_model.squeeze().detach().cpu().numpy().T, matrix)
     model_transformed = embedding_model.squeeze().detach().cpu().numpy().T @ U
     error_model = np.linalg.norm(model_transformed - matrix, 'fro')
     return model_transformed.T, error_model
+
+
     
