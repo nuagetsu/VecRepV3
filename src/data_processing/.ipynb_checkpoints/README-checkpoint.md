@@ -158,30 +158,30 @@ Here’s an updated README section that explains what each function does in your
 
 ## ImageCalculations
 
-This module contains various methods used for evaluating models, particularly for image comparison and transformation. The functions help with tasks such as checking image uniqueness, computing similarity scores, evaluating losses, and performing transformations.
+This module contains various methods used for evaluating models and BFMethod, particularly for embedding comparison and transformation. The functions help with tasks such as checking image uniqueness, computing similarity scores for embeddings, evaluating losses, and performing transformations.
 
 ### **Function Descriptions**
 
 #### **1. Image Uniqueness and Similarity Checks**
 - **`check_translationally_unique(img1, img2) -> bool`**  
-  Checks whether two binary images are translationally unique (i.e., they do not match under shifts). Returns `True` if they are unique and `False` if they are not.
+  Checks whether two images are translationally unique (i.e., they do not match under shifts). Returns `True` if they are unique and `False` if they are not.
 
 - **`get_unique_images(indices, intersection_indices, input_images, vectorb=None)`**  
-  Identifies and returns a list of images that are translationally unique. Also groups similar images together.
+  Identifies and returns a list of images that are translationally unique in a dataset. Also groups similar images together.
 
 #### **2. Vector Calculations**
 - **`get_vectorc_brute(index, matrixA)`**  
-  Computes vector `c` using brute force by calculating dot products of matrix columns.
+  Computes vector `c` using brute force by calculating dot products of matrix columns from Pencorr algorithm.
 
 - **`get_vectorc_model(index, model, input_dataset)`**  
-  Computes vector `c` using model outputs by taking dot products between model-generated embeddings.
+  Computes vector `c` using model outputs by taking dot products between model generated embeddings.
 
 - **`get_vectorb_model(index, model, input_dataset)`**  
   Computes vector `b` based on the normalized cross-correlation (NCC) similarity between images.
 
 #### **3. Similarity Scores and Evaluation**
 - **`get_kscore_and_sets(vectorb, vectorc, k)`**  
-  Computes the k-nearest neighbor score using provided vectors and returns the score along with relevant indices.
+  Computes the k-score using provided vectors and returns the score along with the intersection and union indices.
 
 - **`get_NCC_score(input1, input2)`**  
   Computes the normalized cross-correlation (NCC) score between two input images.
@@ -194,7 +194,8 @@ This module contains various methods used for evaluating models, particularly fo
 
 #### **4. Model Evaluation and Loss Calculation**
 - **`kscore_loss_evaluation(imageset, input_dataset, model, k)`**  
-  Evaluates model performance using k-score and computes loss values based on image similarity.
+  Evaluates model performance using k-score and loss values for each image, comparing across the whole dataset.
+  Plots the median, mean, count and distribution curve per metric
 
 - **`loss_per_ncc_score(ncc_loss_dict)`**  
   Computes and prints the average loss per NCC similarity score interval.
@@ -208,7 +209,7 @@ This module contains various methods used for evaluating models, particularly fo
   Generates vector embeddings for images using a given model.
 
 - **`get_matrix_embeddings(input_dataset, model_vectors)`**  
-  Computes a similarity matrix from model embeddings using dot products.
+  Computes the embedding matrix from vector embeddings using dot products.
 
 - **`get_orthogonal_transformation(model_vectors, matrix)`**  
   Computes an orthogonal transformation to align the model's embedding matrix to a reference matrix using the orthogonal Procrustes problem.

@@ -188,4 +188,6 @@ def get_orthogonal_transformation(model_vectors, matrix):
     model_transformed = embedding_model.squeeze().detach().cpu().numpy().T @ U
     error_model = np.linalg.norm(model_transformed - matrix, 'fro')
     return model_transformed.T, error_model
+
+
     
