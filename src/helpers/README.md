@@ -45,3 +45,7 @@ Unit testing is required for the new Lagrangian Method.
 ## IslandCreator and NumIslands
 
 Helper methods used to generate images.
+
+## ModelUtilities
+
+Contains different model architectures for training and testing
