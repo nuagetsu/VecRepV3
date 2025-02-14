@@ -12,7 +12,7 @@ import src.helpers.FilepathUtils as fputils
 import src.visualization.Metrics as metrics
 from src.data_processing.SampleEstimator import SampleEstimator
 from src.data_processing.SampleTester import SampleTester
-from visualization import GraphEstimates
+from src.visualization import GraphEstimates
 
 logging.basicConfig(
     level=logging.INFO,

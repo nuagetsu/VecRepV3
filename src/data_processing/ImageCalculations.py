@@ -116,7 +116,7 @@ def kscore_loss_evaluation(imageset, input_dataset, model, k):
         vectorc = get_vectorc_model(i, model, input_dataset)
         kscore, _, _ = get_kscore_and_sets(vectorb, vectorc, k)
         kscores.append(kscore)
-        print(f"K-Score for index {i} is {kscore}")
+        # print(f"K-Score for index {i} is {kscore}")
 
         loss = []
 
@@ -140,7 +140,7 @@ def kscore_loss_evaluation(imageset, input_dataset, model, k):
             ncc_loss_dict[interval_key].append(loss_value)
 
         average_loss = sum(loss) / len(loss)  
-        print(f"Average loss for index {i} is {average_loss}")
+        # print(f"Average loss for index {i} is {average_loss}")
         losses.append(average_loss)
     
     return kscores, losses, ncc_loss_dict

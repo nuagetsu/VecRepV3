@@ -25,7 +25,14 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     # Get the kth largest element of the image products array
     kth_element = imageProducts[imgProd_max_index[0]]
     # Get the index of elements with the same value as the kth element
-    kth_element_index = np.where(imageProducts == kth_element)
+    imageProducts = np.atleast_1d(imageProducts)  
+    if imageProducts.shape[0] == 1:  # If it's still essentially a single value
+        if imageProducts == kth_element:
+            kth_element_index = np.array([0])  # Single match at index 0
+        else:
+            kth_element_index = np.array([])   # No match
+    else:
+        kth_element_index = np.where(imageProducts == kth_element)
     # Add the kth elements to the set of k closest neighbours for the image products array
     imgProd_max_index = np.union1d(imgProd_max_index, kth_element_index)
     

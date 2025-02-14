@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from helpers import FilepathUtils
+from src.helpers import FilepathUtils
 from src.data_processing.ImageProducts import get_image_product
 from src.data_processing.Utilities import (generate_image_product_matrix, generate_embedding_matrix,
                                            generate_weighting_matrix)
@@ -72,10 +72,9 @@ class SampleEstimator:
         self.imageProductMatrix = generate_image_product_matrix(self.trainingImageSet, imageProductType,
                                                                 imageProductMatrixFilepath, overwrite=overwrite['imgProd'])
 
-        weightingFilepath = FilepathUtils.get_sample_weighting_filepath(self.sampleDirectory, weight, copy=imageProductType)
         if weight is None or weight == "":
             weight = ""
-
+        weightingFilepath = FilepathUtils.get_sample_weighting_filepath(self.sampleDirectory, weight, copy=imageProductType)
 
         weightMatrix = generate_weighting_matrix(self.imageProductMatrix, self.trainingImageSet, weight, weightingFilepath,
                                                            imageProductMatrixFilepath, overwrite['imgProd'])
