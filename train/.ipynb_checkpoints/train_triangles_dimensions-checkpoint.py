@@ -19,7 +19,7 @@ import numpy as np
 import random
 from functools import partial
 
-import src.data_processing.BruteForceEstimator as bfEstimator
+from src.data_processing.SampleEstimator import SampleEstimator
 import src.visualization.BFmethod as graphing
 import src.visualization.Metrics as metrics
 import src.data_processing.ImageProducts as ImageProducts
@@ -40,18 +40,61 @@ EMBEDDING_TYPES = ["pencorr_D"]
 
 dimensions = 32
 
-imageType = "triangles"
-filters = ["100max_ones"]
+imageType = "shapes_3_dims_6_3"
+filters = ["unique"]
 imageProductType = "ncc_scaled_-1"
 overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 weight = None
 embeddingType = f"pencorr_{dimensions}"
 k=5
+percentage = 0.1
 
-bruteForceEstimator = bfEstimator.BruteForceEstimator(
-    imageType=imageType, filters=filters, imageProductType=imageProductType, embeddingType=embeddingType, overwrite=overwrite)
+sampleName = f"{imageType} {filters} {percentage} sample"
 
+sampleEstimator = SampleEstimator(sampleName=sampleName, embeddingType=embeddingType, imageProductType=imageProductType)
+
+# ----------------------------------Preparing translations---------------------------------
+def find_bounding_box(image):
+    rows, cols = np.where(image > 0)
+    min_row, max_row = rows.min(), rows.max()
+    min_col, max_col = cols.min(), cols.max()
+    return min_row, max_row, min_col, max_col
+
+def generate_all_translations(original_image):
+    h, w = original_image.shape
+    min_row, max_row, min_col, max_col = find_bounding_box(original_image)
+    
+    shape_h, shape_w = max_row - min_row + 1, max_col - min_col + 1
+    
+    # to ensure 3 pixel gap
+    min_shift_x, max_shift_x = 3, w - shape_w - 3
+    min_shift_y, max_shift_y = 3, h - shape_h - 3
+    
+    images = []
+    
+    for shift_y in range(min_shift_y, max_shift_y + 1):
+        for shift_x in range(min_shift_x, max_shift_x + 1):
+            new_image = np.zeros((h, w), dtype=int)
+            
+            for r in range(shape_h):
+                for c in range(shape_w):
+                    if original_image[min_row + r, min_col + c] > 0:
+                        new_image[shift_y + r, shift_x + c] = 1
+            
+            images.append(new_image)
+    
+    return images
 # ----------------------------------Preparing the Dataset----------------------------------
+full_dataset = []
+for i in sampleEstimator.trainingImageSet:
+    full_dataset.append(i)
+    translated_images = generate_all_translations(i)
+    for j in translated_images:
+        full_dataset.append(j)
+        
+print(len(sampleEstimator.trainingImageSet))
+print(len(full_dataset))
+
 class CustomDataset(Dataset):
     def __init__(self, input_data):
         self.data = input_data
@@ -68,9 +111,10 @@ def custom_collate(batch):
     batch_indices = torch.tensor(batch_indices)  
     return batch_data, batch_indices  
 
+
 input_dataset = []
-for i in range(len(bruteForceEstimator.imageSet)):
-    img = np.array(bruteForceEstimator.imageSet[i], dtype=np.float64)
+for i in full_dataset:
+    img = np.array(i, dtype=np.float64)
     img = torch.from_numpy(img)
     img = img.unsqueeze(0).unsqueeze(0).cuda().double()  #1x1xHxW
 
@@ -83,7 +127,7 @@ stacked_images = torch.stack(images)
 stacked_images = stacked_images.cpu().numpy()
 tensor_dataset = [(torch.tensor(img), idx) for img, idx in zip(stacked_images, indices)]
 
-batch_size = 24
+batch_size = 32
 
 dataset = CustomDataset(tensor_dataset)
 print(len(dataset))
@@ -148,7 +192,7 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimension --------------------------
-dimensions = [16, 48, 64, 80, 96, 112, 128]
+dimensions = [32, 64, 128, 192, 256, 384, 512]
 # ----------------------------------Training Loop----------------------------------
 for dimension in dimensions: 
     print(f"Training model in dimension {dimension}")
@@ -160,7 +204,7 @@ for dimension in dimensions:
     
     epochs = 100 
     plot_epoch = epochs
-    patience = 10
+    patience = 5
     best_val_loss = float('inf')
     epochs_no_improve = 0
     
@@ -174,7 +218,6 @@ for dimension in dimensions:
             remaining_indices = list(range(len(batch_data)))
             for idx1, idx2 in combinations(remaining_indices, 2): #16C2
                 data1, data2 = batch_data[idx1], batch_data[idx2]
-                index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()
 
                 img1 = data1.cuda().float()
                 img2 = data2.cuda().float()
@@ -199,7 +242,7 @@ for dimension in dimensions:
             training_loss = loss_per_pair/len_train
             print(f"training_loss in epoch {epoch}: {training_loss}")
             torch.save(model.state_dict(), os.path.join(os.path.abspath("../VecRepV3/model"), 
-                                                        f'best_model_batch_greyscale_8bin_LPS_circular_{dimension}d.pt'))
+                                                        f'best_model_{imageType}_{dimension}d.pt'))
 
             training_loss.backward()
             optimizer.step()
@@ -220,7 +263,6 @@ for dimension in dimensions:
                 remaining_indices = list(range(len(batch_data))) 
                 for idx1, idx2 in combinations(remaining_indices, 2):
                     data1, data2 = batch_data[idx1], batch_data[idx2]
-                    index1, index2 = batch_indices[idx1].item(), batch_indices[idx2].item()  
 
                     img1 = data1.cuda().float()
                     img2 = data2.cuda().float()
@@ -253,7 +295,7 @@ for dimension in dimensions:
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_no_improve = 0
-                #torch.save(model.state_dict(), 'model/best_model_batch_greyscale_mnistSimpleCNN.pt')
+                #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
             else:
                 epochs_no_improve += 1
 
@@ -262,7 +304,7 @@ for dimension in dimensions:
                 print(f"Early stopping at epoch {epoch+1}")
                 plot_epoch = epoch+1
                 break
-            torch.save(model.state_dict(), f'model/best_model_batch_greyscale_8bin_LPS_circular_{dimension}d.pt')
+            torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
             print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
 
     # ----------------------------------Plots----------------------------------
@@ -273,7 +315,7 @@ for dimension in dimensions:
     plt.ylabel("Loss")
     plt.title("Training and Validation Loss")
     plt.legend()
-    plt.savefig(f"model/loss_batch_greyscale_8bin_LPS_circular_{dimension}d.png")    
+    plt.savefig(f"model/loss_{imageType}_{dimension}d.png")    
 
 
 

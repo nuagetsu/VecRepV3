@@ -393,3 +393,4 @@ def add_permutations(permutations: set, comb_tuple: tuple, size: int):
             comb_tuple_down = shift_down(comb_tuple_down, size)
         comb_tuple = shift_right(comb_tuple, size)
     return permutations
+
