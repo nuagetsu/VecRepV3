@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 @profile
-def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, overwrite=False) -> NDArray:
+def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFilepath: str, max_images = None, overwrite=False) -> NDArray:
     """
     :param imageSetFilepath: Place where the image set was previously saved, or the place where the new image set should be saved
     :param overwrite: If true, generates and saves the filtered image set even if it is saved
@@ -31,7 +31,7 @@ def generate_filtered_image_set(imageType: str, filters: List[str], imageSetFile
     """
     if not os.path.isfile(imageSetFilepath) or overwrite:
         logging.info("Image set not found/overwrite, generating filtered image set...")
-        filteredImageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters)
+        filteredImageSet = ImageGenerators.get_image_set(imageType=imageType, filters=filters, max_images=max_images)
 
         # Creating the directory and saving the image set
         Path(imageSetFilepath).parent.mkdir(parents=True, exist_ok=True)

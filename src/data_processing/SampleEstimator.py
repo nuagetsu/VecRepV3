@@ -27,7 +27,7 @@ class SampleEstimator:
     If so, it will simply load the files, if not it will generate them as required
     """
 
-    def __init__(self, *, sampleName: str, trainingImageSet=None, embeddingType: str,
+    def __init__(self, *, sampleName: str, trainingImageSet=None, embeddingType: str, max_images = None,
                  imageProductType: str, overwrite=None, parentImageSet="uncategorized", weight=None):
         """
         :param sampleName: Name of the sample (must be unique for each sample)
@@ -45,6 +45,7 @@ class SampleEstimator:
         self.imageProductType = imageProductType
         self.sampleDirectory = FilepathUtils.get_sample_directory(self.sampleName, category=parentImageSet)
         self.embeddingType = embeddingType
+        self.max_images = max_images
         self.imageProduct = get_image_product(imageProductType)
 
         # Loading/saving sample image set based on if the file exists

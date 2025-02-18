@@ -8,10 +8,11 @@ from src.data_processing.TestableEstimator import TestableEstimator
 
 class BruteForceEstimator(TestableEstimator):
     @profile
-    def __init__(self, *, imageType: str, filters: List[str], imageProductType: str, embeddingType: str,
+    def __init__(self, *, imageType: str, filters: List[str], imageProductType: str, embeddingType: str, max_images = None,
                  weightType=None, overwrite=None, weightMatrix=None):
         self.imageType = imageType
         self.filters = filters
+        self.max_images = max_images
         if overwrite is None:
             overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
         if weightType is None:
@@ -26,7 +27,7 @@ class BruteForceEstimator(TestableEstimator):
                                                                        copy=imageProductType)
 
         # Generating image set and matrix G, G' and A
-        imageSet = utils.generate_filtered_image_set(imageType, filters, imageFilepath, overwrite['imgSet'])
+        imageSet = utils.generate_filtered_image_set(imageType, filters, imageFilepath, max_images, overwrite['imgSet'])
         matrixG = utils.generate_image_product_matrix(imageSet, imageProductType, self.imgProductFilepath,
                                                       overwrite['imgProd'])
         if weightMatrix is None:
