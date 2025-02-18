@@ -111,7 +111,7 @@ def get_sample_embedding_matrix_filepath(embeddingType, sampleDirectory: str, we
     return os.path.join(sampleDirectory, embeddingType, weight, "sample_embeddings")
 
 
-def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy=""):
+def get_sample_weighting_filepath(sampleDirectory: str, weightingType: str, copy="") -> str:
     """
     :param sampleDirectory: Directory/filepath of sample
     :param weightingType: Weighting matrix type

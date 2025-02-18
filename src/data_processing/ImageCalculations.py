@@ -7,6 +7,7 @@ from scipy.linalg import orthogonal_procrustes
 import src.data_processing.ImageProducts as ImageProducts
 import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
+from src.data_processing import EmbeddingFunctions
 
 
 def check_translationally_unique(img1: np.ndarray, img2: np.ndarray) -> bool:
@@ -101,7 +102,7 @@ def get_loss_value(dot_product_value, NCC_scaled_value):
     loss_value = models.loss_fn_frobenius(dot_product_value, NCC_scaled_value)
     return loss_value.item()
 
-def kscore_loss_evaluation(imageset, input_dataset, model, k):
+def kscore_loss_evaluation_model(imageset, input_dataset, model, k):
     kscores=[]
     losses=[]
     ncc_intervals = [round(i * 0.1, 1) for i in range(-10, 10)]  # [-1.0, -0.9, ..., 0.9]
@@ -140,6 +141,50 @@ def kscore_loss_evaluation(imageset, input_dataset, model, k):
             ncc_loss_dict[interval_key].append(loss_value)
 
         average_loss = sum(loss) / len(loss)  
+
+        #print(f"Average loss for index {i} is {average_loss}")
+        losses.append(average_loss)
+    
+    return kscores, losses, ncc_loss_dict
+
+def kscore_loss_evaluation_brute(imageset, matrixA, matrixG, k):
+    kscores=[]
+    losses=[]
+    ncc_intervals = [round(i * 0.1, 1) for i in range(-10, 10)]  # [-1.0, -0.9, ..., 0.9]
+    ncc_loss_dict = {
+        f"{lower:.1f}-{lower + 0.1:.1f}": [] 
+        for lower in ncc_intervals
+    }
+
+    epsilon = 1e-8
+    for i in range(len(imageset)):
+        vectorb = matrixG[i]
+        vectorc = get_vectorc_brute(i, matrixA)
+        kscore, _, _ = get_kscore_and_sets(vectorb, vectorc, k)
+        kscores.append(kscore)
+        #print(f"K-Score for index {i} is {kscore}")
+
+        loss = []
+
+        for j in range(len(imageset)):
+            NCC_scaled_value =get_NCC_score(imageset[i], imageset[j])
+            dot_product_value = np.dot(matrixA[:, i], matrixA[:, j])
+            loss_value = get_loss_value(torch.tensor(dot_product_value), NCC_scaled_value) 
+            loss.append(loss_value)
+
+            lower_bound = math.floor(NCC_scaled_value * 10) / 10
+
+            # Handle edge case for values
+            if NCC_scaled_value < -1.0:
+                lower_bound = -1.0
+            elif lower_bound > 0.9 or NCC_scaled_value == 1.0:
+                lower_bound = 0.9
+            interval_key = f"{lower_bound:.1f}-{lower_bound + 0.1:.1f}"
+
+            ncc_loss_dict[interval_key].append(loss_value)
+
+        average_loss = sum(loss) / len(loss)  
+
         #print(f"Average loss for index {i} is {average_loss}")
         losses.append(average_loss)
     
@@ -148,8 +193,7 @@ def kscore_loss_evaluation(imageset, input_dataset, model, k):
 def loss_per_ncc_score(ncc_loss_dict):
     average_loss_per_interval = {
         interval: sum(values)/len(values) if values else 0
-        for interval, values in ncc_loss_dict.items()
-    }
+        for interval, values in ncc_loss_dict.items()}
 
     print("\nNCC Interval\t\tAverage Loss")
     for interval in sorted(ncc_loss_dict.keys()):
@@ -190,4 +234,12 @@ def get_orthogonal_transformation(model_vectors, matrix):
     return model_transformed.T, error_model
 
 
-    
+def get_matrixG(imageSet, imageProductType):
+    imageProduct = ImageProducts.get_image_product(imageProductType)
+    imageProductMatrix = ImageProducts.calculate_image_product_matrix(imageSet, imageProduct)
+    return imageProductMatrix
+
+def get_matrixA(imageProductMatrix, embeddingType, weight):
+    embeddingMatrix = EmbeddingFunctions.get_embedding_matrix(imageProductMatrix, embeddingType,
+                                                                  weightMatrix=weight)
+    return embeddingMatrix

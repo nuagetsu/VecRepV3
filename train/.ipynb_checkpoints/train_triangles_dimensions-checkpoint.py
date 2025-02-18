@@ -202,9 +202,9 @@ for dimension in dimensions:
     model = SimpleCNN(dimensions=dimension, padding_mode='circular').to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     
-    epochs = 100 
+    epochs = 3
     plot_epoch = epochs
-    patience = 5
+    patience = 2
     best_val_loss = float('inf')
     epochs_no_improve = 0
     
@@ -241,8 +241,6 @@ for dimension in dimensions:
 
             training_loss = loss_per_pair/len_train
             print(f"training_loss in epoch {epoch}: {training_loss}")
-            torch.save(model.state_dict(), os.path.join(os.path.abspath("../VecRepV3/model"), 
-                                                        f'best_model_{imageType}_{dimension}d.pt'))
 
             training_loss.backward()
             optimizer.step()
@@ -295,7 +293,7 @@ for dimension in dimensions:
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_no_improve = 0
-                #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
+                torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_1.pt')
             else:
                 epochs_no_improve += 1
 
@@ -304,7 +302,7 @@ for dimension in dimensions:
                 print(f"Early stopping at epoch {epoch+1}")
                 plot_epoch = epoch+1
                 break
-            torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
+            #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
             print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
 
     # ----------------------------------Plots----------------------------------
@@ -315,7 +313,7 @@ for dimension in dimensions:
     plt.ylabel("Loss")
     plt.title("Training and Validation Loss")
     plt.legend()
-    plt.savefig(f"model/loss_{imageType}_{dimension}d.png")    
+    plt.savefig(f"model/loss_{imageType}_{dimension}d_1.png")    
 
 
 

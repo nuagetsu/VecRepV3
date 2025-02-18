@@ -228,6 +228,86 @@ def get_shapes_set(size: int, sides: int, border_size: int, filters=None):
 
     return image_set
 
+def get_shapes_set(size: int, sides: int, border_size: int, num_images=float('inf'), filters=None):
+    """
+    Generates a set of shapes, either a fixed number or all permutations.
+
+    :param size: Size of shapes.
+    :param sides: Number of sides of shapes.
+    :param border_size: Size of the border.
+    :param num_images: Number of images to generate (set to float('inf') for all possible permutations).
+    :param filters: Filters to apply.
+    :return: A set of generated shape images.
+    """
+    if filters is None:
+        filters = []
+    
+    unique = "unique" in filters
+    filter_copy = filters.copy()
+    all_permutations = set()
+    image_set = []
+    
+    indexes = list(range(size ** 2))
+    count = 0
+    
+    # If generating all possible permutations
+    if num_images == float('inf'):
+        iterator = itertools.permutations(indexes, sides)
+    else:
+        iterator = iter(lambda: random.sample(indexes, sides), None) 
+
+    for comb in iterator:
+        if count >= num_images:
+            break  
+
+        if unique and tuple(comb) in all_permutations:
+            continue
+        
+        image = np.zeros((size, size), dtype=int)
+        r = [index // size for index in comb]
+        c = [index % size for index in comb]
+
+        # Check for straight lines
+        points = list(zip(r, c))
+        collinear = any(
+            (coords[1][1] - coords[0][1]) * (coords[2][0] - coords[1][0]) ==
+            (coords[2][1] - coords[1][1]) * (coords[1][0] - coords[0][0])
+            for coords in itertools.combinations(points, 3)
+        )
+        if collinear:
+            continue
+
+        # Check for intersecting lines within shape
+        if sides > 3:
+            intersect = False
+            lines = [(points[i], points[(i + 1) % sides]) for i in range(sides)]
+            for pair in itertools.combinations(lines, 2):
+                if is_intersecting(pair[0][0], pair[0][1], pair[1][0], pair[1][1]):
+                    intersect = True
+                    break
+            if intersect:
+                continue
+
+        # Create shape
+        rr, cc = polygon(r, c)
+        image[rr, cc] = 1
+        image = np.pad(image, (border_size, border_size), constant_values=(0, 0))
+        image_set.append(image)
+
+        # Accounts for all translationally unique combinations if required
+        if unique:
+            all_permutations = add_permutations(all_permutations, comb, size)
+        
+        count += 1  # Increment counter
+
+    if unique:
+        filter_copy.remove("unique")
+
+    image_set = np.array(image_set)
+    image_set = np.unique(image_set, axis=0)
+    image_set = get_filtered_image_sets(imageSet=image_set, filters=filter_copy)
+
+    return image_set
 
 def cross_test(p1, p2, p3):
     """
