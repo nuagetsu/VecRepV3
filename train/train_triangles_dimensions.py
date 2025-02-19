@@ -202,7 +202,7 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimension --------------------------
-dimensions = [32, 64, 128, 192, 256, 384, 512]
+dimensions = [16, 32, 48, 64, 80, 96, 109, 128, 144, 160]
 # ----------------------------------Training Loop----------------------------------
 for dimension in dimensions: 
     print(f"Training model in dimension {dimension}")
@@ -212,9 +212,9 @@ for dimension in dimensions:
     model = SimpleCNN(dimensions=dimension, padding_mode='circular').to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     
-    epochs = 3
+    epochs = 15
     plot_epoch = epochs
-    patience = 2
+    patience = 5
     best_val_loss = float('inf')
     epochs_no_improve = 0
     
@@ -303,7 +303,7 @@ for dimension in dimensions:
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_no_improve = 0
-                torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_1.pt')
+                torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_2.pt')
             else:
                 epochs_no_improve += 1
 
@@ -323,7 +323,7 @@ for dimension in dimensions:
     plt.ylabel("Loss")
     plt.title("Training and Validation Loss")
     plt.legend()
-    plt.savefig(f"model/loss_{imageType}_{dimension}d_1.png")    
+    plt.savefig(f"model/loss_{imageType}_{dimension}d_2.png")    
 
 
     with open("model/output.txt", "a") as file:
