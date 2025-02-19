@@ -16,7 +16,6 @@ from src.matlab_functions.Pencorr import PenCorr
 class NonPositiveSemidefiniteError(Exception):
     pass
 
-#!DEBIAN_FRONTEND=noninteractive apt-get install -y octave
 def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix

@@ -29,6 +29,16 @@ from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
 
+# ---------------------------------- Seed --------------------------------------
+def set_seed(seed=42):
+    random.seed(seed)  
+    np.random.seed(seed)  
+    torch.manual_seed(seed) 
+    torch.cuda.manual_seed_all(seed)  
+    torch.backends.cudnn.deterministic = True  
+    torch.backends.cudnn.benchmark = False  
+
+set_seed(42)
 # ----------------------------------Input Images----------------------------------
 IMAGE_TYPES = ["NbinMmax_ones", "Nbin", "triangles", "triangle_mean_subtracted"]
 
@@ -47,7 +57,7 @@ overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
 weight = None
 embeddingType = f"pencorr_{dimensions}"
 k=5
-percentage = 0.1
+percentage = 0.41
 
 sampleName = f"{imageType} {filters} {percentage} sample"
 
@@ -289,7 +299,7 @@ for dimension in dimensions:
 
             avg_val_loss = total_loss_validation / (len(test_dataloader))
             val_loss_history.append(avg_val_loss)
-
+            
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_no_improve = 0
@@ -316,4 +326,8 @@ for dimension in dimensions:
     plt.savefig(f"model/loss_{imageType}_{dimension}d_1.png")    
 
 
-
+    with open("model/output.txt", "a") as file:
+        file.write(f"best_model_{imageType}_{dimension}d\n")
+        for item in val_loss_history:
+            file.write(f"{item}\n")
+    

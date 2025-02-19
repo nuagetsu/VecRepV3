@@ -16,7 +16,6 @@ from src.matlab_functions.Pencorr import PenCorr
 class NonPositiveSemidefiniteError(Exception):
     pass
 
-#!DEBIAN_FRONTEND=noninteractive apt-get install -y octave
 def pencorr(matrixG: NDArray, nDim: int) -> NDArray:
     """
     :param matrixG: Symmetric square matrix
@@ -231,7 +230,6 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     # Slices the diagonal matrix to remove smaller eigenvalues
     
     # Minimizing the squared error of G and dot product to obtain the matrix A
-    # SC4000 Lecture 12 PCA
     Drootm = Droot[:nDim, :]
     
     matrixA = np.matmul(Drootm, eigenvectors.T)
