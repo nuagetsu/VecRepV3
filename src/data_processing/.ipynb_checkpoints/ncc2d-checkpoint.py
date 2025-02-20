@@ -10,7 +10,10 @@ Observations
 3. Getting the center template original image to match with the padded image results in different value
 4. Similarly, removing the circularly padded main image in our method of NCC calculation leads to different value
 
+Modification: 
+1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match cv2 matchtemplate NCC calculation 
 
+However this results in very small deviation of NCC value from CV2 method, which should be fine since both ultimately uses very different method
 '''
 
 import sys
@@ -95,7 +98,6 @@ def complex_ccor(A2, gc, gg, kernel, IFTpg,
     gcq = gc[Q2-1,Q1-1]
     ggq = gg[Q2-1,Q1-1]
 
-    ############### MODIFIED NUMERATOR AND DENOMINATOR CALCULATION TO NORMALIZED BY TEMPLATE AREA ##########################
     numerator = real(fgc - (conj(fc) * gcq) / (M1 * M2)) 
 
     denominator_term1 = ff - (square(abs(fc)) / (M1 * M2))
