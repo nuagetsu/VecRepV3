@@ -57,6 +57,37 @@ def get_unique_images(indices, intersection_indices, input_images, vectorb=None)
     unique_intersection_indices_sorted = sorted(list(unique_intersection_indices)) 
     return similar_groups, unique_indices_sorted, unique_intersection_indices_sorted
 
+def find_bounding_box(image):
+    rows, cols = np.where(image > 0)
+    min_row, max_row = rows.min(), rows.max()
+    min_col, max_col = cols.min(), cols.max()
+    return min_row, max_row, min_col, max_col
+
+def generate_all_translations(original_image):
+    h, w = original_image.shape
+    min_row, max_row, min_col, max_col = find_bounding_box(original_image)
+    
+    shape_h, shape_w = max_row - min_row + 1, max_col - min_col + 1
+    
+    # to ensure 3 pixel gap
+    min_shift_x, max_shift_x = 3, w - shape_w - 3
+    min_shift_y, max_shift_y = 3, h - shape_h - 3
+    
+    images = []
+    
+    for shift_y in range(min_shift_y, max_shift_y + 1):
+        for shift_x in range(min_shift_x, max_shift_x + 1):
+            new_image = np.zeros((h, w), dtype=int)
+            
+            for r in range(shape_h):
+                for c in range(shape_w):
+                    if original_image[min_row + r, min_col + c] > 0:
+                        new_image[shift_y + r, shift_x + c] = 1
+            
+            images.append(new_image)
+    
+    return images
+
 def get_vectorc_brute(index, matrixA):
     """Compute vector c using brute force method (dot products of matrixA columns)."""
     return [np.dot(matrixA[:, j], matrixA[:, index]) for j in range(matrixA.shape[1])]
@@ -101,6 +132,41 @@ def get_loss_value(dot_product_value, NCC_scaled_value):
 
     loss_value = models.loss_fn_frobenius(dot_product_value, NCC_scaled_value)
     return loss_value.item()
+
+def get_top_scores(vectorb, vectorc, indices):
+    top_values_b = []
+    top_values_c = []
+    
+    for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
+        top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:len(indices)]
+        if vec_name == "b":
+            top_values_b = top_values
+        elif vec_name == "c":
+            top_values_c = top_values
+        print(f"\nTop {len(indices)} values of Vector {vec_name}")
+        for rank, (i, val) in enumerate(top_values, 1):
+            print(f"Rank {rank}: Value = {val}, Index = {i}")
+
+    return top_values_b, top_values_c  
+
+def get_bottom_scores(vectorb, vectorc, indices):
+    bottom_values_b = []
+    bottom_values_c = []
+    
+    for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
+        bottom_values = sorted(enumerate(vec), key=lambda x: x[1])[:len(indices)]
+        
+        if vec_name == "b":
+            bottom_values_b = bottom_values
+        elif vec_name == "c":
+            bottom_values_c = bottom_values
+
+        print(f"\nBottom {len(indices)} values of Vector {vec_name}")
+        for rank, (i, val) in enumerate(bottom_values, 1):
+            print(f"Rank {rank}: Value = {val}, Index = {i}")
+
+    return bottom_values_b, bottom_values_c 
+
 
 def kscore_loss_evaluation_model(imageset, input_dataset, model, k):
     kscores=[]

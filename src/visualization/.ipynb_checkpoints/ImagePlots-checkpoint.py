@@ -97,12 +97,6 @@ def display_and_plot_results(vectorb, vectorc, method_name, index, k, input_imag
     print(f"Estimating K-Score for Image {index}: K-Score = {kscore}")
     print(f"Intersection sets : {intersection_indices}")
     print(f"Union sets: {indices}")
-    
-    for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
-        top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:len(indices)]
-        print(f"\nTop {len(indices)} values of Vector {vec_name}")
-        for rank, (i, val) in enumerate(top_values, 1):
-            print(f"Rank {rank}: Value = {val}, Index = {i}")
             
     indices = list(indices)   
     sorted_indices = sorted([i for i in indices if i != index])
@@ -118,6 +112,8 @@ def display_and_plot_results(vectorb, vectorc, method_name, index, k, input_imag
     print("\nComparing images in intersection & union sets")
     print_images(indices, intersection_indices, input_images)
     plot_unique_images(vectorb, indices, intersection_indices, input_images)
+    
+    return intersection_indices, indices
     
 def plot_score_distribution(scores, score_name):
     mean_score = np.mean(scores)

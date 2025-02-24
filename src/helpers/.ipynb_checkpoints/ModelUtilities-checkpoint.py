@@ -25,8 +25,71 @@ def loss_fn_frobenius(A, G):
 def loss_fn_MSE(A,G):
     return F.mse_loss(A, G)
 
-class SimpleCNN(nn.Module):
-    def __init__(self, dimensions=32, padding_mode='circular'):
+class SimpleCNN1(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular'):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.lpd = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)
+
+        self.bn1   = nn.BatchNorm2d(32)
+        self.relu = nn.LeakyReLU(0.1)
+             
+        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
+        self.fc=nn.Linear(32, dimensions)
+        
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        
+        x = self.lpd(x)  # Use just as any down-sampling layer!
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+    
+class SimpleCNN2(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular'):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.lpd = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=64,h_ch=64)
+
+        self.bn1   = nn.BatchNorm2d(32)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2   = nn.BatchNorm2d(64)
+             
+        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
+        self.fc=nn.Linear(64, dimensions)
+        
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        
+        x = self.lpd(x)  # Use just as any down-sampling layer!
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+    
+class SimpleCNN3(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular'):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
         self.lpd = set_pool(partial(
@@ -44,8 +107,7 @@ class SimpleCNN(nn.Module):
         
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
         self.bn3   = nn.BatchNorm2d(128)
-        
-        
+             
         self.avgpool=nn.AdaptiveAvgPool2d((1,1))
         self.fc=nn.Linear(128, dimensions)
         
@@ -67,56 +129,6 @@ class SimpleCNN(nn.Module):
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)
         return x
-
-class CNN(nn.Module):
-    def __init__(self, dimensions=128, padding_mode='circular'):
-        super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
-        self.lpd = set_pool(partial(
-            PolyphaseInvariantDown2D,
-            component_selection=LPS,
-            get_logits=get_logits_model('LPSLogitLayers'),
-            pass_extras=False
-            ),p_ch=256,h_ch=256)
-
-        self.bn1   = nn.BatchNorm2d(32)
-        self.relu = nn.LeakyReLU(0.1)
-        
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2   = nn.BatchNorm2d(64)
-
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn3   = nn.BatchNorm2d(128)
-        
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn4   = nn.BatchNorm2d(256)
-        
-        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
-        self.fc=nn.Linear(256, dimensions)
-        
-    def forward(self,x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
-        
-        x = self.conv3(x)
-        x = self.bn3(x)
-        x = self.relu(x)
-        
-        x = self.conv4(x)
-        x = self.bn4(x)
-        x = self.relu(x)
-        
-        x = self.lpd(x)  # Use just as any down-sampling layer!
-        x = torch.flatten(self.avgpool(x),1)
-        x = self.fc(x)
-        x = F.normalize(x, p=2, dim=1)
-        return x
-    
     
 class ComplexCNN(nn.Module):
     def __init__(self, dimensions=128, padding_mode='circular'):

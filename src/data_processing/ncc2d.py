@@ -13,7 +13,7 @@ Observations
 Modification: 
 1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match cv2 matchtemplate NCC calculation 
 
-However this results in very small deviation of NCC value from CV2 method, which should be fine since both ultimately uses very different method
+However this results in very small deviation of NCC value from CV2 method, which should be fine since both ultimately uses very different method especially since FFT throws away some random coefficients
 '''
 
 import sys
