@@ -12,8 +12,9 @@ Observations
 
 Modification: 
 1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match cv2 matchtemplate NCC calculation 
+2. Changed the way of calculating f*g hat for easier understanding with proof of its similarity.
 
-However this results in very small deviation of NCC value from CV2 method, which should be fine since both ultimately uses very different method especially since FFT throws away some random coefficients
+Overall this results in very small deviation of NCC value from CV2 method, which should be fine
 '''
 
 import sys
@@ -61,42 +62,46 @@ def find_max(A):
     minimum = A[j1,j2]
     return maximum, minimum, i1+1, i2+1
 
+#obtain variables for template image 1 A1, function g
 def template_functions(A1, kernel, N1, Q1, M1, P1, N2, Q2, M2, P2):
-    fft_A1 = fft2(A1)
+    fft_A1 = fft2(A1) #obtain beta which is in frequency domain from its data point A1
     squ_A1 = square(abs(A1))
-    fft_squ_A1 = fft2(squ_A1)
-    
+    fft_squ_A1 = fft2(squ_A1) #obtain g hat square from its data point A1
+    #===?
     pg = zeros((N2,N1),dtype=int8)
-    pg[0:M2,0:M1] = A1[Q2-1:Q2+M2-1,Q1-1:Q1+M1-1]
     
-    IFTpg = ifft2(pg)*((N1*N2)/(M1*M2))
+    pg[0:M2,0:M1] = A1[Q2-1:Q2+M2-1,Q1-1:Q1+M1-1] #obtain the template window but zero padded
+
+    FTpg = fft2(pg) #inverse FFT of zero padded template image for h 
     
-    tmp = ifft2(mult(fft_A1,kernel))
-    gc = tmp[0:P2,0:P1]
+    tmp = ifft2(mult(fft_A1,kernel)) #multiply fft of A1 data points with kernel then inverse FFT 
+    gc = tmp[0:P2,0:P1] #g bar
     
-    tmp = ifft2(mult(fft_squ_A1,kernel))
-    gg = real(tmp[0:P2,0:P1])
+    tmp = ifft2(mult(fft_squ_A1,kernel)) #multiply fft of absolute squared data point of A1 with kernel then inverse FFT
+    gg = real(tmp[0:P2,0:P1]) #g bar squared
     
-    return gc, gg, IFTpg
+    return gc, gg, FTpg
 
 ##############################################################
-def complex_ccor(A2, gc, gg, kernel, IFTpg,
+
+#obtain variables for main image 2 A2, function f
+def complex_ccor(A2, gc, gg, kernel, FTpg,
                  N1, Q1, M1, P1, N2, Q2, M2, P2):
-    fft_A2 = fft2(A2)
+    fft_A2 = fft2(A2) #obtain f hat which is in frequency domain from its data point A2
     squ_A2 = square(abs(A2))
-    fft_squ_A2 = fft2(squ_A2)
+    fft_squ_A2 = fft2(squ_A2) #obtain f hat square from its data point A2
     
-    tmp = ifft2(mult(fft_A2,kernel))
-    fc = tmp[0:P2,0:P1]
+    tmp = ifft2(mult(fft_A2,kernel)) 
+    fc = tmp[0:P2,0:P1] #f hat
     
     tmp = ifft2(mult(kernel,fft_squ_A2))
-    ff = real(tmp[0:P2,0:P1])
+    ff = real(tmp[0:P2,0:P1]) #f hat squared
+
+    tmp = ((fft2(mult(conj(fft_A2),FTpg))/(N1*M1))/ (N2*M2))
+    fgc = tmp[0:P2,0:P1] 
     
-    tmp = ifft2(mult(fft_A2,IFTpg))
-    fgc = tmp[0:P2,0:P1]
-    
-    gcq = gc[Q2-1,Q1-1]
-    ggq = gg[Q2-1,Q1-1]
+    gcq = gc[Q2-1,Q1-1] #g bar
+    ggq = gg[Q2-1,Q1-1] #g bar squared
 
     numerator = real(fgc - (conj(fc) * gcq) / (M1 * M2)) 
 
@@ -117,12 +122,12 @@ if __name__ == '__main__':
 
     # =========================our ncc method
     value = get_NCC_score(A1,A2)   
-    print(value)   
+    print("our ncc: ", value)   
 
     original_dim = len(A1) #12
     # ====================== pure ncc comparison between 2 image
     ncc_result = normalized_cross_correlation(A1, A2)
-    print(ncc_result)
+    print("pure: ", ncc_result)
     
     # Padding the main image with wrapped values to simulate wrapping
     A1 = np.pad(A1, max(len(A1), len(A1[0])), 'wrap')
@@ -130,8 +135,8 @@ if __name__ == '__main__':
     width = len(A2) 
 
     # 1 based indexing
-    tx1 = 1 + original_dim 
-    tx2 = 1 + original_dim + original_dim 
+    tx1 = 1 + original_dim #13
+    tx2 = 1 + original_dim + original_dim  #25
     
     ty1 = 1 + original_dim 
     ty2 = 1 + original_dim + original_dim
@@ -139,38 +144,39 @@ if __name__ == '__main__':
     n1 = width #36
     n2 = width  
 
-    q1 = tx1  
-    m1 = tx2 - tx1 + 1  
-    p1 = n1-m1+1  
-    
-    q2 = ty1  
+    q1 = tx1  #start index on x axis of template 
+    m1 = tx2 - tx1 + 1  # length of template 13
+    print(m1)
+    p1 = n1-m1+1  # total length of surroundings around template #24
+    print(p1)
+    q2 = ty1  #start index on y axis of template 
     m2 = ty2 - ty1 + 1  
     p2 = n2-m2+1  
     
     k1 = arange(1,n1)
-    kernel1 = (1.0/m1)*((exp(1j*2*pi*m1*k1/n1) - 1)/(exp(1j*2*pi*k1/n1) - 1))
+    kernel1 = (1.0/m1)*((exp(1j*2*pi*m1*k1/n1) - 1)/(exp(1j*2*pi*k1/n1) - 1)) #gamma k
     kernel1 = cat(([1+1j*0.0], kernel1))
     
     k2 = arange(1,n2)
-    kernel2 = (1.0/m2)*((exp(1j*2*pi*m2*k2/n2) - 1)/(exp(1j*2*pi*k2/n2) - 1))
+    kernel2 = (1.0/m2)*((exp(1j*2*pi*m2*k2/n2) - 1)/(exp(1j*2*pi*k2/n2) - 1)) #gamma k'
     kernel2 = cat(([1+1j*0.0], kernel2))
     
     kernel = zeros((n2,n1),dtype=cmplx)
     for i1 in range(n1):
         for i2 in range(n2):
-            kernel[i1][i2] = kernel2[i1]*kernel1[i2]  
+            kernel[i1][i2] = kernel2[i1]*kernel1[i2]   #gamma k, k'
     
-    gc, gg, IFTpg = \
+    gc, gg, FTpg = \
     template_functions(A1, kernel, n1, q1, m1, p1, n2, q2, m2, p2)
     
     cc = \
-    complex_ccor(A2, gc, gg, kernel, IFTpg,
+    complex_ccor(A2, gc, gg, kernel, FTpg,
                  n1, q1, m1, p1, n2, q2, m2, p2)
     
     cc_max, cc_min, i2, i1 = find_max(cc)
 
     cc_max = cc_max*2 -1
-    print(cc_max, i1, i2)
+    print("FFT NCC: ", cc_max, i1, i2)
 
     # plt.figure(figsize=(10, 5))
     # plt.subplot(1, 2, 1)
