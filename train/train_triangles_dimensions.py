@@ -224,7 +224,7 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [5, 10, 20, 30, 40, 64, 128, 256]
+dimensions = [30, 40, 64, 128, 256]
 
 models = [SimpleCNN2, SimpleCNN3]
 # ---------------------------------- Training Loop ----------------------------------
@@ -238,9 +238,9 @@ for i, model_class in enumerate(models):
         
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-        epochs = 50
+        epochs = 10
         plot_epoch = epochs
-        patience = 3
+        patience = 2
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
