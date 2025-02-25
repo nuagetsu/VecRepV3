@@ -1,5 +1,6 @@
 '''
-This FFT calculation includes calculation of NCC With Mean Subtraction, making it slightly different to how cv2.matchTemplate() uses TM_CCORR_NORMED.
+This FFT calculation includes calculation of NCC With Mean Subtraction (the standard NCC calculation), making it slightly different to how cv2.matchTemplate() uses TM_CCORR_NORMED.
+This FFT calculation is unable to take input images of different dimensions yet, similar to the standard NCC calculation. Hope to implement this in future work.
 For same exact calculation as cv2.matchTemplate() uses TM_CCORR_NORMED, refer to 'ncc2d_cv2.py'
 
 Modification: 
