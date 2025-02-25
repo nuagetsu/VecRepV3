@@ -1,11 +1,11 @@
 '''
-This FFT calculation includes calculation of NCC With Mean Subtraction, making it slightly different to how cv2.matchTemplate() uses TM_CCORR_NORMED.
-For same exact calculation as cv2.matchTemplate() uses TM_CCORR_NORMED, refer to 'ncc2d_cv2.py'
+This FFT calculation includes calculation of NCC Without Mean Subtraction, making it exactly similar to how cv2.matchTemplate() uses TM_CCORR_NORMED.
+For a more standard NCC calculation that uses Mean Subtraction, refer to 'ncc2d.py'
 
 Modification: 
-1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match similarly cv2 matchtemplate NCC calculation 
+1. Removed the calculation of mean intensity. 
 
-Overall this results in very small deviation of NCC value from CV2 method, which should be fine. For proof, please refer to README.
+Overall this results in an even smaller deviation of NCC value from CV2 method. For proof, please refer to README.
 '''
 
 import sys
@@ -83,10 +83,10 @@ def complex_ccor(A2, gc, gg, kernel, FTpg,
     gcq = gc[Q2-1,Q1-1] #g bar
     ggq = gg[Q2-1,Q1-1] #g bar squared
 
-    numerator = real(fgc - (conj(fc) * gcq) / (M1 * M2)) 
+    numerator = real(fgc) 
 
-    denominator_term1 = ff - (square(abs(fc)) / (M1 * M2))
-    denominator_term2 = ggq - (square(abs(gcq)) / (M1 * M2))
+    denominator_term1 = ff 
+    denominator_term2 = ggq
     denominator = sqrt(denominator_term1 * denominator_term2)
 
     denominator[denominator <= 0] = 1e14 #tolerance

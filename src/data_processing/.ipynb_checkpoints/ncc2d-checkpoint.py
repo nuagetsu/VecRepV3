@@ -1,20 +1,11 @@
 '''
-In CV2 Template matching, input images do not have to be of the same size. 
-However in FFT NCC calculation, the input images have to be of the same sizes since the cross-correlation used here is operated in the frequency domain, 
-where element wise multiplication is performed for the compelx-valued matrices, and produces the same matrices of the same dimension.
-
-Observations
-1. The simple NCC calculation method returns the same value as FFT NCC calculations, but not with our method of NCC calculation
-    - This is because our method of NCC calculation circularly pads the main image (image 1), but not the template image (image 2)
-2. Circularly padding both images and using FFT NCC calculations on the whole image results in same value but
-3. Getting the center template original image to match with the padded image results in different value
-4. Similarly, removing the circularly padded main image in our method of NCC calculation leads to different value
+This FFT calculation includes calculation of NCC With Mean Subtraction, making it slightly different to how cv2.matchTemplate() uses TM_CCORR_NORMED.
+For same exact calculation as cv2.matchTemplate() uses TM_CCORR_NORMED, refer to 'ncc2d_cv2.py'
 
 Modification: 
-1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match cv2 matchtemplate NCC calculation 
-2. Changed the way of calculating f*g hat for easier understanding with proof of its similarity.
+1. Added division by template area (M1 * M2) to account for local mean subtraction and to correctly scale variance terms to match similarly cv2 matchtemplate NCC calculation 
 
-Overall this results in very small deviation of NCC value from CV2 method, which should be fine
+Overall this results in very small deviation of NCC value from CV2 method, which should be fine. For proof, please refer to README.
 '''
 
 import sys
@@ -39,17 +30,6 @@ import matplotlib.pyplot as plt
 import cv2
 from  src.data_processing import ImageProducts 
 ############################# For testing ##############################
-def normalized_cross_correlation(img1, img2):
-    mean1, std1 = cv2.meanStdDev(img1)
-    mean2, std2 = cv2.meanStdDev(img2)
-
-    img1_norm = (img1 - mean1) / std1
-    img2_norm = (img2 - mean2) / std2
-
-    ncc = np.mean(img1_norm * img2_norm)
-    
-    return ncc
-
 def get_NCC_score(input1, input2):
     scale = ImageProducts.scale_min(ImageProducts.ncc, -1)
     NCC_scaled_value = scale(input1, input2)
@@ -67,7 +47,7 @@ def template_functions(A1, kernel, N1, Q1, M1, P1, N2, Q2, M2, P2):
     fft_A1 = fft2(A1) #obtain beta which is in frequency domain from its data point A1
     squ_A1 = square(abs(A1))
     fft_squ_A1 = fft2(squ_A1) #obtain g hat square from its data point A1
-    #===?
+   
     pg = zeros((N2,N1),dtype=int8)
     
     pg[0:M2,0:M1] = A1[Q2-1:Q2+M2-1,Q1-1:Q1+M1-1] #obtain the template window but zero padded
@@ -122,12 +102,9 @@ if __name__ == '__main__':
 
     # =========================our ncc method
     value = get_NCC_score(A1,A2)   
-    print("our ncc: ", value)   
+    print("TM_CCORR_NORMED ncc: ", value)   
 
     original_dim = len(A1) #12
-    # ====================== pure ncc comparison between 2 image
-    ncc_result = normalized_cross_correlation(A1, A2)
-    print("pure: ", ncc_result)
     
     # Padding the main image with wrapped values to simulate wrapping
     A1 = np.pad(A1, max(len(A1), len(A1[0])), 'wrap')
@@ -141,14 +118,13 @@ if __name__ == '__main__':
     ty1 = 1 + original_dim 
     ty2 = 1 + original_dim + original_dim
     
-    n1 = width #36
+    n1 = width
     n2 = width  
 
     q1 = tx1  #start index on x axis of template 
     m1 = tx2 - tx1 + 1  # length of template 13
-    print(m1)
     p1 = n1-m1+1  # total length of surroundings around template #24
-    print(p1)
+
     q2 = ty1  #start index on y axis of template 
     m2 = ty2 - ty1 + 1  
     p2 = n2-m2+1  
@@ -177,10 +153,3 @@ if __name__ == '__main__':
 
     cc_max = cc_max*2 -1
     print("FFT NCC: ", cc_max, i1, i2)
-
-    # plt.figure(figsize=(10, 5))
-    # plt.subplot(1, 2, 1)
-    # plt.imshow(A1, cmap='gray') 
-    # plt.subplot(1, 2, 2)
-    # plt.imshow(A2, cmap='gray')
-    # plt.savefig("output_images.png")
