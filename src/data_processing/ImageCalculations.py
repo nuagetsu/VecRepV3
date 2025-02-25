@@ -137,13 +137,14 @@ def get_top_scores(vectorb, vectorc, indices):
     top_values_b = []
     top_values_c = []
     
+    rank = len(indices)*2
     for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
-        top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:len(indices)]
+        top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:rank]
         if vec_name == "b":
             top_values_b = top_values
         elif vec_name == "c":
             top_values_c = top_values
-        print(f"\nTop {len(indices)} values of Vector {vec_name}")
+        print(f"\nTop {rank} values of Vector {vec_name}")
         for rank, (i, val) in enumerate(top_values, 1):
             print(f"Rank {rank}: Value = {val}, Index = {i}")
 
@@ -153,15 +154,16 @@ def get_bottom_scores(vectorb, vectorc, indices):
     bottom_values_b = []
     bottom_values_c = []
     
+    rank = len(indices)*2
     for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
-        bottom_values = sorted(enumerate(vec), key=lambda x: x[1])[:len(indices)]
+        bottom_values = sorted(enumerate(vec), key=lambda x: x[1])[:rank]
         
         if vec_name == "b":
             bottom_values_b = bottom_values
         elif vec_name == "c":
             bottom_values_c = bottom_values
 
-        print(f"\nBottom {len(indices)} values of Vector {vec_name}")
+        print(f"\nBottom {rank} values of Vector {vec_name}")
         for rank, (i, val) in enumerate(bottom_values, 1):
             print(f"Rank {rank}: Value = {val}, Index = {i}")
 
