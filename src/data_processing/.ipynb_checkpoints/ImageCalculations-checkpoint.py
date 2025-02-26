@@ -133,41 +133,50 @@ def get_loss_value(dot_product_value, NCC_scaled_value):
     loss_value = models.loss_fn_frobenius(dot_product_value, NCC_scaled_value)
     return loss_value.item()
 
-def get_top_scores(vectorb, vectorc, indices):
+def get_top_scores(vectorb, k, vectorc=None, print_results=True):
     top_values_b = []
     top_values_c = []
+
+    rank = k * 3
+
+    top_values_b = sorted(enumerate(vectorb), key=lambda x: x[1], reverse=True)[:rank]
     
-    rank = len(indices)*2
-    for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
-        top_values = sorted(enumerate(vec), key=lambda x: x[1], reverse=True)[:rank]
-        if vec_name == "b":
-            top_values_b = top_values
-        elif vec_name == "c":
-            top_values_c = top_values
-        print(f"\nTop {rank} values of Vector {vec_name}")
-        for rank, (i, val) in enumerate(top_values, 1):
+    if print_results:
+        print(f"\nTop {rank} values of Vector b")
+        for rank, (i, val) in enumerate(top_values_b, 1):
             print(f"Rank {rank}: Value = {val}, Index = {i}")
 
-    return top_values_b, top_values_c  
+    if vectorc is not None:
+        top_values_c = sorted(enumerate(vectorc), key=lambda x: x[1], reverse=True)[:rank]
+        if print_results:
+            print(f"\nTop {rank} values of Vector c")
+            for rank, (i, val) in enumerate(top_values_c, 1):
+                print(f"Rank {rank}: Value = {val}, Index = {i}")
 
-def get_bottom_scores(vectorb, vectorc, indices):
+    return top_values_b, top_values_c 
+
+
+def get_bottom_scores(vectorb, k, vectorc=None, print_results=True):
     bottom_values_b = []
     bottom_values_c = []
     
-    rank = len(indices)*2
-    for vec, vec_name in [(vectorb, "b"), (vectorc, "c")]:
-        bottom_values = sorted(enumerate(vec), key=lambda x: x[1])[:rank]
-        
-        if vec_name == "b":
-            bottom_values_b = bottom_values
-        elif vec_name == "c":
-            bottom_values_c = bottom_values
+    rank = k * 3
 
-        print(f"\nBottom {rank} values of Vector {vec_name}")
-        for rank, (i, val) in enumerate(bottom_values, 1):
+    bottom_values_b = sorted(enumerate(vectorb), key=lambda x: x[1])[:rank]
+    
+    if print_results:
+        print(f"\nBottom {rank} values of Vector b")
+        for rank, (i, val) in enumerate(bottom_values_b, 1):
             print(f"Rank {rank}: Value = {val}, Index = {i}")
 
-    return bottom_values_b, bottom_values_c 
+    if vectorc is not None:
+        bottom_values_c = sorted(enumerate(vectorc), key=lambda x: x[1])[:rank]
+        if print_results:
+            print(f"\nBottom {rank} values of Vector c")
+            for rank, (i, val) in enumerate(bottom_values_c, 1):
+                print(f"Rank {rank}: Value = {val}, Index = {i}")
+
+    return bottom_values_b, bottom_values_c  
 
 
 def kscore_loss_evaluation_model(imageset, input_dataset, model, k):

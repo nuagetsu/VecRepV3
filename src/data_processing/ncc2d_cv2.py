@@ -1,6 +1,6 @@
 '''
 This FFT calculation includes calculation of NCC Without Mean Subtraction, making it similar to how cv2.matchTemplate() uses TM_CCORR_NORMED.
-However, this FFT calculation is unable to take input images of different dimensions yet, similar to the standard NCC calculation. Hope to implement this in future work.
+However, this FFT calculation is unable to take input images of different dimensions yet. Hope to implement this in future work.
 For a more standard NCC calculation that uses Mean Subtraction, refer to 'ncc2d.py'
 
 Modification: 
@@ -9,7 +9,7 @@ Modification:
 
 Overall this results in an even smaller deviation of NCC value from CV2 method. For proof, please refer to README.
 '''
-
+import time
 import sys
 import os
 path = os.path.abspath("../VecRepV3") 
@@ -75,13 +75,11 @@ def complex_ccor(A2, gg, kernel, FTpg,
 
     tmp = fft2(mult(conj(fft_A2),FTpg))
     fgc = tmp[0:M2,0:M1]
-    
-    ggq = gg[Q2-1,Q1-1] #g bar squared
 
     numerator = real(fgc) 
 
     denominator_term1 = ff 
-    denominator_term2 = ggq
+    denominator_term2 = gg
     denominator = sqrt(denominator_term1 * denominator_term2)
 
     denominator[denominator <= 0] = 1e14 #tolerance
@@ -96,9 +94,13 @@ if __name__ == '__main__':
     A2 = data["input2"]
 
     # =========================our ncc method
-    value = get_NCC_score(A1,A2)   
+    start_time = time.time()  
+    value = get_NCC_score(A1,A2)  
+    end_time = time.time() 
     print("TM_CCORR_NORMED ncc: ", value)   
+    print(f"Execution time: {(abs(start_time-end_time)):.6f} seconds")
 
+    start_time = time.time()  
     original_dim = len(A1) #12
     
     # Padding the main image with wrapped values to simulate wrapping
@@ -146,4 +148,6 @@ if __name__ == '__main__':
     cc_max, cc_min, i2, i1 = find_max(cc)
 
     cc_max = cc_max*2 -1
+    end_time = time.time() 
     print("FFT NCC: ", cc_max, i1, i2)
+    print(f"Execution time: {(abs(start_time-end_time)):.6f} seconds")
