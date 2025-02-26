@@ -51,19 +51,16 @@ EMBEDDING_TYPES = ["pencorr_D"]
 
 dimensions = 32
 
-imageType = "shapes_3_dims_10_3"
-imageProductType = "ncc_scaled_-1"
-overwrite = {"imgSet": False, "imgProd": False, "embedding": False}
-weight = None
+imageType = "shapes_3_dims_24_4"
 k=5
 # ----------------------------------Preparing the Dataset----------------------------------
-training_dataset = np.load("data/train_images.npy")
-full_dataset = []
-for i in training_dataset:
-    full_dataset.append(i)
-    translated_images = imgcalc.generate_all_translations(i)
-    for j in translated_images:
-        full_dataset.append(j)
+training_dataset = np.load("data/train_images_32x32.npy")
+full_dataset = training_dataset #[] to generate translation
+# for i in training_dataset:
+#     full_dataset.append(i)
+#     translated_images = imgcalc.generate_all_translations(i)
+#     for j in translated_images:
+#         full_dataset.append(j)
         
 class CustomDataset(Dataset):
     def __init__(self, input_data):
@@ -114,25 +111,26 @@ test_dataloader = DataLoader(
 class SimpleCNN1(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular'):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
         self.lpd = set_pool(partial(
             PolyphaseInvariantDown2D,
             component_selection=LPS,
             get_logits=get_logits_model('LPSLogitLayers'),
             pass_extras=False
-            ),p_ch=32,h_ch=32)
+            ),p_ch=16,h_ch=16)
 
-        self.bn1   = nn.BatchNorm2d(32)
+        self.bn1   = nn.BatchNorm2d(16)
         self.relu = nn.LeakyReLU(0.1)
              
+        self.maxpool = nn.MaxPool2d(2)
         self.avgpool=nn.AdaptiveAvgPool2d((1,1))
-        self.fc=nn.Linear(32, dimensions)
+        self.fc=nn.Linear(16, dimensions)
         
     def forward(self,x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.lpd(x)  # Use just as any down-sampling layer!
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)
@@ -142,32 +140,32 @@ class SimpleCNN1(nn.Module):
 class SimpleCNN2(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular'):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
         self.lpd = set_pool(partial(
             PolyphaseInvariantDown2D,
             component_selection=LPS,
             get_logits=get_logits_model('LPSLogitLayers'),
             pass_extras=False
-            ),p_ch=64,h_ch=64)
+            ),p_ch=32,h_ch=32)
 
-        self.bn1   = nn.BatchNorm2d(32)
+        self.bn1   = nn.BatchNorm2d(16)
         self.relu = nn.LeakyReLU(0.1)
         
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2   = nn.BatchNorm2d(64)
-             
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2   = nn.BatchNorm2d(32)
+        self.maxpool = nn.MaxPool2d(2)
         self.avgpool=nn.AdaptiveAvgPool2d((1,1))
-        self.fc=nn.Linear(64, dimensions)
+        self.fc=nn.Linear(32, dimensions)
         
     def forward(self,x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.lpd(x)  # Use just as any down-sampling layer!
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)
@@ -177,39 +175,39 @@ class SimpleCNN2(nn.Module):
 class SimpleCNN3(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular'):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, padding=1, padding_mode=padding_mode)
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
         self.lpd = set_pool(partial(
             PolyphaseInvariantDown2D,
             component_selection=LPS,
             get_logits=get_logits_model('LPSLogitLayers'),
             pass_extras=False
-            ),p_ch=128,h_ch=128)
+            ),p_ch=64,h_ch=64)
 
-        self.bn1   = nn.BatchNorm2d(32)
+        self.bn1   = nn.BatchNorm2d(16)
         self.relu = nn.LeakyReLU(0.1)
         
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2   = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2   = nn.BatchNorm2d(32)
         
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn3   = nn.BatchNorm2d(128)
-             
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn3   = nn.BatchNorm2d(64)
+        self.maxpool = nn.MaxPool2d(2)
         self.avgpool=nn.AdaptiveAvgPool2d((1,1))
-        self.fc=nn.Linear(128, dimensions)
+        self.fc=nn.Linear(64, dimensions)
         
     def forward(self,x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.conv3(x)
         x = self.bn3(x)
         x = self.relu(x)
-        
+        x = self.maxpool(x)
         x = self.lpd(x)  # Use just as any down-sampling layer!
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)
@@ -224,9 +222,9 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [30, 40, 64, 128, 256]
+dimensions = [8, 16, 32, 64, 128, 256]
 
-models = [SimpleCNN2, SimpleCNN3]
+models = [SimpleCNN1, SimpleCNN2, SimpleCNN3]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(models):
     for dimension in dimensions:
@@ -238,9 +236,9 @@ for i, model_class in enumerate(models):
         
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-        epochs = 10
+        epochs = 20
         plot_epoch = epochs
-        patience = 2
+        patience = 3
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
@@ -352,7 +350,7 @@ for i, model_class in enumerate(models):
         plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+1}.png")    
 
 
-        with open("model/output_2.txt", "a") as file:
+        with open("model/output_3.txt", "a") as file:
             file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+1}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")
