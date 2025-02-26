@@ -16,7 +16,6 @@ path = os.path.abspath("../VecRepV3")
 sys.path.append(path)
 print(path)
 
-from numpy.typing import NDArray
 import numpy as np
 from numpy import arange, zeros, int8, square, real, sqrt, exp
 from numpy import absolute as abs
@@ -27,16 +26,7 @@ from numpy import multiply as mult
 from numpy.fft import fft2
 from numpy.fft import ifft2
 from math import pi
-import matplotlib.pyplot as plt
 
-import cv2
-from  src.data_processing import ImageProducts 
-############################# For testing ##############################
-def get_NCC_score(input1, input2):
-    scale = ImageProducts.scale_min(ImageProducts.ncc, -1)
-    NCC_scaled_value = scale(input1, input2)
-    return NCC_scaled_value
-########################################################################
 def find_max(A):
     i1, i2 = np.unravel_index(A.argmax(), A.shape)
     maximum = A[i1,i2]
@@ -86,21 +76,7 @@ def complex_ccor(A2, gg, kernel, FTpg,
     
     return numerator/denominator
 
-if __name__ == '__main__':
-
-    data = np.load("data_1.npz")
-    
-    A1 = data["input1"]
-    A2 = data["input2"]
-
-    # =========================our ncc method
-    start_time = time.time()  
-    value = get_NCC_score(A1,A2)  
-    end_time = time.time() 
-    print("TM_CCORR_NORMED ncc: ", value)   
-    print(f"Execution time: {(abs(start_time-end_time)):.6f} seconds")
-
-    start_time = time.time()  
+def ncc(A1, A2):
     original_dim = len(A1) #12
     
     # Padding the main image with wrapped values to simulate wrapping
@@ -148,6 +124,4 @@ if __name__ == '__main__':
     cc_max, cc_min, i2, i1 = find_max(cc)
 
     cc_max = cc_max*2 -1
-    end_time = time.time() 
-    print("FFT NCC: ", cc_max, i1, i2)
-    print(f"Execution time: {(abs(start_time-end_time)):.6f} seconds")
+    return cc_max

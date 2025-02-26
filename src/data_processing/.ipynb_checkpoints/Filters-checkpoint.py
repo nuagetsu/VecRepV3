@@ -47,35 +47,46 @@ def apply_one_island_filter(imageSet: NDArray) -> NDArray:
     return final_arr
 
 
-def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
+def canonical_translation(image):
     """
-    Applies the translationally unique filter. Might not be working properly, do check.
-    :param imageSet: Image set to be filtered.
-    :return: Filtered image set.
+    Computes the canonical (minimal) byte representation over all translations
+    of a square image.
+    
+    :param image: Square NumPy array.
+    :return: The minimal bytes representation (in lexicographical order) among all translations.
     """
-    unique = []
-    squareLength = len(imageSet[0])
-    all_permutations = set()
+    n = image.shape[0]
+    best = None
+    # loop row shifts
+    for dr in range(n):
+        rolled_row = np.roll(image, shift=dr, axis=0)
+        # then column
+        for dc in range(n):
+            variant = np.roll(rolled_row, shift=dc, axis=1)
+            variant_bytes = variant.tobytes()
+            if best is None or variant_bytes < best:
+                best = variant_bytes
+    return best
+
+def apply_translationally_unique_filter(imageSet: 'NDArray') -> 'NDArray':
+    """
+    Filters an image set to retain only translationally unique images by using a
+    canonical representation computed for each image.
+    
+    :param imageSet: Array of square images.
+    :return: Filtered image set with translational duplicates removed.
+    """
+    unique_images = []
+    seen = set()
 
     for matrix in imageSet:
-        original_matrix = np.copy(matrix)
-        original_matrix = np.reshape(original_matrix, (1, squareLength ** 2))
-
-        if tuple(original_matrix[0]) in all_permutations:
+        canon = canonical_translation(matrix)
+        if canon in seen:
             continue
-
-        else:
-            unique.append(matrix)
-            # All translational invariant permutations for given nxn matrix
-            for dr in range(squareLength):
-                matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in vertical axis
-                for dc in range(squareLength):
-                    matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in horizontal axis
-                    to_store = np.reshape(matrix, (1, squareLength ** 2))
-                    all_permutations.add(tuple(to_store[0]))  # store in dictionary
-    unique = np.array(unique)
-    return unique
-
+        seen.add(canon)
+        unique_images.append(matrix)
+    
+    return np.array(unique_images)
 
 def apply_max_ones_filter(imageSet: NDArray, onesMaxPercentage: float) -> NDArray:
     """
