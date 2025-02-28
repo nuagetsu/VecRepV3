@@ -22,6 +22,7 @@ def apply_filter(imageSet: NDArray, filter: str) -> NDArray:
     Takes in a string and looks up the correct filter function to apply
     """
     if filter == 'unique':
+        print("got filter2")
         imageSet = apply_translationally_unique_filter(imageSet)
     elif re.search('[0-9]?[0-9]max_ones$', filter) is not None:
         onesMaxPercentage = int(re.search(r'\d+', filter).group())
@@ -46,6 +47,35 @@ def apply_one_island_filter(imageSet: NDArray) -> NDArray:
     final_arr = np.array(final_arr)
     return final_arr
 
+
+# def apply_translationally_unique_filter(imageSet: NDArray) -> NDArray:
+#     """
+#     Applies the translationally unique filter. Might not be working properly, do check.
+#     :param imageSet: Image set to be filtered.
+#     :return: Filtered image set.
+#     """
+#     unique = []
+#     squareLength = len(imageSet[0])
+#     all_permutations = set()
+#     print("got filter3")
+#     for matrix in imageSet:
+#         original_matrix = np.copy(matrix)
+#         original_matrix = np.reshape(original_matrix, (1, squareLength ** 2))
+
+#         if tuple(original_matrix[0]) in all_permutations:
+#             continue
+
+#         else:
+#             unique.append(matrix)
+#             # All translational invariant permutations for given nxn matrix
+#             for dr in range(squareLength):
+#                 matrix = np.roll(matrix, 1, axis=0)  # shift 1 place in vertical axis
+#                 for dc in range(squareLength):
+#                     matrix = np.roll(matrix, 1, axis=1)  # shift 1 place in horizontal axis
+#                     to_store = np.reshape(matrix, (1, squareLength ** 2))
+#                     all_permutations.add(tuple(to_store[0]))  # store in dictionary
+#     unique = np.array(unique)
+#     return unique
 
 def canonical_translation(image):
     """
@@ -78,7 +108,7 @@ def apply_translationally_unique_filter(imageSet: 'NDArray') -> 'NDArray':
     """
     unique_images = []
     seen = set()
-
+    print("got filter 4")
     for matrix in imageSet:
         canon = canonical_translation(matrix)
         if canon in seen:

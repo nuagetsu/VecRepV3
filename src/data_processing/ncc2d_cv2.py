@@ -1,7 +1,7 @@
 '''
 This FFT calculation includes calculation of NCC Without Mean Subtraction, making it similar to how cv2.matchTemplate() uses TM_CCORR_NORMED.
 However, this FFT calculation is unable to take input images of different dimensions yet. Hope to implement this in future work.
-For a more standard NCC calculation that uses Mean Subtraction, refer to 'ncc2d.py'
+For a more standard NCC calculation that uses Mean Subtraction, refer to 'ncc2d.py' that uses TM_CCOEFF_NORMED.
 
 Modification: 
 1. Removed variables and functions involved in calculation of mean intensity.
@@ -47,7 +47,7 @@ def template_functions(A1, kernel, N1, Q1, M1, N2, Q2, M2):
     FTpg = (fft2(pg)/ (N1*M1))/ (N2*M2) #inverse FFT of zero padded template image for h 
     
     tmp = ifft2(mult(fft_squ_A1,kernel)) #multiply fft of absolute squared data point of A1 with kernel then inverse FFT
-    gg = real(tmp[0:M2,0:M1]) #g bar squared
+    gg = real(tmp[0:P2,0:P1]) #g bar squared
     
     return gg, FTpg
 
@@ -61,15 +61,18 @@ def complex_ccor(A2, gg, kernel, FTpg,
     fft_squ_A2 = fft2(squ_A2) #obtain f hat square from its data point A2
     
     tmp = ifft2(mult(kernel,fft_squ_A2))
-    ff = real(tmp[0:M2,0:M1]) #f hat squared
+    ff = real(tmp[0:P2,0:P1]) #f hat squared
 
     tmp = fft2(mult(conj(fft_A2),FTpg))
-    fgc = tmp[0:M2,0:M1]
+    fgc = tmp[0:P2,0:P1]
+    
+    gcq = gc[Q2,Q1]
+    ggq = gg[Q2,Q1]
 
     numerator = real(fgc) 
 
     denominator_term1 = ff 
-    denominator_term2 = gg
+    denominator_term2 = ggq
     denominator = sqrt(denominator_term1 * denominator_term2)
 
     denominator[denominator <= 0] = 1e14 #tolerance
@@ -95,11 +98,11 @@ def ncc(A1, A2):
 
     q1 = tx1  #start index on x axis of template 0
     m1 = tx2 - tx1  # length x-axis of template 12
-    #p1 = n1-m1+1  # total length of surroundings around template #24
+    p1 = n1-m1+1  # total length of surroundings around template 24
     
     q2 = ty1  #start index on y axis of template 0
     m2 = ty2 - ty1 # length y-axis of template 12
-    #p2 = n2-m2+1  
+    p2 = n2-m2+1  
 
     k1 = arange(1,n1)
     kernel1 = (1.0/m1)*((exp(1j*2*pi*m1*k1/n1) - 1)/(exp(1j*2*pi*k1/n1) - 1)) #gamma k

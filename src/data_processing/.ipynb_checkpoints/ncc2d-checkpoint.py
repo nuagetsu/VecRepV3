@@ -1,5 +1,5 @@
 '''
-This FFT calculation includes calculation of NCC With Mean Subtraction (the standard NCC calculation), making it slightly different to how cv2.matchTemplate() uses TM_CCORR_NORMED.
+This FFT calculation includes calculation of NCC With Mean Subtraction (the standard NCC calculation), making it similar to how cv2.matchTemplate() uses TM_CCOEFF_NORMED.
 This FFT calculation is unable to take input images of different dimensions yet, similar to the standard NCC calculation. Hope to implement this in future work.
 For same exact calculation as cv2.matchTemplate() uses TM_CCORR_NORMED, refer to 'ncc2d_cv2.py'
 
@@ -51,7 +51,7 @@ def template_functions(A1, kernel, N1, Q1, M1, P1, N2, Q2, M2, P2):
    
     pg = zeros((N2,N1),dtype=int8)
     
-    pg[0:M2,0:M1] = A1[Q2-1:Q2+M2-1,Q1-1:Q1+M1-1] #obtain the template window but zero padded
+    pg[0:M2,0:M1] = A1[Q2:Q2+M2,Q1:Q1+M1] #obtain the template window but zero padded
 
     FTpg = fft2(pg) #inverse FFT of zero padded template image for h 
     
@@ -81,13 +81,13 @@ def complex_ccor(A2, gc, gg, kernel, FTpg,
     tmp = ((fft2(mult(conj(fft_A2),FTpg))/(N1*M1))/ (N2*M2))
     fgc = tmp[0:P2,0:P1] 
     
-    gcq = gc[Q2-1,Q1-1] #g bar
-    ggq = gg[Q2-1,Q1-1] #g bar squared
+    gcq = gc[Q2,Q1] #g bar
+    ggq = gg[Q2,Q1] #g bar squared
 
-    numerator = real(fgc - (conj(fc) * gcq) / (M1 * M2)) 
+    numerator = real(fgc - (conj(fc) * gcq)) 
 
-    denominator_term1 = ff - (square(abs(fc)) / (M1 * M2))
-    denominator_term2 = ggq - (square(abs(gcq)) / (M1 * M2))
+    denominator_term1 = ff - (square(abs(fc)))
+    denominator_term2 = ggq - (square(abs(gcq)))
     denominator = sqrt(denominator_term1 * denominator_term2)
 
     denominator[denominator <= 0] = 1e14 #tolerance
