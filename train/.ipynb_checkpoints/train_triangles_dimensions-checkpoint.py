@@ -51,61 +51,43 @@ EMBEDDING_TYPES = ["pencorr_D"]
 
 dimensions = 32
 
-imageType = "shapes_3_dims_24_4"
+imageType = "shapes_3_dims_48_4"
 k=5
 # ----------------------------------Preparing the Dataset----------------------------------
-training_dataset = np.load("data/train_images_32x32.npy")
-full_dataset = training_dataset #[] to generate translation
-# for i in training_dataset:
-#     full_dataset.append(i)
-#     translated_images = imgcalc.generate_all_translations(i)
-#     for j in translated_images:
-#         full_dataset.append(j)
-        
 class CustomDataset(Dataset):
-    def __init__(self, input_data):
-        self.data = input_data
+    def __init__(self, file_path, max_samples=150000):
+        self.data = np.load(file_path, mmap_mode='r')  
+        self.data = self.data[:max_samples]  
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        img = np.array(self.data[idx], dtype=np.float32)  # Use float32 instead of float64
+        img = torch.from_numpy(img)
+        img = img.unsqueeze(0).unsqueeze(0)
+        return img, idx  
 
-def custom_collate(batch):
-    batch_data, batch_indices = zip(*batch) 
-    batch_data = torch.stack(batch_data)  
-    batch_indices = torch.tensor(batch_indices)  
-    return batch_data, batch_indices  
+dataset = CustomDataset("data/train_images_56x56.npy")
 
-input_dataset = []
-for i in full_dataset:
-    img = np.array(i, dtype=np.float64)
-    img = torch.from_numpy(img)
-    img = img.unsqueeze(0).unsqueeze(0).cuda().double()  #1x1xHxW
-
-    # 3 channel for RGB like input
-    # img = img.repeat(1, 3, 1, 1)  #1x3xHxW
-    input_dataset.append((img, i))
-
-images, indices = zip(*input_dataset)  
-stacked_images = torch.stack(images)  
-stacked_images = stacked_images.cpu().numpy()
-tensor_dataset = [(torch.tensor(img), idx) for img, idx in zip(stacked_images, indices)]
-
-batch_size = 64
-
-dataset = CustomDataset(tensor_dataset)
-print(len(dataset))
-train_size = int(0.8 * len(dataset))  # 80% for training
-test_size = len(dataset) - train_size  # 20% for testing
+train_size = int(0.8 * len(dataset))
+test_size = len(dataset) - train_size
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-train_dataloader = DataLoader(
-    train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate, drop_last=True)
+batch_size = 96
 
+def custom_collate(batch):
+    batch_data, batch_indices = zip(*batch)
+    batch_data = torch.stack(batch_data)
+    batch_indices = torch.tensor(batch_indices)
+    return batch_data, batch_indices
+
+train_dataloader = DataLoader(
+    train_dataset, batch_size=batch_size, shuffle=True, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
+
+print(len(dataset),len(train_dataloader))
 test_dataloader = DataLoader(
-    test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True)
+    test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
 class SimpleCNN3(nn.Module):
@@ -275,7 +257,7 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [64, 128, 256, 512, 1024]
+dimensions = [32, 64, 128, 256, 512]
 
 models = [SimpleCNN3, SimpleCNN4, ComplexCNN]
 # ---------------------------------- Training Loop ----------------------------------

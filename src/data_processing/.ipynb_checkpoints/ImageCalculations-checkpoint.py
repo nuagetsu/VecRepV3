@@ -278,10 +278,17 @@ def loss_per_ncc_score(ncc_loss_dict):
         count = len(ncc_loss_dict[interval])
         print(f"{interval}\t\t{avg_loss:.4f} ({count} samples)")
         
+# def get_MSE(matrix1, matrix2):
+#     difference_squared = (matrix1 - matrix2) ** 2
+#     mean_squared_difference = np.sum(difference_squared) / difference_squared.size
+#     return mean_squared_difference
+
 def get_MSE(matrix1, matrix2):
     difference_squared = (matrix1 - matrix2) ** 2
-    mean_squared_difference = np.sum(difference_squared) / difference_squared.size
-    return mean_squared_difference
+    mean_squared_difference = np.mean(difference_squared) 
+    dimension_avg_sq = np.mean(matrix1 ** 2)  
+    relative_msd = mean_squared_difference / dimension_avg_sq  
+    return relative_msd
 
 def get_vector_embeddings(input_dataset, model):
     num = len(input_dataset)
