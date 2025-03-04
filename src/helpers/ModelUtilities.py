@@ -70,6 +70,7 @@ class SimpleCNN2(nn.Module):
         
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
         self.bn2   = nn.BatchNorm2d(32)
+        
         self.maxpool = nn.MaxPool2d(2)
         self.avgpool=nn.AdaptiveAvgPool2d((1,1))
         self.fc=nn.Linear(32, dimensions)
@@ -83,6 +84,7 @@ class SimpleCNN2(nn.Module):
         x = self.bn2(x)
         x = self.relu(x)
         x = self.maxpool(x)
+
         x = self.lpd(x)  # Use just as any down-sampling layer!
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)

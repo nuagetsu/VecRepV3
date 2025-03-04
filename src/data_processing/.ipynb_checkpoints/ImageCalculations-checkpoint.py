@@ -137,7 +137,7 @@ def get_top_scores(vectorb, k, vectorc=None, print_results=True):
     top_values_b = []
     top_values_c = []
 
-    rank = k * 3
+    rank = k*2 #top k similar images
 
     top_values_b = sorted(enumerate(vectorb), key=lambda x: x[1], reverse=True)[:rank]
     
@@ -160,7 +160,7 @@ def get_bottom_scores(vectorb, k, vectorc=None, print_results=True):
     bottom_values_b = []
     bottom_values_c = []
     
-    rank = k * 3
+    rank = k*2 
 
     bottom_values_b = sorted(enumerate(vectorb), key=lambda x: x[1])[:rank]
     
@@ -284,10 +284,10 @@ def loss_per_ncc_score(ncc_loss_dict):
 #     return mean_squared_difference
 
 def get_MSE(matrix1, matrix2):
-    difference_squared = (matrix1 - matrix2) ** 2
-    mean_squared_difference = np.mean(difference_squared) 
-    dimension_avg_sq = np.mean(matrix1 ** 2)  
-    relative_msd = mean_squared_difference / dimension_avg_sq  
+    squared_diff = np.sum((matrix1 - matrix2) ** 2)
+    total_energy = (np.sum(matrix1 ** 2) + np.sum(matrix2 ** 2)) / 2
+    epsilon = 1e-8
+    relative_msd = squared_diff / (total_energy + epsilon)
     return relative_msd
 
 def get_vector_embeddings(input_dataset, model):

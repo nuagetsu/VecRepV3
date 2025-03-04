@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import random
 from functools import partial
+import gc
 
 from src.data_processing.SampleEstimator import SampleEstimator
 import src.visualization.BFmethod as graphing
@@ -51,7 +52,7 @@ EMBEDDING_TYPES = ["pencorr_D"]
 
 dimensions = 32
 
-imageType = "shapes_3_dims_48_4"
+imageType = "shapes_3_dims_10_3"
 k=5
 # ----------------------------------Preparing the Dataset----------------------------------
 class CustomDataset(Dataset):
@@ -68,13 +69,13 @@ class CustomDataset(Dataset):
         img = img.unsqueeze(0).unsqueeze(0)
         return img, idx  
 
-dataset = CustomDataset("data/train_images_56x56.npy")
+dataset = CustomDataset("data/train_images_16x16.npy")
 
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-batch_size = 96
+batch_size = 48 #the max gpu memory can handle
 
 def custom_collate(batch):
     batch_data, batch_indices = zip(*batch)
@@ -90,6 +91,43 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
+class SimpleCNN2(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular'):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.lpd = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)
+
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2   = nn.BatchNorm2d(32)
+        
+        self.maxpool = nn.MaxPool2d(2)
+        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
+        self.fc=nn.Linear(32, dimensions)
+        
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.lpd(x)  # Use just as any down-sampling layer!
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+
 class SimpleCNN3(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular'):
         super().__init__()
@@ -180,74 +218,7 @@ class SimpleCNN4(nn.Module):
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)
-        return x    
-    
-class ComplexCNN(nn.Module):
-    def __init__(self, dimensions=128, padding_mode='circular'):
-        super().__init__()
-
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn1 = nn.BatchNorm2d(32)
-
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2 = nn.BatchNorm2d(64)
-
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn3 = nn.BatchNorm2d(128)
-
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn4 = nn.BatchNorm2d(256)
-
-        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode) 
-        self.bn5 = nn.BatchNorm2d(512)
-
-        self.conv6 = nn.Conv2d(512, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
-        self.bn6 = nn.BatchNorm2d(512)
-
-        self.lpd = set_pool(partial(
-            PolyphaseInvariantDown2D,
-            component_selection=LPS,
-            get_logits=get_logits_model('LPSLogitLayers'),
-            pass_extras=False
-        ), p_ch=512, h_ch=512) 
-
-        self.relu = nn.LeakyReLU(0.1)
-        self.maxpool = nn.MaxPool2d(2)
-        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
-        self.fc = nn.Linear(512, dimensions)  
-        
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv3(x)
-        x = self.bn3(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv4(x)
-        x = self.bn4(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv5(x)
-        x = self.bn5(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.conv6(x)
-        x = self.bn6(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        
-        
-        x = self.lpd(x)  # Use just as any down-sampling layer!
-        x = torch.flatten(self.avgpool(x),1)
-        x = self.fc(x)
-        x = F.normalize(x, p=2, dim=1)
-        return x    
+        return x       
 
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
@@ -257,13 +228,13 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [64, 128, 256]
+dimensions = [16, 32, 64, 128, 256, 512]
 
-models = [SimpleCNN4, ComplexCNN, SimpleCNN3]
+models = [SimpleCNN3, SimpleCNN4]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(models):
     for dimension in dimensions:
-        print(f"Training {model_class.__name__} with conv layer of {i+1} and dimension {dimension}")
+        print(f"Training {model_class.__name__} with conv layer of {i+2} and dimension {dimension}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -273,7 +244,7 @@ for i, model_class in enumerate(models):
 
         epochs = 20
         plot_epoch = epochs
-        patience = 2
+        patience = 3
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
@@ -320,6 +291,14 @@ for i, model_class in enumerate(models):
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
 
+            # Clear Cache
+            torch.cuda.empty_cache()             
+            for var in ["batch_data", "batch_indices", "training_loss", "total_loss_training"]:
+                if var in locals():
+                    del locals()[var]
+
+            gc.collect()
+            
             # Validation loop
             model.eval()
             validation_loss, total_loss_validation = 0, 0        
@@ -362,7 +341,7 @@ for i, model_class in enumerate(models):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+1}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+2}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -374,6 +353,14 @@ for i, model_class in enumerate(models):
                 #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
 
+            # Clear Cache
+            torch.cuda.empty_cache()             
+            for var in ["batch_data", "batch_indices", "validation_loss", "total_loss_validation"]:
+                if var in locals():
+                    del locals()[var]
+
+            gc.collect()
+
         # ----------------------------------Plots----------------------------------
         plt.figure()
         plt.plot(train_loss_history, label="Train Loss")
@@ -382,11 +369,11 @@ for i, model_class in enumerate(models):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+1}.png")    
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+2}.png")    
 
 
         with open("model/output_4.txt", "a") as file:
-            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+1}\n")
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+2}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")
     
