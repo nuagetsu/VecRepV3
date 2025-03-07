@@ -137,7 +137,7 @@ def get_top_scores(vectorb, k, vectorc=None, print_results=True):
     top_values_b = []
     top_values_c = []
 
-    rank = k*2 #top k similar images
+    rank = k
 
     top_values_b = sorted(enumerate(vectorb), key=lambda x: x[1], reverse=True)[:rank]
     
@@ -160,7 +160,7 @@ def get_bottom_scores(vectorb, k, vectorc=None, print_results=True):
     bottom_values_b = []
     bottom_values_c = []
     
-    rank = k*2 
+    rank = k 
 
     bottom_values_b = sorted(enumerate(vectorb), key=lambda x: x[1])[:rank]
     

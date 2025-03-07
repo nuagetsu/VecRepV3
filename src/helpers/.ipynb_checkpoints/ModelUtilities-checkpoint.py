@@ -177,32 +177,33 @@ class SimpleCNN4(nn.Module):
         x = self.bn4(x)
         x = self.relu(x)
         x = self.maxpool(x)
+        
         x = self.lpd(x)  # Use just as any down-sampling layer!
         x = torch.flatten(self.avgpool(x),1)
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)
         return x    
     
-class ComplexCNN(nn.Module):
+class SimpleCNN6(nn.Module):
     def __init__(self, dimensions=128, padding_mode='circular'):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn1 = nn.BatchNorm2d(16)
 
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2 = nn.BatchNorm2d(32)
 
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn3 = nn.BatchNorm2d(128)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn3 = nn.BatchNorm2d(64)
 
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn4 = nn.BatchNorm2d(256)
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn4 = nn.BatchNorm2d(128)
 
-        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode) 
-        self.bn5 = nn.BatchNorm2d(512)
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode) 
+        self.bn5 = nn.BatchNorm2d(256)
 
-        self.conv6 = nn.Conv2d(512, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
+        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
         self.bn6 = nn.BatchNorm2d(512)
 
         self.lpd = set_pool(partial(
