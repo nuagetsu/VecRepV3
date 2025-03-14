@@ -222,7 +222,7 @@ class SimpleCNN6(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        x = self.maxpool(x)
+        #x = self.maxpool(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)
