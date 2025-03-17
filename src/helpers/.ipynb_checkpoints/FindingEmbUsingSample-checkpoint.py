@@ -7,7 +7,6 @@ from line_profiler import profile
 
 from src.data_processing.ImageProducts import get_image_product, calculate_image_product_vector
 
-
 # The following method was written by Lim Cheng Ze Jed
 # This method is not currently being used as Lagrangian_Method2 below cuts out Sympy. It is left here as a failsafe
 # in case something breaks in Lagrangian_Method2
@@ -219,18 +218,3 @@ def Lagrangian_Method2(A, b, tol=1e-10):
             selected_lambda = lambda_
 
     return x_final, final_dist, selected_lambda
-
-
-@profile
-def get_embedding_estimate(image_input, training_image_set, image_product: str, embedding_matrix):
-    """
-    :param image_input: Image of the same dimensions as that used in the training image set
-    :param training_image_set: Image set used for training
-    :param image_product: Image product used
-    :param embedding_matrix: Embedding matrix for the image set
-    :return: Estimated embedding for the input image
-    """
-    imageProductVector = calculate_image_product_vector(image_input, training_image_set,
-                                                        get_image_product(image_product))
-    estimateVector = Lagrangian_Method2(embedding_matrix, imageProductVector)[0]
-    return estimateVector

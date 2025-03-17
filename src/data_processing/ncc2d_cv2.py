@@ -35,7 +35,7 @@ def find_max(A):
     return maximum, minimum, i1+1, i2+1
 
 #obtain variables for template image 1 A1, function g
-def template_functions(A1, kernel, N1, Q1, M1, N2, Q2, M2):
+def template_functions(A1, kernel, N1, Q1, M1, P1, N2, Q2, M2, P2):
     fft_A1 = fft2(A1) #obtain beta which is in frequency domain from its data point A1
     squ_A1 = square(abs(A1))
     fft_squ_A1 = fft2(squ_A1) #obtain g hat square from its data point A1
@@ -47,7 +47,7 @@ def template_functions(A1, kernel, N1, Q1, M1, N2, Q2, M2):
     FTpg = (fft2(pg)/ (N1*M1))/ (N2*M2) #inverse FFT of zero padded template image for h 
     
     tmp = ifft2(mult(fft_squ_A1,kernel)) #multiply fft of absolute squared data point of A1 with kernel then inverse FFT
-    gg = real(tmp[0:P2,0:P1]) #g bar squared
+    gg = real(tmp[0:P2,0:P1]) #g bar 
     
     return gg, FTpg
 
@@ -55,7 +55,7 @@ def template_functions(A1, kernel, N1, Q1, M1, N2, Q2, M2):
 
 #obtain variables for main image 2 A2, function f
 def complex_ccor(A2, gg, kernel, FTpg,
-                 N1, Q1, M1, N2, Q2, M2):
+                 N1, Q1, M1, P1, N2, Q2, M2, P2):
     fft_A2 = fft2(A2) #obtain f hat which is in frequency domain from its data point A2
     squ_A2 = square(abs(A2))
     fft_squ_A2 = fft2(squ_A2) #obtain f hat square from its data point A2
@@ -66,7 +66,6 @@ def complex_ccor(A2, gg, kernel, FTpg,
     tmp = fft2(mult(conj(fft_A2),FTpg))
     fgc = tmp[0:P2,0:P1]
     
-    gcq = gc[Q2,Q1]
     ggq = gg[Q2,Q1]
 
     numerator = real(fgc) 
@@ -118,11 +117,11 @@ def ncc(A1, A2):
             kernel[i1][i2] = kernel2[i1]*kernel1[i2]   #gamma k, k'
     
     gg, FTpg = \
-    template_functions(A1, kernel, n1, q1, m1, n2, q2, m2)
+    template_functions(A1, kernel, n1, q1, m1, p1, n2, q2, m2, p2)
     
     cc = \
     complex_ccor(A2, gg, kernel, FTpg,
-                 n1, q1, m1, n2, q2, m2)
+                 n1, q1, m1, p1, n2, q2, m2, p2)
     
     cc_max, cc_min, i2, i1 = find_max(cc)
 

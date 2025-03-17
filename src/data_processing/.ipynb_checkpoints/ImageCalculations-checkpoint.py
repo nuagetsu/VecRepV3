@@ -7,6 +7,8 @@ from scipy.linalg import orthogonal_procrustes
 import src.data_processing.ImageProducts as ImageProducts
 import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
+import src.helpers.FindingEmbUsingSample as LMethod
+
 from src.data_processing import EmbeddingFunctions
 
 
@@ -102,7 +104,7 @@ def get_vectorc_model(index, model, input_dataset):
         vectorc.append(dot_product.detach().cpu().numpy().item())
     return vectorc
 
-def get_vectorb_model(index, model, input_dataset):
+def get_vectorb(index, input_dataset):
     """Compute vector b using model outputs."""
     vectorb = []
     for i in range(len(input_dataset)):
@@ -190,7 +192,7 @@ def kscore_loss_evaluation_model(imageset, input_dataset, model, k):
 
     epsilon = 1e-8
     for i in range(len(imageset)):
-        vectorb = get_vectorb_model(i, model, imageset)
+        vectorb = get_vectorb(i, imageset)
         vectorc = get_vectorc_model(i, model, input_dataset)
         kscore, _, _ = get_kscore_and_sets(vectorb, vectorc, k)
         kscores.append(kscore)
@@ -297,6 +299,31 @@ def get_vector_embeddings(input_dataset, model):
         embedded_vector_image = model(input_dataset[i])
         model_vectors.append(embedded_vector_image)
     return model_vectors
+
+def get_embedding_estimate(matrixG, embeddingType, weight, index, imageSet):
+    """
+    :param image_input: Image of the same dimensions as that used in the training image set
+    :param training_image_set: Image set used for training
+    :param image_product: Image product used
+    :param embedding_matrix: Embedding matrix for the image set
+    :return: Estimated embedding for the input image
+    """
+    
+    # imageProductVector = calculate_image_product_vector(image_input, training_image_set, get_image_product(image_product))
+    imageProductVector = np.delete(get_vectorb(index, imageSet), index, axis=0)
+    matrixG_new = np.delete(np.delete(matrixG, index, axis=0), index, axis=1)
+    embedding_matrix = get_matrixA(matrixG_new, embeddingType, weight)
+    
+    estimateVector = LMethod.Lagrangian_Method2(embedding_matrix, imageProductVector)[0]
+    return estimateVector
+
+def get_vector_embeddings_LMethod(matrixG, embeddingType, weight, imageSet):
+    num = len(imageSet)
+    LMethod_vectors= []
+    for i in range(num):
+        embedded_vector_image = get_embedding_estimate(matrixG, embeddingType, weight, i, imageSet)
+        LMethod_vectors.append(embedded_vector_image)
+    return LMethod_vectors
 
 def get_matrix_embeddings(input_dataset, model_vectors):
     num = len(input_dataset)
