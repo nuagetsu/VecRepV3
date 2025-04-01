@@ -1,6 +1,6 @@
 import sys
 import os
-path = os.path.abspath("../../VecRepV3") 
+path = os.path.abspath("../VecRepV3") 
 sys.path.append(path)
 
 import math
@@ -11,26 +11,36 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset, Sampler, random_split, Dataset
 from torchvision import datasets, transforms
 import torchvision
-import torchvision.transforms as transforms
-
 import matplotlib.pyplot as plt
 from line_profiler import profile
 from itertools import combinations
 from sklearn.model_selection import train_test_split
-from functools import partial
-
 import numpy as np
 import random
+from functools import partial
+import gc
 
 import src.visualization.Metrics as metrics
-import src.data_processing.ImageProducts as ImageProducts
 import src.helpers.ModelUtilities as models
+import src.data_processing.ImageProducts as ImageProducts
+import src.data_processing.ImageCalculations as imgcalc
 
 from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
 from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
-    
+
+imageType = "MNIST"
+# ---------------------------------- Seed --------------------------------------
+def set_seed(seed=42):
+    random.seed(seed)  
+    np.random.seed(seed)  
+    torch.manual_seed(seed) 
+    torch.cuda.manual_seed_all(seed)  
+    torch.backends.cudnn.deterministic = True  
+    torch.backends.cudnn.benchmark = False  
+
+set_seed(42)
 # ----------------------------------Input Images----------------------------------
 transform = transforms.Compose([
     transforms.Resize((32, 32)),
@@ -72,7 +82,7 @@ stacked_images = torch.stack(images)
 stacked_images = stacked_images.cpu().numpy()
 tensor_dataset = [(torch.tensor(img), idx) for img, idx in zip(stacked_images, indices)]
 
-batch_size = 24
+batch_size = 32
 
 dataset = CustomDataset(tensor_dataset)
 
@@ -88,82 +98,21 @@ test_dataloader = DataLoader(
 
 print("len(test_dataloader): ",len(test_dataloader)) 
 # ----------------------------------Model Architecture----------------------------------
-class SimpleCNN6(nn.Module):
-    def __init__(self, dimensions=128, padding_mode='circular'):
-        super().__init__()
-
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn1 = nn.BatchNorm2d(16)
-
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn2 = nn.BatchNorm2d(32)
-
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn3 = nn.BatchNorm2d(64)
-
-        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
-        self.bn4 = nn.BatchNorm2d(128)
-
-        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode) 
-        self.bn5 = nn.BatchNorm2d(256)
-
-        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
-        self.bn6 = nn.BatchNorm2d(512)
-
-        self.lpd = set_pool(partial(
-            PolyphaseInvariantDown2D,
-            component_selection=LPS,
-            get_logits=get_logits_model('LPSLogitLayers'),
-            pass_extras=False
-        ), p_ch=512, h_ch=512) 
-
-        self.relu = nn.LeakyReLU(0.1)
-        self.maxpool = nn.MaxPool2d(2)
-        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
-        self.fc = nn.Linear(512, dimensions)  
-        
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        #x = self.maxpool(x) #64 delaying max pooling for 6 conv layer
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
-        x = self.maxpool(x) #32
-        x = self.conv3(x)
-        x = self.bn3(x)
-        x = self.relu(x)
-        x = self.maxpool(x) #16
-        x = self.conv4(x)
-        x = self.bn4(x)
-        x = self.relu(x)
-        x = self.maxpool(x) #8
-        x = self.conv5(x)
-        x = self.bn5(x)
-        x = self.relu(x)
-        x = self.maxpool(x) #4
-        x = self.conv6(x)
-        x = self.bn6(x)
-        x = self.relu(x)
-        x = self.maxpool(x)#2
-        
-        x = self.lpd(x)  # Use just as any down-sampling layer
-        x = torch.flatten(self.avgpool(x),1)
-        x = self.fc(x)
-        x = F.normalize(x, p=2, dim=1)
-        return x    
+SimpleCNN4 = models.SimpleCNN4
+SimpleCNN6 = models.SimpleCNN6
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [64, 128, 256, 512]
+dimensions = [32]
 
-models = [SimpleCNN6]
+model_class = [SimpleCNN6]
 # ----------------------------------Training Loop----------------------------------
-for i, model_class in enumerate(models):
+for i, model_class in enumerate(model_class):
     for dimension in dimensions:
         print(f"Training MNIST {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
+        with open("model/output_7.txt", "a", buffering=1) as file_model:
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -219,6 +168,8 @@ for i, model_class in enumerate(models):
             avg_loss = total_loss_training /  (len(train_dataloader))
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
+            with open("model/output_7.txt", "a", buffering=1) as file_model:
+                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -281,6 +232,8 @@ for i, model_class in enumerate(models):
                     break
                 #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
+                with open("model/output_7.txt", "a", buffering=1) as file_model:
+                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}")
 
             # Clear Cache
             torch.cuda.empty_cache()             

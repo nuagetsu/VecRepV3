@@ -25,9 +25,6 @@ import src.helpers.ModelUtilities as models
 import src.data_processing.ImageProducts as ImageProducts
 import src.data_processing.ImageCalculations as imgcalc
 
-from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
-from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
 
 # ---------------------------------- Seed --------------------------------------
@@ -90,8 +87,8 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
-SimpleCNN4 = models.SimpleCNN4
-
+SimpleCNN2 = models.SimpleCNN2_aps
+SimpleCNN4 = models.SimpleCNN4_aps
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
 #     return torch.norm(A - G, p='fro')  
@@ -119,7 +116,7 @@ for i, model_class in enumerate(model_class):
 
         epochs = 20
         plot_epoch = epochs
-        patience = 7
+        patience = 5
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
@@ -166,7 +163,7 @@ for i, model_class in enumerate(model_class):
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
             with open("model/output_6.txt", "a", buffering=1) as file_model:
-                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}")
+                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -230,7 +227,7 @@ for i, model_class in enumerate(model_class):
                 #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
                 with open("model/output_6.txt", "a", buffering=1) as file_model:
-                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}")
+                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}")
 
             # Clear Cache
             torch.cuda.empty_cache()             

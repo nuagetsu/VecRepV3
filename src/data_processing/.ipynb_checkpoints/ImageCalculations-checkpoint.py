@@ -266,7 +266,7 @@ def kscore_loss_evaluation_brute(imageset, matrixA, matrixG, k):
 
         #print(f"Average loss for index {i} is {average_loss}")
         losses.append(average_loss)
-    
+    loss_per_ncc_score(ncc_loss_dict)
     return kscores, losses, ncc_loss_dict
 
 def loss_per_ncc_score(ncc_loss_dict):
