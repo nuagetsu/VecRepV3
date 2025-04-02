@@ -292,11 +292,13 @@ def get_MSE(matrix1, matrix2):
     relative_msd = squared_diff / (total_energy + epsilon)
     return relative_msd
 
-def get_vector_embeddings(input_dataset, model):
+def get_vector_embeddings(input_dataset, model, device = None):
+    if device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
     num = len(input_dataset)
     model_vectors= []
     for i in range(num):
-        embedded_vector_image = model(input_dataset[i])
+        embedded_vector_image = model(input_dataset[i].to(device))
         model_vectors.append(embedded_vector_image)
     return model_vectors
 
