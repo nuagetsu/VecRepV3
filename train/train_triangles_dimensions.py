@@ -22,6 +22,7 @@ import gc
 
 import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
+import src.helpers.oldModelUtilities as oldmodels
 import src.data_processing.ImageProducts as ImageProducts
 import src.data_processing.ImageCalculations as imgcalc
 
@@ -90,8 +91,20 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
-SimpleCNN4 = models.SimpleCNN4_aps
-SimpleCNN6 = models.SimpleCNN6_aps
+apsSimpleCNN4 = models.SimpleCNN4_aps
+apsSimpleCNN6 = models.SimpleCNN6_aps
+
+LPSSimpleCNN4 = models.SimpleCNN4
+oldSimpleCNN4 = oldmodels.SimpleCNN4
+LPSSimpleCNN6 = models.SimpleCNN6
+oldSimpleCNN6 = oldmodels.SimpleCNN6
+
+apsSimpleCNN4_CBAMDROP = models.SimpleCNN4_aps_CBAM_dropout
+
+LPSSimpleCNN6_CBAMDROP = models.SimpleCNN6_CBAM_dropout
+apsSimpleCNN6_CBAMDROP = models.SimpleCNN6_aps_CBAM_dropout
+
+LPSSimpleCNN6_CBAMDROP_altPool = models.SimpleCNN6_CBAM_dropout_altLPS
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
 #     return torch.norm(A - G, p='fro')  
@@ -102,13 +115,13 @@ def loss_fn(A,G):
 # -------------------------------- Loop over different dimensions and models--------------------------
 dimensions = [64]
 
-model_classes = [SimpleCNN4]
+model_classes = [LPSSimpleCNN6_CBAMDROP_altPool]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_classes):
     for dimension in dimensions:
-        print(f"Training {model_class.__name__} with conv layer of {i+7} and dimension {dimension}")
+        print(f"Training {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
         with open("model/output_6.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+7} and dimension {dimension}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+5} and dimension {dimension}, {imageType}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -165,7 +178,7 @@ for i, model_class in enumerate(model_classes):
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
             with open("model/output_6.txt", "a", buffering=1) as file_model:
-                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}")
+                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}, {dimension}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -217,7 +230,7 @@ for i, model_class in enumerate(model_classes):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+7}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+5}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -229,7 +242,7 @@ for i, model_class in enumerate(model_classes):
                 #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
                 with open("model/output_6.txt", "a", buffering=1) as file_model:
-                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}")
+                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}, {dimension}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -239,19 +252,19 @@ for i, model_class in enumerate(model_classes):
 
             gc.collect()
 
-    # ----------------------------------Plots----------------------------------
-    plt.figure()
-    plt.plot(train_loss_history, label="Train Loss")
-    plt.plot(val_loss_history, label="Validation Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training and Validation Loss")
-    plt.legend()
-    plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+7}.png")    
+        # ----------------------------------Plots----------------------------------
+        plt.figure()
+        plt.plot(train_loss_history, label="Train Loss")
+        plt.plot(val_loss_history, label="Validation Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training and Validation Loss")
+        plt.legend()
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+5}.png")    
 
 
-    with open("model/output_5.txt", "a") as file:
-        file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+7}\n")
-        for item in val_loss_history:
-            file.write(f"{item}\n")
+        with open("model/output_5.txt", "a") as file:
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+5}\n")
+            for item in val_loss_history:
+                file.write(f"{item}\n")
 

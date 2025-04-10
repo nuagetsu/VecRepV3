@@ -89,6 +89,7 @@ test_dataloader = DataLoader(
 # ----------------------------------Model Architecture----------------------------------
 SimpleCNN2 = models.SimpleCNN2_aps
 SimpleCNN4 = models.SimpleCNN4_aps
+SimpleCNN4_CBAMDROP = models.SimpleCNN4_aps_CBAM_dropout
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
 #     return torch.norm(A - G, p='fro')  
@@ -97,15 +98,15 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [32, 64, 128, 256]
+dimensions = [32, 64]
 
-model_class = [SimpleCNN4]
+model_class = [SimpleCNN4_CBAMDROP]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
         print(f"Training {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
         with open("model/output_6.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}, {imageType}")
 
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
@@ -163,7 +164,7 @@ for i, model_class in enumerate(model_class):
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
             with open("model/output_6.txt", "a", buffering=1) as file_model:
-                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}")
+                file_model.write(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}, {model_class.__name__}, {imageType}, {dimension}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -227,7 +228,7 @@ for i, model_class in enumerate(model_class):
                 #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
                 with open("model/output_6.txt", "a", buffering=1) as file_model:
-                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}")
+                    file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}, {dimension}")
 
             # Clear Cache
             torch.cuda.empty_cache()             
@@ -238,18 +239,18 @@ for i, model_class in enumerate(model_class):
             gc.collect()
 
     # ----------------------------------Plots----------------------------------
-    plt.figure()
-    plt.plot(train_loss_history, label="Train Loss")
-    plt.plot(val_loss_history, label="Validation Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training and Validation Loss")
-    plt.legend()
-    plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}.png")    
+        plt.figure()
+        plt.plot(train_loss_history, label="Train Loss")
+        plt.plot(val_loss_history, label="Validation Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training and Validation Loss")
+        plt.legend()
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}.png")    
 
 
-    with open("model/output_5.txt", "a") as file:
-        file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}\n")
-        for item in val_loss_history:
-            file.write(f"{item}\n")
+        with open("model/output_5.txt", "a") as file:
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}\n")
+            for item in val_loss_history:
+                file.write(f"{item}\n")
 
