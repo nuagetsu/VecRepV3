@@ -91,18 +91,23 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
-apsSimpleCNN4 = models.SimpleCNN4_aps
-apsSimpleCNN6 = models.SimpleCNN6_aps
+SimpleCNN4_aps = models.SimpleCNN4_aps
+SimpleCNN6_aps = models.SimpleCNN6_aps
 
-LPSSimpleCNN4 = models.SimpleCNN4
+SimpleCNN4_aps_dropout = models.SimpleCNN4_aps_dropout
+SimpleCNN4_aps_dropout_2fc = models.SimpleCNN4_aps_dropout_2fc
+
+SimpleCNN4 = models.SimpleCNN4
 oldSimpleCNN4 = oldmodels.SimpleCNN4
-LPSSimpleCNN6 = models.SimpleCNN6
+SimpleCNN6 = models.SimpleCNN6
+
+SimpleCNN6_dropout = models.SimpleCNN6_dropout
 oldSimpleCNN6 = oldmodels.SimpleCNN6
 
-apsSimpleCNN4_CBAMDROP = models.SimpleCNN4_aps_CBAM_dropout
+SimpleCNN4_aps_CBAM_dropout = models.SimpleCNN4_aps_CBAM_dropout
 
-LPSSimpleCNN6_CBAMDROP = models.SimpleCNN6_CBAM_dropout
-apsSimpleCNN6_CBAMDROP = models.SimpleCNN6_aps_CBAM_dropout
+SimpleCNN6_CBAM_dropout = models.SimpleCNN6_CBAM_dropout
+SimpleCNN6_aps_CBAM_dropout = models.SimpleCNN6_aps_CBAM_dropout
 
 LPSSimpleCNN6_CBAMDROP_altPool = models.SimpleCNN6_CBAM_dropout_altLPS
 # ----------------------------------Training Settings----------------------------------
@@ -115,13 +120,13 @@ def loss_fn(A,G):
 # -------------------------------- Loop over different dimensions and models--------------------------
 dimensions = [64]
 
-model_classes = [LPSSimpleCNN6_CBAMDROP_altPool]
+model_classes = [SimpleCNN4_aps_dropout_2fc]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_classes):
     for dimension in dimensions:
-        print(f"Training {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
+        print(f"Training {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
         with open("model/output_6.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+5} and dimension {dimension}, {imageType}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}, {imageType}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -230,7 +235,7 @@ for i, model_class in enumerate(model_classes):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+5}_{model_class.__name__}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -260,11 +265,11 @@ for i, model_class in enumerate(model_classes):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+5}.png")    
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}.png")    
 
 
         with open("model/output_5.txt", "a") as file:
-            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+5}\n")
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")
 

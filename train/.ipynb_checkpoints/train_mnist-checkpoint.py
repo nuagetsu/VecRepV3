@@ -96,23 +96,27 @@ train_dataloader = DataLoader(
 test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True)
 
-print("len(test_dataloader): ",len(test_dataloader)) 
+print("len(train_dataloader): ",len(train_dataloader)) 
 # ----------------------------------Model Architecture----------------------------------
+SimpleCNN6 = models.SimpleCNN6 #done
+
 SimpleCNN4 = models.SimpleCNN4
-SimpleCNN6 = models.SimpleCNN6
+SimpleCNN4_dropout = models.SimpleCNN4_dropout
+SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
+apsSimpleCNN4_2fc_dropout = models.SimpleCNN4_dropout_2fc
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [32]
+dimensions = [32, 64]
 
-model_class = [SimpleCNN6]
+model_class = [SimpleCNN4]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
-        print(f"Training MNIST {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
+        print(f"Training MNIST {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
         with open("model/output_7.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -120,9 +124,9 @@ for i, model_class in enumerate(model_class):
 
         optimizer = optim.Adam(model.parameters(), lr=0.0005)
 
-        epochs = 20
+        epochs = 50
         plot_epoch = epochs
-        patience = 5
+        patience = 3
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
@@ -221,7 +225,7 @@ for i, model_class in enumerate(model_class):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+5}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -244,19 +248,19 @@ for i, model_class in enumerate(model_class):
             gc.collect()
 
     # ----------------------------------Plots----------------------------------
-    plt.figure()
-    plt.plot(train_loss_history, label="Train Loss")
-    plt.plot(val_loss_history, label="Validation Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training and Validation Loss")
-    plt.legend()
-    plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+5}.png")    
+        plt.figure()
+        plt.plot(train_loss_history, label="Train Loss")
+        plt.plot(val_loss_history, label="Validation Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training and Validation Loss")
+        plt.legend()
+        plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+3}.png")    
 
 
-    with open("model/output_MNIST.txt", "a") as file:
-        file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+5}\n")
-        for item in val_loss_history:
-            file.write(f"{item}\n")   
+        with open("model/output_MNIST.txt", "a") as file:
+            file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}\n")
+            for item in val_loss_history:
+                file.write(f"{item}\n")   
 
     
