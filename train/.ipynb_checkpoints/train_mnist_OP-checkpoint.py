@@ -30,7 +30,7 @@ from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
 
-imageType = "MNIST"
+imageType = "FashionMNIST"
 # ---------------------------------- Seed --------------------------------------
 def set_seed(seed=42):
     random.seed(seed)  
@@ -57,7 +57,7 @@ aug_transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
+trainset = torchvision.datasets.FashionMNIST(root='./data', train=True, transform=transform)
 # augmented_trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=aug_transform)
 
 # full_dataset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
@@ -72,7 +72,7 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx]
-    
+
 def custom_collate(batch):
     batch_data, batch_indices = zip(*batch) 
     batch_data = torch.stack(batch_data)  
@@ -111,8 +111,10 @@ print("len(train_dataloader): ",len(train_dataloader))
 SimpleCNN6 = models.SimpleCNN6 #done
 SimpleCNN4 = models.SimpleCNN4
 SimpleCNN2 = models.SimpleCNN2
-SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
-#dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
+
+#dropout does not seem to work
+SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
+SimpleCNN4_2fc_dropout = models.SimpleCNN4_dropout_2fc
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
@@ -147,6 +149,7 @@ for i, model_class in enumerate(model_class):
                 loss_per_pair = 0
                 len_train = 0
                 remaining_indices = list(range(len(batch_data)))
+                
                 for idx1, idx2 in combinations(remaining_indices, 2): #16C2
                     data1, data2 = batch_data[idx1], batch_data[idx2]
 
@@ -165,6 +168,7 @@ for i, model_class in enumerate(model_class):
                     NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                     if NCC_scaled_value.ndim == 0:
                         NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
+                    
                     NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
 
                     loss = loss_fn(dot_product_value, NCC_scaled_value) #squared frobenius norm 
@@ -219,8 +223,7 @@ for i, model_class in enumerate(model_class):
                         NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                         if NCC_scaled_value.ndim == 0:
                             NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
-                        NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
-                        
+
                         loss = loss_fn(dot_product_value, NCC_scaled_value)
 
                         loss_per_pair += loss.item()

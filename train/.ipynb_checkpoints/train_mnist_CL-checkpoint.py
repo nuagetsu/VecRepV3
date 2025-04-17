@@ -72,7 +72,7 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx]
-    
+
 def custom_collate(batch):
     batch_data, batch_indices = zip(*batch) 
     batch_data = torch.stack(batch_data)  
@@ -110,16 +110,22 @@ print("len(train_dataloader): ",len(train_dataloader))
 # ----------------------------------Model Architecture----------------------------------
 SimpleCNN6 = models.SimpleCNN6 #done
 SimpleCNN4 = models.SimpleCNN4
-SimpleCNN2 = models.SimpleCNN2
-SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
-#dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
+
+SimpleCNN4_dropout = models.SimpleCNN4_dropout
+SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
+SimpleCNN4_2fc_dropout = models.SimpleCNN4_dropout_2fc
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
+
+contrastive_margin = 0.5  
+lambda_contrastive = 0.1  
+ncc_high_threshold = 0.75  
+ncc_low_threshold = 0.4   
 # -------------------------------- Loop over different dimensions and models--------------------------
 dimensions = [64, 128]
 
-model_class = [SimpleCNN2]
+model_class = [SimpleCNN4]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
@@ -165,21 +171,34 @@ for i, model_class in enumerate(model_class):
                     NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                     if NCC_scaled_value.ndim == 0:
                         NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
-                    NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
 
                     loss = loss_fn(dot_product_value, NCC_scaled_value) #squared frobenius norm 
-                    loss_per_pair += loss
+
+                    # ===== Contrastive Loss Components =====
+                    target = NCC_scaled_value.item()
+
+                    if target > ncc_high_threshold:
+                        # Positive pair maximize similarity
+                        contrastive_loss = torch.clamp(contrastive_margin - dot_product_value, min=0)
+                    elif target < ncc_low_threshold:
+                        # Negative pair minimize similarity
+                        contrastive_loss = torch.clamp(dot_product_value - (-contrastive_margin), min=0)
+                    else:
+                        contrastive_loss = torch.tensor(0.0, device=dot_product_value.device)
+
+                    # Hybrid loss = NCC loss + contrastive component
+                    total_pair_loss = loss + lambda_contrastive * contrastive_loss
+                    # ============================================
+
+                    loss_per_pair += total_pair_loss
                     len_train += 1
 
                 training_loss = loss_per_pair/len_train
-                print(f"training_loss in epoch {epoch}: {training_loss}")
-
                 training_loss.backward()
                 optimizer.step()
+                total_loss_training += training_loss.item()
 
-                total_loss_training += training_loss.item()  
-
-            avg_loss = total_loss_training /  (len(train_dataloader))
+            avg_loss = total_loss_training / len(train_dataloader)
             train_loss_history.append(avg_loss)
             print(f"\nEpoch {epoch}: Avg Loss = {avg_loss:.4f}")
             with open("model/output_7.txt", "a", buffering=1) as file_model:
@@ -219,11 +238,26 @@ for i, model_class in enumerate(model_class):
                         NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                         if NCC_scaled_value.ndim == 0:
                             NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
-                        NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
-                        
-                        loss = loss_fn(dot_product_value, NCC_scaled_value)
 
-                        loss_per_pair += loss.item()
+                        loss = loss_fn(dot_product_value, NCC_scaled_value)
+                        # ===== Contrastive Loss Components =====
+                        target = NCC_scaled_value.item()
+
+                        if target > ncc_high_threshold:
+                            # Positive pair maximize similarity
+                            contrastive_loss = torch.clamp(contrastive_margin - dot_product_value, min=0)
+                        elif target < ncc_low_threshold:
+                            # Negative pair minimize similarity
+                            contrastive_loss = torch.clamp(dot_product_value - (-contrastive_margin), min=0)
+                        else:
+                            contrastive_loss = 0.0
+
+                        # Hybrid loss = NCC loss + contrastive component
+                        total_pair_loss = loss + lambda_contrastive * contrastive_loss
+                        # ============================================
+
+                        loss_per_pair += total_pair_loss
+
                         len_test +=1
 
                     validation_loss = loss_per_pair/len_test

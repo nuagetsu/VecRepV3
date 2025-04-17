@@ -48,9 +48,19 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
+aug_transform = transforms.Compose([
+    transforms.Resize((32, 32)),
+    transforms.RandomRotation(degrees=20),           
+    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  
+    transforms.RandomHorizontalFlip(),        
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
 
-#full_dataset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
+trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
+# augmented_trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=aug_transform)
+
+# full_dataset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
 full_dataset = trainset
 # ----------------------------------Preparing the Dataset----------------------------------
 class CustomDataset(Dataset):
@@ -99,18 +109,17 @@ test_dataloader = DataLoader(
 print("len(train_dataloader): ",len(train_dataloader)) 
 # ----------------------------------Model Architecture----------------------------------
 SimpleCNN6 = models.SimpleCNN6 #done
-
 SimpleCNN4 = models.SimpleCNN4
-SimpleCNN4_dropout = models.SimpleCNN4_dropout
-SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
-apsSimpleCNN4_2fc_dropout = models.SimpleCNN4_dropout_2fc
+SimpleCNN2 = models.SimpleCNN2
+SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
+#dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [32, 64]
+dimensions = [64, 128]
 
-model_class = [SimpleCNN4]
+model_class = [SimpleCNN2]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
@@ -156,6 +165,7 @@ for i, model_class in enumerate(model_class):
                     NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                     if NCC_scaled_value.ndim == 0:
                         NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
+                    NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
 
                     loss = loss_fn(dot_product_value, NCC_scaled_value) #squared frobenius norm 
                     loss_per_pair += loss
@@ -209,7 +219,8 @@ for i, model_class in enumerate(model_class):
                         NCC_scaled_value = torch.tensor(NCC_scaled_value).to(dot_product_value.device).float()
                         if NCC_scaled_value.ndim == 0:
                             NCC_scaled_value = NCC_scaled_value.unsqueeze(0)
-
+                        NCC_scaled_value = NCC_scaled_value.clamp(min=-1.0)
+                        
                         loss = loss_fn(dot_product_value, NCC_scaled_value)
 
                         loss_per_pair += loss.item()
@@ -225,7 +236,7 @@ for i, model_class in enumerate(model_class):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -255,11 +266,11 @@ for i, model_class in enumerate(model_class):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+3}.png")    
+        plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}.png")    
 
 
         with open("model/output_MNIST.txt", "a") as file:
-            file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}\n")
+            file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")   
 

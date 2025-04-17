@@ -120,7 +120,7 @@ def loss_fn(A,G):
 # -------------------------------- Loop over different dimensions and models--------------------------
 dimensions = [64]
 
-model_classes = [SimpleCNN4_aps_dropout_2fc]
+model_classes = [SimpleCNN4_aps]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_classes):
     for dimension in dimensions:
