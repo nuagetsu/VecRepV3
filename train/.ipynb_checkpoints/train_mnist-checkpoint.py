@@ -48,14 +48,15 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-aug_transform = transforms.Compose([
-    transforms.Resize((32, 32)),
-    transforms.RandomRotation(degrees=20),           
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  
-    transforms.RandomHorizontalFlip(),        
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
+#not necessary since test dataset contains upright handwritten characters, no need train on orientation and flips
+# aug_transform = transforms.Compose([
+#     transforms.Resize((32, 32)),
+#     transforms.RandomRotation(degrees=20),           
+#     transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  
+#     transforms.RandomHorizontalFlip(),        
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.5,), (0.5,))
+# ])
 
 trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
 # augmented_trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=aug_transform)
@@ -109,6 +110,9 @@ test_dataloader = DataLoader(
 print("len(train_dataloader): ",len(train_dataloader)) 
 # ----------------------------------Model Architecture----------------------------------
 SimpleCNN6 = models.SimpleCNN6 #done
+SimpleCNN6_CBAM = models.SimpleCNN6_CBAM
+SimpleCNN6_aps_CBAM = models.SimpleCNN6_aps_CBAM
+
 SimpleCNN4 = models.SimpleCNN4
 SimpleCNN4_aps = models.SimpleCNN4_aps
 
@@ -119,15 +123,15 @@ SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [128]
+dimensions = [64]
 
-model_class = [SimpleCNN4_CBAM]
+model_class = [SimpleCNN6]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
-        print(f"Training MNIST {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
+        print(f"Training MNIST {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
         with open("model/output_7.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+5} and dimension {dimension}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -238,7 +242,7 @@ for i, model_class in enumerate(model_class):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+5}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -268,11 +272,11 @@ for i, model_class in enumerate(model_class):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}.png")    
+        plt.savefig(f"model/loss_MNIST_{imageType}_{dimension}d_convlayer{i+5}_{model_class.__name__}_{imageType}.png")    
 
 
         with open("model/output_MNIST.txt", "a") as file:
-            file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}\n")
+            file.write(f"best_model_MNIST_{imageType}_{dimension}d_convlayer{i+5}_{model_class.__name__}_{imageType}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")   
 
