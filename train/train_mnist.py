@@ -48,14 +48,15 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-aug_transform = transforms.Compose([
-    transforms.Resize((32, 32)),
-    transforms.RandomRotation(degrees=20),           
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  
-    transforms.RandomHorizontalFlip(),        
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
+#not necessary since test dataset contains upright handwritten characters, no need train on orientation and flips
+# aug_transform = transforms.Compose([
+#     transforms.Resize((32, 32)),
+#     transforms.RandomRotation(degrees=20),           
+#     transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  
+#     transforms.RandomHorizontalFlip(),        
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.5,), (0.5,))
+# ])
 
 trainset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform)
 # augmented_trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=aug_transform)
@@ -110,6 +111,8 @@ print("len(train_dataloader): ",len(train_dataloader))
 # ----------------------------------Model Architecture----------------------------------
 SimpleCNN6 = models.SimpleCNN6 #done
 SimpleCNN4 = models.SimpleCNN4
+SimpleCNN4_aps = models.SimpleCNN4_aps
+
 SimpleCNN2 = models.SimpleCNN2
 SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
 #dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
@@ -117,9 +120,9 @@ SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [64, 128]
+dimensions = [128]
 
-model_class = [SimpleCNN2]
+model_class = [SimpleCNN4_CBAM]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:

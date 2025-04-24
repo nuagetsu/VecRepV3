@@ -660,6 +660,41 @@ class SimpleCNN2_aps_CBAM(nn.Module):
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)
         return x
+    
+class SimpleCNN2_aps_dropout(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.apspool1 = ApsPool(16, return_poly_indices=False)
+        self.relu = nn.LeakyReLU(0.1)  
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.apspool2 = ApsPool(32, return_poly_indices=False)
+        
+        self.dropout = nn.Dropout2d(p=dropout_rate) 
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(32, dimensions)
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.apspool1(x)
+        x = self.dropout(x) 
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        x = self.apspool2(x)
+        x = self.dropout(x) 
+        
+        x = torch.flatten(self.avgpool(x), 1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        
+        return x    
 
 class SimpleCNN2_aps_CBAM_dropout(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
@@ -699,7 +734,154 @@ class SimpleCNN2_aps_CBAM_dropout(nn.Module):
         x = F.normalize(x, p=2, dim=1)
         
         return x
+    
+class SimpleCNN2_dropout(nn.Module):
+    def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
 
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.lpd1 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=16,h_ch=16)   
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd2 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)     
+        self.bn2   = nn.BatchNorm2d(32)
+        
+        self.dropout = nn.Dropout2d(p=dropout_rate)
+        self.relu = nn.LeakyReLU(0.1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(32, dimensions)  
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.lpd1(x)
+        x = self.dropout(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        x = self.lpd2(x)
+        x = self.dropout(x)
+        
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+  
+class SimpleCNN2_CBAM(nn.Module):
+    def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.lpd1 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=16,h_ch=16)   
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd2 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)     
+        self.bn2   = nn.BatchNorm2d(32)
+
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+
+        self.relu = nn.LeakyReLU(0.1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(32, dimensions)  
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        x = self.lpd1(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.lpd2(x)
+        
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+    
+    
+class SimpleCNN2_CBAM_dropout(nn.Module):
+    def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.lpd1 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=16,h_ch=16)   
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd2 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)     
+        self.bn2   = nn.BatchNorm2d(32)
+
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+
+
+        self.dropout = nn.Dropout2d(p=dropout_rate)
+        self.relu = nn.LeakyReLU(0.1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(32, dimensions)  
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        x = self.lpd1(x)
+        x = self.dropout(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.lpd2(x)
+        x = self.dropout(x)
+        
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
+    
 class SimpleCNN4_aps_dropout(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
         super().__init__()
@@ -754,6 +936,65 @@ class SimpleCNN4_aps_dropout(nn.Module):
         x = F.normalize(x, p=2, dim=1)
         
         return x
+    
+class SimpleCNN4_aps_CBAM(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.apspool1 = ApsPool(16, return_poly_indices=False)
+        self.relu = nn.LeakyReLU(0.1)  
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+        self.apspool2 = ApsPool(32, return_poly_indices=False)     
+        
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn3 = nn.BatchNorm2d(64)
+        self.cbam3 = CBAM(64, reduction_ratio=16)
+        self.apspool3 = ApsPool(64, return_poly_indices=False)     
+        
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn4 = nn.BatchNorm2d(128)
+        self.cbam4 = CBAM(128, reduction_ratio=32)
+        self.apspool4 = ApsPool(128, return_poly_indices=False)     
+        
+        self.dropout = nn.Dropout2d(p=dropout_rate)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(128, dimensions)
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        x = self.apspool1(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.apspool2(x)
+        
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.cbam3(x)
+        x = self.relu(x)
+        x = self.apspool3(x)
+        
+        x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.cbam4(x)
+        x = self.relu(x)
+        x = self.apspool4(x)
+        
+        x = torch.flatten(self.avgpool(x), 1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        
+        return x    
     
 class SimpleCNN4_aps_CBAM_dropout(nn.Module):
     def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
@@ -899,6 +1140,87 @@ class SimpleCNN6_aps_CBAM_dropout(nn.Module):
         x = self.apspool6(x)
         x = self.dropout(x)
         
+        x = torch.flatten(self.avgpool(x), 1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)    
+        
+        return x
+    
+class SimpleCNN6_aps_CBAM(nn.Module):
+    def __init__(self, dimensions=10, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.apspool1 = ApsPool(16, return_poly_indices=False)
+        self.relu = nn.LeakyReLU(0.1)  
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+        self.apspool2 = ApsPool(32, return_poly_indices=False)     
+        
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn3 = nn.BatchNorm2d(64)
+        self.cbam3 = CBAM(64, reduction_ratio=16)
+        self.apspool3 = ApsPool(64, return_poly_indices=False)     
+        
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.bn4 = nn.BatchNorm2d(128)
+        self.cbam4 = CBAM(128, reduction_ratio=32)
+        self.apspool4 = ApsPool(128, return_poly_indices=False)   
+        
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode) 
+        self.apspool5 = ApsPool(256, return_poly_indices=False)
+        self.bn5 = nn.BatchNorm2d(256)
+        self.cbam5 = CBAM(256, reduction_ratio=64)
+
+        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
+        self.apspool6 = ApsPool(512, return_poly_indices=False)
+        self.bn6 = nn.BatchNorm2d(512)
+        self.cbam6 = CBAM(512, reduction_ratio=128)
+        
+        self.dropout = nn.Dropout2d(p=dropout_rate)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512, dimensions)
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        #x = self.apspool1(x)
+  
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.apspool2(x)
+     
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.cbam3(x)
+        x = self.relu(x)
+        x = self.apspool3(x)
+      
+        x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.cbam4(x)
+        x = self.relu(x)
+        x = self.apspool4(x)
+       
+        x = self.conv5(x)
+        x = self.bn5(x)
+        x = self.cbam5(x)
+        x = self.relu(x)
+        x = self.apspool5(x)
+       
+        x = self.conv6(x)
+        x = self.bn6(x)
+        x = self.cbam6(x)
+        x = self.relu(x)
+        x = self.apspool6(x)
+
         x = torch.flatten(self.avgpool(x), 1)
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)    
@@ -1085,6 +1407,119 @@ class SimpleCNN6_dropout(nn.Module):
         x = self.fc(x)
         x = F.normalize(x, p=2, dim=1)
         return x    
+    
+class SimpleCNN6_CBAM(nn.Module):
+    def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(1, 16, 3, padding=1, padding_mode=padding_mode)
+        self.lpd1 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=16,h_ch=16)   
+        self.bn1   = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd2 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=32,h_ch=32)     
+        self.bn2   = nn.BatchNorm2d(32)
+        
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd3 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=64,h_ch=64)        
+        self.bn3   = nn.BatchNorm2d(64)
+        
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd4 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=128,h_ch=128)  
+        self.bn4   = nn.BatchNorm2d(128)
+
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, padding_mode=padding_mode) 
+        self.lpd5 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=256,h_ch=256)  
+        self.bn5 = nn.BatchNorm2d(256)
+
+        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1, padding_mode=padding_mode)  
+        self.lpd6 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+            ),p_ch=512,h_ch=512)  
+        self.bn6 = nn.BatchNorm2d(512)
+
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+        self.cbam3 = CBAM(64, reduction_ratio=16)
+        self.cbam4 = CBAM(128, reduction_ratio=32)
+        self.cbam5 = CBAM(256, reduction_ratio=64)
+        self.cbam6 = CBAM(512, reduction_ratio=128)       
+    
+        self.dropout = nn.Dropout2d(p=dropout_rate)
+        self.relu = nn.LeakyReLU(0.1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(512, dimensions)  
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        #x = self.lpd1(x)
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.lpd2(x)
+   
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.cbam3(x)
+        x = self.relu(x)
+        x = self.lpd3(x)
+    
+        x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.cbam4(x)
+        x = self.relu(x)
+        x = self.lpd4(x)
+        
+        x = self.conv5(x)
+        x = self.bn5(x)
+        x = self.cbam5(x)
+        x = self.relu(x)
+        x = self.lpd5(x)
+       
+        x = self.conv6(x)
+        x = self.bn6(x)
+        x = self.cbam6(x)
+        x = self.relu(x)
+        x = self.lpd6(x)
+     
+        x = torch.flatten(self.avgpool(x),1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x
     
 class SimpleCNN6_CBAM_dropout(nn.Module):
     def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
@@ -1708,4 +2143,120 @@ class SimpleCNN4_aps_dropout_2fc(nn.Module):
         x = self.fc2(x)
         x = F.normalize(x, p=2, dim=1)
         
-        return x    
+        return x   
+    
+######################################################################################
+#CoordConv implementation
+
+class AddCoordinates(nn.Module):
+    def __init__(self, with_r=False):
+        super().__init__()
+        self.with_r = with_r
+
+    def forward(self, x):
+        batch_size, _, height, width = x.size()
+        y_coords = torch.linspace(-1, 1, height, device=x.device).repeat(1, width, 1).transpose(1, 2)
+        x_coords = torch.linspace(-1, 1, width, device=x.device).repeat(1, height, 1)
+        coords = torch.stack([x_coords, y_coords], dim=1).unsqueeze(0).repeat(batch_size, 1, 1, 1)
+        
+        if self.with_r:
+            rr = torch.sqrt(torch.pow(x_coords, 2) + torch.pow(y_coords, 2)).unsqueeze(0).unsqueeze(0)
+            rr = rr / torch.max(rr)
+            rr = rr.repeat(batch_size, 1, 1, 1)
+            coords = torch.cat([coords, rr], dim=1)
+            
+        return torch.cat([x, coords], dim=1)
+
+class CoordConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.addcoords = AddCoordinates(with_r=True)
+        self.conv = nn.Conv2d(in_channels + 3,
+                             out_channels, 
+                             kernel_size=3,
+                             padding=1,
+                             padding_mode='circular')
+
+    def forward(self, x):
+        x = self.addcoords(x)
+        return self.conv(x)
+
+class SimpleCNN4_CBAM_Coord(nn.Module):
+    def __init__(self, dimensions=128, padding_mode='circular', dropout_rate=0.3):
+        super().__init__()
+
+        self.conv1 = CoordConvBlock(1, 16) 
+        
+        self.lpd1 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+        ), p_ch=16, h_ch=16)   
+        self.bn1 = nn.BatchNorm2d(16)
+        self.relu = nn.LeakyReLU(0.1)
+        
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd2 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+        ), p_ch=32, h_ch=32)     
+        self.bn2 = nn.BatchNorm2d(32)
+        
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd3 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+        ), p_ch=64, h_ch=64)        
+        self.bn3 = nn.BatchNorm2d(64)
+        
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, padding_mode=padding_mode)
+        self.lpd4 = set_pool(partial(
+            PolyphaseInvariantDown2D,
+            component_selection=LPS,
+            get_logits=get_logits_model('LPSLogitLayers'),
+            pass_extras=False
+        ), p_ch=128, h_ch=128)  
+        self.bn4 = nn.BatchNorm2d(128)
+
+        self.cbam1 = CBAM(16, reduction_ratio=4)
+        self.cbam2 = CBAM(32, reduction_ratio=8)
+        self.cbam3 = CBAM(64, reduction_ratio=16)
+        self.cbam4 = CBAM(128, reduction_ratio=32)
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(128, dimensions)  
+        
+    def forward(self, x):
+        x = self.conv1(x)  
+        x = self.bn1(x)
+        x = self.cbam1(x)
+        x = self.relu(x)
+        x = self.lpd1(x)
+        
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.cbam2(x)
+        x = self.relu(x)
+        x = self.lpd2(x)
+        
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.cbam3(x)
+        x = self.relu(x)
+        x = self.lpd3(x)
+
+        x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.cbam4(x)
+        x = self.relu(x)
+        x = self.lpd4(x)
+        
+        x = torch.flatten(self.avgpool(x), 1)
+        x = self.fc(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x

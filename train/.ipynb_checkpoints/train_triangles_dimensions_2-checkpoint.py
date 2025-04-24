@@ -90,9 +90,34 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
-SimpleCNN2 = models.SimpleCNN2_aps
-SimpleCNN4 = models.SimpleCNN4_aps
+SimpleCNN2_aps = models.SimpleCNN2_aps
+SimpleCNN2_aps_CBAM = models.SimpleCNN2_aps_CBAM
+SimpleCNN2_aps_dropout = models.SimpleCNN2_aps_dropout
+SimpleCNN2_aps_CBAM_dropout = models.SimpleCNN2_aps_CBAM_dropout
+
+SimpleCNN2 = models.SimpleCNN2
+SimpleCNN2_dropout = models.SimpleCNN2_dropout
+SimpleCNN2_CBAM = models.SimpleCNN2_CBAM
+SimpleCNN2_CBAM_dropout = models.SimpleCNN2_CBAM_dropout
+
+SimpleCNN4_aps = models.SimpleCNN4_aps
+SimpleCNN4_aps_dropout= models.SimpleCNN4_aps_dropout
+SimpleCNN4_aps_CBAM = models.SimpleCNN4_aps_CBAM
 SimpleCNN4_aps_CBAM_dropout = models.SimpleCNN4_aps_CBAM_dropout
+
+SimpleCNN4 = models.SimpleCNN4
+SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
+SimpleCNN4_dropout = models.SimpleCNN4_dropout
+SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
+
+SimpleCNN6_CBAM = models.SimpleCNN6_CBAM
+SimpleCNN6_dropout = models.SimpleCNN6_dropout
+SimpleCNN6_CBAM_dropout = models.SimpleCNN6_CBAM_dropout
+
+SimpleCNN6_aps = models.SimpleCNN6_aps
+SimpleCNN6_aps_CBAM = models.SimpleCNN6_aps_CBAM
+SimpleCNN6_aps_dropout = models.SimpleCNN6_aps_dropout
+SimpleCNN6_aps_CBAM_dropout = models.SimpleCNN6_aps_CBAM_dropout
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
 #     return torch.norm(A - G, p='fro')  
@@ -101,7 +126,7 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [128]
+dimensions = [32, 128, 256]
 
 model_class = [SimpleCNN4]
 # ---------------------------------- Training Loop ----------------------------------
@@ -120,7 +145,7 @@ for i, model_class in enumerate(model_class):
 
         epochs = 20
         plot_epoch = epochs
-        patience = 5
+        patience = 3
         best_val_loss = float('inf')
         epochs_no_improve = 0
 

@@ -87,9 +87,21 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False, collate_fn=custom_collate, drop_last=True, num_workers=4, pin_memory=True)
 
 # ----------------------------------Model Architecture----------------------------------
-SimpleCNN2 = models.SimpleCNN2_aps
-SimpleCNN4 = models.SimpleCNN4_aps
-SimpleCNN4_CBAMDROP = models.SimpleCNN4_aps_CBAM_dropout
+SimpleCNN4_aps = models.SimpleCNN4_aps
+SimpleCNN4_aps_CBAM = models.SimpleCNN4_aps_CBAM
+SimpleCNN4_aps_dropout = models.SimpleCNN4_aps_dropout
+SimpleCNN4_aps_CBAM_dropout = models.SimpleCNN4_aps_CBAM_dropout
+
+SimpleCNN2 = models.SimpleCNN2
+SimpleCNN2_CBAM = models.SimpleCNN2_CBAM
+SimpleCNN2_dropout = models.SimpleCNN2_dropout
+SimpleCNN2_CBAM_dropout = models.SimpleCNN2_CBAM_dropout
+SimpleCNN2_aps_dropout = models.SimpleCNN2_aps_dropout
+
+SimpleCNN4 = models.SimpleCNN4
+SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
+SimpleCNN4_dropout = models.SimpleCNN4_dropout
+SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
 # ----------------------------------Training Settings----------------------------------
 # def loss_fn(A, G):
 #     return torch.norm(A - G, p='fro')  
@@ -98,9 +110,9 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [32, 64]
+dimensions = [64]
 
-model_class = [SimpleCNN4_CBAMDROP]
+model_class = [SimpleCNN4_aps_CBAM, SimpleCNN4_aps_dropout, SimpleCNN4_aps_CBAM_dropout]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
@@ -117,7 +129,7 @@ for i, model_class in enumerate(model_class):
 
         epochs = 20
         plot_epoch = epochs
-        patience = 5
+        patience = 3
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
@@ -216,7 +228,7 @@ for i, model_class in enumerate(model_class):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+3}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -246,11 +258,11 @@ for i, model_class in enumerate(model_class):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}.png")    
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}.png")    
 
 
         with open("model/output_5.txt", "a") as file:
-            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}\n")
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{imageType}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")
 
