@@ -126,9 +126,9 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [32, 128, 256]
+dimensions = [64]
 
-model_class = [SimpleCNN4]
+model_class = [SimpleCNN4_aps_CBAM_dropout, SimpleCNN6_aps_CBAM_dropout]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
