@@ -123,15 +123,15 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [64]
+dimensions = [256]
 
-model_classes = [SimpleCNN2_aps_dropout, SimpleCNN2_aps_CBAM_dropout, SimpleCNN2_aps_CBAM]
+model_classes = [SimpleCNN4]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_classes):
     for dimension in dimensions:
-        print(f"Training {model_class.__name__} with conv layer of {i+1} and dimension {dimension}")
+        print(f"Training {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
         with open("model/output_6.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+1} and dimension {dimension}, {imageType}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}, {imageType}")
 
         model = model_class(dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
@@ -240,7 +240,7 @@ for i, model_class in enumerate(model_classes):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+1}_{model_class.__name__}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -270,11 +270,11 @@ for i, model_class in enumerate(model_classes):
         plt.ylabel("Loss")
         plt.title("Training and Validation Loss")
         plt.legend()
-        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+1}.png")    
+        plt.savefig(f"model/loss_{imageType}_{dimension}d_convlayer{i+3}.png")    
 
 
         with open("model/output_5.txt", "a") as file:
-            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+1}\n")
+            file.write(f"best_model_{imageType}_{dimension}d_convlayer{i+3}\n")
             for item in val_loss_history:
                 file.write(f"{item}\n")
 
