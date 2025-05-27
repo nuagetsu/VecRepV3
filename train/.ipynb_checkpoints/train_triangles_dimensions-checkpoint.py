@@ -98,6 +98,7 @@ SimpleCNN4_aps_dropout = models.SimpleCNN4_aps_dropout
 SimpleCNN4_aps_dropout_2fc = models.SimpleCNN4_aps_dropout_2fc
 
 SimpleCNN4 = models.SimpleCNN4
+SimpleCNN4_2fc = models.SimpleCNN4_2fc
 SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
 
 oldSimpleCNN4 = oldmodels.SimpleCNN4
@@ -123,9 +124,9 @@ def loss_fn(A,G):
     return F.mse_loss(A, G)
 
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [256]
+dimensions = [64]
 
-model_classes = [SimpleCNN4]
+model_classes = [oldSimpleCNN4]
 # ---------------------------------- Training Loop ----------------------------------
 for i, model_class in enumerate(model_classes):
     for dimension in dimensions:

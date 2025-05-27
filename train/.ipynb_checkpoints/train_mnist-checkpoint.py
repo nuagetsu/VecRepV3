@@ -24,6 +24,7 @@ import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
 import src.data_processing.ImageProducts as ImageProducts
 import src.data_processing.ImageCalculations as imgcalc
+import src.helpers.oldModelUtilities as oldmodels
 
 from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
 from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
@@ -113,28 +114,30 @@ SimpleCNN6 = models.SimpleCNN6 #done
 SimpleCNN6_dropout = models.SimpleCNN6_dropout
 SimpleCNN6_CBAM = models.SimpleCNN6_CBAM
 SimpleCNN6_CBAM_dropout = models.SimpleCNN6_CBAM_dropout
+SimpleCNN6_2fc = models.SimpleCNN6_2fc
+SimpleCNN6_CBAM_2fc = models.SimpleCNN6_CBAM_2fc
 
 SimpleCNN6_aps = models.SimpleCNN6_aps
 SimpleCNN6_aps_CBAM = models.SimpleCNN6_aps_CBAM
 
+oldSimpleCNN4 = oldmodels.SimpleCNN4
 SimpleCNN4 = models.SimpleCNN4
 SimpleCNN4_aps = models.SimpleCNN4_aps
 SimpleCNN4_2fc = models.SimpleCNN4_2fc
-SimpleCNN2 = models.SimpleCNN2
+
 SimpleCNN4_CBAM = models.SimpleCNN4_CBAM
 SimpleCNN4_dropout = models.SimpleCNN4_dropout
 SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
 
-SimpleCNN6_2fc = models.SimpleCNN6_2fc
-SimpleCNN6_CBAM_2fc = models.SimpleCNN6_CBAM_2fc
+SimpleCNN2 = models.SimpleCNN2
 #dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
     return F.mse_loss(A, G)
 # -------------------------------- Loop over different dimensions and models--------------------------
-dimensions = [128]
+dimensions = [64]
 
-model_class = [SimpleCNN4_CBAM_dropout]
+model_class = [oldSimpleCNN4]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
