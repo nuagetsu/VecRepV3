@@ -115,8 +115,12 @@ def get_vectorb(index, input_dataset):
     return vectorb
 
 def get_kscore_and_sets(vectorb, vectorc, k):
+    print("WHY NO PRINTY :<")
     kscore, indices, intersection_indices = metrics.get_k_neighbour_score(vectorb, vectorc, k)
     return kscore, indices, intersection_indices
+
+def get_kNN_imageprod(vectorb, k):
+    return metrics.get_k_nearest_imageprod(vectorb, k)
 
 def get_NCC_score(input1, input2):
     scale = ImageProducts.scale_min(ImageProducts.ncc, -1)
@@ -298,6 +302,7 @@ def get_vector_embeddings(input_dataset, model, device = None):
     num = len(input_dataset)
     model_vectors= []
     for i in range(num):
+        #print(input_dataset[i].type())
         embedded_vector_image = model(input_dataset[i].to(device))
         model_vectors.append(embedded_vector_image)
     return model_vectors

@@ -1,3 +1,6 @@
 [submodule "learnable_polyphase_sampling"]
 	path = learnable_polyphase_sampling
 	url = https://github.com/raymondyeh07/learnable_polyphase_sampling.git
+[submodule "mtree"]
+	path = mtree
+	url = https://github.com/nuagetsu/mtree.git

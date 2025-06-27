@@ -37,6 +37,10 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     imgProd_max_index = np.union1d(imgProd_max_index, kth_element_index)
     
     # Get number of neighbours which remain closest
+    print("k: {}".format(k))
+    print(imgProd_max_index)
+    print(embProd_max_index)
+    print("AHHH WHY NO PRINTY")
     similar_neighbours = np.intersect1d(imgProd_max_index, embProd_max_index)
     
     # Used for modified KNN-IoU K-Score calculation
@@ -45,6 +49,15 @@ def get_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray,
     k_score = len(similar_neighbours) / len(union) if len(union) > 0 else 0
     
     return k_score, union, similar_neighbours
+
+def get_k_nearest_imageprod(imageProducts: NDArray, k: int) -> tuple[float, np.ndarray, np.ndarray]:
+    if k > len(imageProducts) + 1:
+        raise ValueError("Value of k in K neighbour score must be less than the number of images")
+    k = k + 1  # This takes into account that the closest neighbour to the vector is itself
+
+    # Get the index of the k largest elements in each list
+    imgProd_max_index = np.argpartition(imageProducts, -k)[-k:]
+    return imgProd_max_index
 
 def get_normed_k_neighbour_score(imageProducts: NDArray, embeddingDotProducts: NDArray, k: int) -> float:
     """

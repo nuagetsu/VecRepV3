@@ -16,12 +16,14 @@ from line_profiler import profile
 from itertools import combinations
 from sklearn.model_selection import train_test_split
 import numpy as np
+from tqdm import tqdm
 import random
 from functools import partial
 import gc
 
 import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
+import src.helpers.TCNNModelUtilities as tcnnmodels
 import src.data_processing.ImageProducts as ImageProducts
 import src.data_processing.ImageCalculations as imgcalc
 
@@ -127,6 +129,11 @@ SimpleCNN4_CBAM_dropout = models.SimpleCNN4_CBAM_dropout
 
 SimpleCNN6_2fc = models.SimpleCNN6_2fc
 SimpleCNN6_CBAM_2fc = models.SimpleCNN6_CBAM_2fc
+
+CircleLayers2 = tcnnmodels.CircleLayers2
+KleinLayers2 = tcnnmodels.KleinLayers2
+Klein2_2fc = tcnnmodels.Klein2_2fc
+Klein4_2fc = tcnnmodels.Klein4_2fc
 #dropout does not seem to work, 2fc doesnt seem to be better, CBAM also but we test it again bc i have hopes
 # ----------------------------------Training Settings----------------------------------
 def loss_fn(A,G):
@@ -134,15 +141,16 @@ def loss_fn(A,G):
 # -------------------------------- Loop over different dimensions and models--------------------------
 dimensions = [128]
 
-model_class = [SimpleCNN4_CBAM_dropout]
+model_class = [Klein4_2fc, Klein2_2fc]
+thresholds = [2, 2]
 # ----------------------------------Training Loop----------------------------------
 for i, model_class in enumerate(model_class):
     for dimension in dimensions:
-        print(f"Training MNIST {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
+        print(f"Training MNIST {model_class.__name__} with conv layer of {i+3} and dimension {dimension} and device {device}")
         with open("model/output_7.txt", "a", buffering=1) as file_model:
-            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension}")
+            file_model.write(f"\nTraining {model_class.__name__} with conv layer of {i+3} and dimension {dimension} and threshold {thresholds[i]}")
 
-        model = model_class(dimensions=dimension, padding_mode='circular').to(device)
+        model = model_class(thresholds[i], dimensions=dimension, padding_mode='circular').to(device)
         train_loss_history = []
         val_loss_history = []
 
@@ -154,10 +162,10 @@ for i, model_class in enumerate(model_class):
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
-        for epoch in range(epochs):
+        for epoch in tqdm(range(epochs)):
             model.train()
             training_loss, total_loss_training = 0, 0
-            for batch_data, batch_indices in train_dataloader: #3500
+            for batch_data, batch_indices in tqdm(train_dataloader, total=len(train_dataloader)): #3500
                 optimizer.zero_grad()
                 loss_per_pair = 0
                 len_train = 0
@@ -187,7 +195,7 @@ for i, model_class in enumerate(model_class):
                     len_train += 1
 
                 training_loss = loss_per_pair/len_train
-                print(f"training_loss in epoch {epoch}: {training_loss}")
+                #print(f"training_loss in epoch {epoch}: {training_loss}")
 
                 training_loss.backward()
                 optimizer.step()
@@ -251,7 +259,7 @@ for i, model_class in enumerate(model_class):
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss
                     epochs_no_improve = 0
-                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}.pt')
+                    torch.save(model.state_dict(), f'model/best_model_MNIST_{imageType}_{dimension}d_convlayer{i+3}_{model_class.__name__}_{thresholds[i]}.pt')
                 else:
                     epochs_no_improve += 1
 
@@ -260,7 +268,7 @@ for i, model_class in enumerate(model_class):
                     print(f"Early stopping at epoch {epoch+1}")
                     plot_epoch = epoch+1
                     break
-                #torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
+                torch.save(model.state_dict(), f'model/best_model_{imageType}_{dimension}d.pt')
                 print(f"Epoch {epoch}: Validation Loss: {avg_val_loss:.4f}")
                 with open("model/output_7.txt", "a", buffering=1) as file_model:
                     file_model.write(f"\nEpoch {epoch}: Validation Loss: {avg_val_loss:.4f}, {model_class.__name__}, {imageType}")

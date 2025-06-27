@@ -92,6 +92,7 @@ def printing_translational_indices(dictionary, indices):
     
 def display_and_plot_results(vectorb, vectorc, method_name, index, k, input_images):
     """Handle result display, table generation, and plotting."""
+    print("WHY NO PRINTY D:<")
     kscore, indices, intersection_indices = imgcalc.get_kscore_and_sets(vectorb, vectorc, k)
     
     print(f"Estimating K-Score for Image {index}: K-Score = {kscore}")

@@ -80,7 +80,7 @@ def scale_min(image_product, min_value: float):
     """
     if not -1 <= min_value < 1:
         raise ValueError("Minimum value to scale must be in range [-1, 1)!")
-    factor = 1 - min_value
+    factor = 1 - min_value # NCC max is 1, so we are calculating how far away the min_value is
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor + min_value
 
 
@@ -136,6 +136,7 @@ def multiply_image_product(image_product, factor: float):
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor
 
 
+# ADD NUMBA HERE
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     :param mainImg: Main image to be scanned
@@ -161,6 +162,36 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
 
     return max_val
+
+
+# TODO: ADD NUMBA DECORATOR. Count zero can be made to for loops. Then gotta put the cv2 parts in a separate func cause those not compatible w numba
+def ncc_numba(mainImg: NDArray, tempImg: NDArray) -> float:
+    """
+    :param mainImg: Main image to be scanned
+    :param tempImg: Template image to be scanned over the main
+    :return: Max value of the ncc
+
+    Applies NCC of the template image over the main image and returns the max value obtained.
+    When the template image kernel exceeds the bounds, wraps to the other side of the main image
+    """
+    if np.count_nonzero(mainImg) == 0:
+        if np.count_nonzero(tempImg) == 0:
+            return 1
+        return 0
+
+    mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])),
+                     'wrap')  # Padding the main image with wrapped values to simulate wrapping
+
+    mainImg = np.asarray(mainImg, np.single)  # Setting data types of array
+    tempImg = np.asarray(tempImg, np.single)
+
+    corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
+
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
+
+    return max_val
+
+
 
 
 def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:

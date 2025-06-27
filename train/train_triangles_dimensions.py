@@ -20,6 +20,8 @@ import random
 from functools import partial
 import gc
 
+from tqdm import tqdm
+
 import src.visualization.Metrics as metrics
 import src.helpers.ModelUtilities as models
 import src.helpers.oldModelUtilities as oldmodels
@@ -69,7 +71,7 @@ class CustomDataset(Dataset):
         img = img.unsqueeze(0).unsqueeze(0)
         return img, idx  
 
-dataset = CustomDataset("data/train_images_56x56_1.npy")
+dataset = CustomDataset("/home/jovyan/VecRepV3/data/train_images_56x56_1.npy")
 
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
@@ -145,10 +147,10 @@ for i, model_class in enumerate(model_classes):
         best_val_loss = float('inf')
         epochs_no_improve = 0
 
-        for epoch in range(epochs):
+        for epoch in tqdm(range(epochs)):
             model.train()
             training_loss, total_loss_training = 0, 0
-            for batch_data, batch_indices in train_dataloader: #3500
+            for batch_data, batch_indices in tqdm(train_dataloader, total=len(train_dataloader)): #3500
                 optimizer.zero_grad()
                 loss_per_pair = 0
                 len_train = 0

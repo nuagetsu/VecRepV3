@@ -169,4 +169,5 @@ def append_to_npy(imageType: str, filters: list, imageSetFilepath: str, max_imag
 
 imageType = "shapes_3_dims_48_4"
 filters = ["unique"]
-imageSet = append_to_npy(imageType, filters, 'filtered_images_56x56_eff_200000.npy', max_images=200000)
+# imageSet = append_to_npy(imageType, filters, 'filtered_images_56x56_eff_200000.npy', max_images=200000)
+imageSet = append_to_npy(imageType, filters, '/home/jovyan/VecRepV3/data/train_images_56x56_1.npy', max_images=70000)

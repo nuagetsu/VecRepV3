@@ -158,12 +158,13 @@ def get_embedding_matrix(imageProductMatrix: NDArray, embeddingType: str, weight
     :return:
     """
     if re.search(r'pencorr_[0-9]*[0-9]$', embeddingType) is not None:
+        #print("Entered here for pencorr")
         nDim = int(re.search(r'\d+', embeddingType).group())
         default_weight = weightMatrix is None or np.array_equal(weightMatrix, np.ones_like(imageProductMatrix))
         if not default_weight:
             matrixGprime = pencorr_weighted(imageProductMatrix, nDim, weightMatrix)
         else:
-            matrixGprime = pencorr(imageProductMatrix, nDim) #nDim extracted from the string passed, s
+            matrixGprime = pencorr_python(imageProductMatrix, nDim) #nDim extracted from the string passed, s
         embeddingMatrix = get_embeddings_mPCA(matrixGprime, nDim)
     elif re.search(r'eigencorr_[0-9]*[0-9]$', embeddingType) is not None:
         nDim = int(re.search(r'\d+', embeddingType).group())
@@ -213,10 +214,13 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     3. Normalize the embedding matrix
 
     """
+    #print("In get_embeddings_mPCA... matrixG: {} \n nDim: {}".format(matrixG, nDim))
     # Check and clean input
     matrixG, nDim = is_valid_matrix_g(matrixG, nDim)
 
     eigenvalues, eigenvectors = get_eig_for_symmetric(matrixG)
+
+    #print("Eigenvalues: {} \n Eigenvectors: {}".format(eigenvalues, eigenvectors))
 
     # Checking that the matrix is positive semi-definite
     for eigenvalue in eigenvalues[:nDim]:
@@ -227,15 +231,22 @@ def get_embeddings_mPCA(matrixG: NDArray, nDim=None, r=1, abs_tol=1e-5):
     eigenvalues[0 > eigenvalues] = 0
     Droot = np.sqrt(np.diag(eigenvalues))
 
+    #print("DROOT: {}".format(Droot))
+
     # Slices the diagonal matrix to remove smaller eigenvalues
     
     # Minimizing the squared error of G and dot product to obtain the matrix A
     Drootm = Droot[:nDim, :]
+
+    #print("DROOTM: {}".format(Drootm))
     
     matrixA = np.matmul(Drootm, eigenvectors.T)
 
+    #print("PreNormalized matrix A: {}".format(matrixA))
+
     # Normalizing matrix A
     matrixA = normalize(matrixA, norm='l2', axis=0) * (r ** 0.5)
+    #print("PostNormalized matrix A: {}".format(matrixA))
     return matrixA
 
 
@@ -285,5 +296,7 @@ def is_valid_matrix_g(matrixG: NDArray, nDim) -> (NDArray, int):
         raise ValueError(str(nDim) + " is <= 0. nDim has to be > 0")
     if nDim > maxDim:
         raise ValueError(str(nDim) + " is > " + str(maxDim) + ". nDim has to be < the length of matrixG")
+    
+    #print("in is_valid_matrix_g... matrix G: {} \n nDim: {}".format(matrixG, nDim))
 
     return matrixG, nDim

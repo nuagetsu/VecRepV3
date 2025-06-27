@@ -298,6 +298,7 @@ def get_vector_embeddings(input_dataset, model, device = None):
     num = len(input_dataset)
     model_vectors= []
     for i in range(num):
+        print(input_dataset[i].type())
         embedded_vector_image = model(input_dataset[i].to(device))
         model_vectors.append(embedded_vector_image)
     return model_vectors

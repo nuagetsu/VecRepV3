@@ -1,0 +1,17 @@
+Average runtime of querying mtree and ncc for 7 NN over 3 runs with image size 16 and max node size 12 and variable sample size:
+variable sample sizes: [1000, 5000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
+avg_times_ncc = [6.284808, 31.962404, 74.243872, 165.076338, 429.847867, 844.746134, 1697.343353, 2519.297591, 3361.954173, 4181.930275]
+avg_times_mtree = [0.052475, 0.276408, 0.489542, 0.808622, 2.728995, 4.613983, 8.542906, 12.433317, 16.331848, 11.945752]
+
+Average runtime of initialising mtree over 2 runs with max node size 12 and image size 16 and variable sample sizes:
+variable sample sizes: [1000, 5000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
+avg_times_mtree_init = [10.439944, 64.158101, 144.361262, 258.870547, 692.576917, 1577.860280, 3351.841068, 4889.966733, 6758.880551, 8808.383296]
+
+Average runtime of initialising mtree over 2 runs with variable image sizes and sample size 5000 and max nodes size 12:
+variable image sizes: [32, 64, 128, 160, 180, 200]
+avg_times_mtree_init = [86.425924, 182.267726, 1449.868364, 1830.932521, 1879.792569, 1830.305575]
+
+Average runtime of querying mtree and ncc for 7 NN over 100 runs with sample size 500 and max node size 12 and variable image
+variable image sizes: [32, 64, 128, 140, 160, 180, 200]
+avg_times_ncc = [3.336286, 3.696705, 4.711594, 4.758202, 4.852191, 7.087710, 7.810045]
+avg_times_mtree = [0.070414, 0.297683, 1.251325, 1.247262, 1.297005, 3.368683, 3.835782]
