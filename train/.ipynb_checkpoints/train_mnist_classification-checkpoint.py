@@ -60,8 +60,8 @@ train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
 val_loader = DataLoader(dataset=val_dataset, batch_size=64, shuffle=False)
 
 # ----------------------------------Model Architecture----------------------------------
-modelType = "SimpleCNN6_CBAM_dropout_128d"
-model = Mmodels.SimpleCNN6_CBAM_dropout(dimensions=128).to(device)
+modelType = "SimpleCNN4_CBAM_2fc_128d"
+model = Mmodels.SimpleCNN4_CBAM_2fc(dimensions=128).to(device)
 # ----------------------------------Training Settings----------------------------------
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
