@@ -4,7 +4,9 @@ from typing import Callable
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+import numba as nb
 import math
+import scipy
 
 
 def get_image_product(imageProductType: str):
@@ -136,7 +138,6 @@ def multiply_image_product(image_product, factor: float):
     return lambda mainImg, tempImg: image_product(mainImg, tempImg) * factor
 
 
-# ADD NUMBA HERE
 def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     """
     :param mainImg: Main image to be scanned
@@ -164,32 +165,35 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
     return max_val
 
 
-# TODO: ADD NUMBA DECORATOR. Count zero can be made to for loops. Then gotta put the cv2 parts in a separate func cause those not compatible w numba
-def ncc_numba(mainImg: NDArray, tempImg: NDArray) -> float:
-    """
-    :param mainImg: Main image to be scanned
-    :param tempImg: Template image to be scanned over the main
-    :return: Max value of the ncc
+def ncc_fft(mainImg, tempImg):
+    A = scipy.fft.fft2(mainImg)
+    B = scipy.fft.fft2(tempImg)
 
-    Applies NCC of the template image over the main image and returns the max value obtained.
-    When the template image kernel exceeds the bounds, wraps to the other side of the main image
-    """
-    if np.count_nonzero(mainImg) == 0:
-        if np.count_nonzero(tempImg) == 0:
-            return 1
-        return 0
+    Z = scipy.fft.ifft2(np.conj(A) * B).real
 
-    mainImg = np.pad(mainImg, max(len(mainImg), len(mainImg[0])),
-                     'wrap')  # Padding the main image with wrapped values to simulate wrapping
+    auto_A = scipy.fft.ifft2(np.conj(A) * A).real
+    auto_B = scipy.fft.ifft2(np.conj(B) * B).real
+    auto_A_sqrt = np.sqrt(auto_A)
+    auto_B_sqrt = np.sqrt(auto_B)
+    denom = np.multiply(auto_A_sqrt, auto_B_sqrt).max()
 
-    mainImg = np.asarray(mainImg, np.single)  # Setting data types of array
-    tempImg = np.asarray(tempImg, np.single)
+    return np.divide(Z, denom).max()
 
-    corr = cv2.matchTemplate(mainImg, tempImg, cv2.TM_CCORR_NORMED)
 
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
+@nb.njit(cache=True)
+def ncc_fft_numba(mainImg, tempImg):
+    A = scipy.fft.fft2(mainImg)
+    B = scipy.fft.fft2(tempImg)
 
-    return max_val
+    Z = scipy.fft.ifft2(np.conj(A) * B).real
+
+    auto_A = scipy.fft.ifft2(np.conj(A) * A).real
+    auto_B = scipy.fft.ifft2(np.conj(B) * B).real
+    auto_A_sqrt = np.sqrt(auto_A)
+    auto_B_sqrt = np.sqrt(auto_B)
+    denom = np.multiply(auto_A_sqrt, auto_B_sqrt).max()
+
+    return np.divide(Z, denom).max()
 
 
 
