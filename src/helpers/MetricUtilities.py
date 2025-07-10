@@ -7,13 +7,12 @@ import pandas as pd
 
 import src.data_processing.ImageProducts as ImageProducts
 
-# rly get the octave working... rn it goes sliiightly out of 1 and sliightly out of 0 so even same image can be not 1 TT
 def distance(img1, img2):
     #print(img1)
     #print(img2)
     #print(min(ImageProducts.ncc(img1, img2), 1))
     ncc = min(ImageProducts.ncc(img1, img2), 1)
-    ncc = max(ncc, 0)
+    # ncc = max(ncc, 0)
     #print(math.acos(ImageProducts.ncc(img1, img2)))
     return (math.acos(ncc) / (math.pi))
 
@@ -27,12 +26,23 @@ def getDistanceMatrix(matrixG):
     matrixG[matrixG < 0] = 1
     return ((np.arccos(matrixG)) / (math.pi / 2))
 
+# OMG ITS CAUSE OF NCC MAX NCC, 0... CAUSE THE FFT IS SCALED AAA
 def dist_fft_numba(img1, img2):
     ncc = min(ImageProducts.ncc_fft_numba(img1, img2), 1)
-    ncc = max(ncc, 0)
-    return (math.acos(ncc) / (math.pi / 2))
+    #ncc = max(ncc, 0)
+    return (math.acos(ncc) / (math.pi))
 
 def dist_fft(img1, img2):
     ncc = min(ImageProducts.ncc_fft(img1, img2), 1)
-    ncc = max(ncc, 0)
-    return (math.acos(ncc) / (math.pi / 2))
+    #ncc = max(ncc, 0)
+    return (math.acos(ncc) / (math.pi))
+
+def dist_with_index(item1, item2):
+    img1 = item1[0]
+    img2 = item2[0]
+    return distance(img1, img2)
+
+def dist_fft_numba_indexed(item1, item2):
+    img1 = item1[0]
+    img2 = item2[0]
+    return dist_fft_numba(img1, img2)

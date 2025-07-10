@@ -174,8 +174,8 @@ def ncc_fft(mainImg, tempImg):
 
     auto_A = scipy.fft.ifft2(np.conj(A) * A).real
     auto_B = scipy.fft.ifft2(np.conj(B) * B).real
-    auto_A = np.maximum(auto_A, 0.0001)
-    auto_B = np.maximum(auto_B, 0.0001)
+    auto_A = np.maximum(auto_A, 0.000000000001)
+    auto_B = np.maximum(auto_B, 0.000000000001)
     auto_A_sqrt = np.sqrt(auto_A)
     auto_B_sqrt = np.sqrt(auto_B)
     denom = np.multiply(auto_A_sqrt, auto_B_sqrt).max()
@@ -192,8 +192,8 @@ def ncc_fft_numba(mainImg, tempImg):
 
     auto_A = scipy.fft.ifft2(np.conj(A) * A).real
     auto_B = scipy.fft.ifft2(np.conj(B) * B).real
-    auto_A = np.maximum(auto_A, 0.0001)
-    auto_B = np.maximum(auto_B, 0.0001)
+    auto_A = np.maximum(auto_A, 0.0000000000001)
+    auto_B = np.maximum(auto_B, 0.0000000000001)
     auto_A_sqrt = np.sqrt(auto_A)
     auto_B_sqrt = np.sqrt(auto_B)    
     denom = np.multiply(auto_A_sqrt, auto_B_sqrt).max()
