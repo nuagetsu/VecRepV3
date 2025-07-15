@@ -37,10 +37,15 @@ def dist_fft(img1, img2):
     #ncc = max(ncc, 0)
     return (math.acos(ncc) / (math.pi))
 
-def dist_with_index(item1, item2):
+def dist_indexed(item1, item2):
     img1 = item1[0]
     img2 = item2[0]
     return distance(img1, img2)
+
+def dist_fft_indexed(item1, item2):
+    img1 = item1[0]
+    img2 = item2[0]
+    return dist_fft(img1, img2)
 
 def dist_fft_numba_indexed(item1, item2):
     img1 = item1[0]

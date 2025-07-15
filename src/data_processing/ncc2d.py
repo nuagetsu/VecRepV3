@@ -96,7 +96,7 @@ def complex_ccor(A2, gc, gg, kernel, FTpg,
 
 if __name__ == '__main__':
 
-    data = np.load("data_1.npz")
+    data = np.load("/home/jovyan/data_1.npz")
     
     A1 = data["input1"]
     A2 = data["input2"]

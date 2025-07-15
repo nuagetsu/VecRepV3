@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 import numba as nb
+from numba import prange
 import warnings
 import math
 import scipy
@@ -201,6 +202,21 @@ def ncc_fft_numba(mainImg, tempImg):
     return np.divide(Z, denom).max()
 
 
+# TODO: find more appropriate place to put this
+
+@nb.njit(parallel=True)
+def linear_ncc_psearch(testSample, unseen_image, arr):
+    for i in prange(len(testSample)):
+        arr[i] = ncc_fft_numba(testSample[i], unseen_image)
+
+    return arr
+
+@nb.njit()
+def linear_ncc_search(testSample, unseen_image, arr):
+    for i in range(len(testSample)):
+        arr[i] = ncc_fft_numba(testSample[i], unseen_image)
+
+    return arr
 
 
 def calculate_image_product_matrix(imageSet: NDArray, imageProduct: Callable) -> NDArray:
