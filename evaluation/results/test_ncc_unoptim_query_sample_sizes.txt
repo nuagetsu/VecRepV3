@@ -1,0 +1,2 @@
+sample_sizes = [1000]
+avgs_ncc_unoptim = [2.7304030950181186]

@@ -1,0 +1,4 @@
+sample_sizes = [100]
+avgs_ncc_pfft = [0.005411256795438627]
+avgs_ncc_fft = [0.06498811011357854]
+avgs_mtree_fft = [0.06513790027238428]
