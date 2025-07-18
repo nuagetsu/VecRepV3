@@ -206,6 +206,7 @@ def ncc_fft_numba(mainImg, tempImg):
 
 @nb.njit(parallel=True)
 def linear_ncc_psearch(testSample, unseen_image, arr):
+    nb.set_num_threads(5)
     for i in prange(len(testSample)):
         arr[i] = ncc_fft_numba(testSample[i], unseen_image)
 

@@ -322,7 +322,7 @@ def mtree_ncc_query_times_image_size(image_sizes=[], k=7, runs=30, max_node_size
     for i in range(len(image_sizes)):
 
         dataset = get_data_ATRNetSTARAll(image_sizes[i], split_path)
-        data = [item for item in dataset]
+        data = np.array([item for item in dataset])
     
         
         time_ncc_pfft = 0
@@ -403,7 +403,7 @@ def mtree_ncc_query_times_image_size(image_sizes=[], k=7, runs=30, max_node_size
     # print(avgs_ncc_unoptim)
     # print(avgs_mtree)
     print(avgs_mtree_fft)
-    with open("/home/jovyan/evaluation/results/test_query_image_sizes.txt", "w") as file:
+    with open("/home/jovyan/evaluation/results/test_query_image_sizes_2.txt", "w") as file:
         file.write(f"image_sizes = {image_sizes}\n")
         file.write(f"avgs_ncc_pfft = {avgs_ncc_pfft}\n")
         file.write(f"avgs_ncc_fft = {avgs_ncc_fft}\n")
@@ -422,7 +422,7 @@ def mtree_init_times_image_size(image_sizes=[], k=7, runs=30, max_node_size=25, 
     for i in range(len(image_sizes)):
 
         dataset = get_data_ATRNetSTARAll(image_sizes[i], split_path)
-        data = [item for item in dataset]
+        data = np.array([item for item in dataset])
     
         time_mtree_fft = 0
 
@@ -444,25 +444,71 @@ def mtree_init_times_image_size(image_sizes=[], k=7, runs=30, max_node_size=25, 
 
     print(avgs_mtree_fft)
 
-    with open("/home/jovyan/evaluation/results/test_init_image_sizes.txt", "w") as file:
+    with open("/home/jovyan/evaluation/results/test_init_image_sizes_2.txt", "w") as file:
         file.write(f"image_sizes = {image_sizes}\n")
         file.write(f"avgs_mtree_fft = {avgs_mtree_fft}")
+
+def mtree_unoptim_query_times_sample_size(image_size=128, k=7, runs=30, max_node_size=25, list_data="path", sample_sizes = []):
+
+    print(f"Query times of ncc unoptimised based on kNN with ncc with image size {image_size}, {k} neighbours, mtree max node size {max_node_size} over {runs} runs")
+
+    data_list = np.load(list_data)
+    data = data_list["testSample"]
+
+    avgs_mtree_unoptim = []
+
+    for i in range(len(sample_sizes)):
+        
+        time_mtree_unoptim = 0
+
+        sample_indices = random.sample(range(len(data)), sample_sizes[i])
+        testSample = data[sample_indices]
+        tree = getMTree(testSample, k=k)
+        print("done with testSample")
+        
+
+        print(f"Now testing with sample size: {sample_sizes[i]}")
+        for j in range(runs):
+
+            index1 = np.random.randint(len(data))
+            unseen_image = data[index1]
+
+            start_time = time.perf_counter()
+            neighbours = getKNearestNeighbours(tree, unseen_image, k=k)
+            end_time = time.perf_counter()
+            
+            time_mtree_unoptim += end_time - start_time
+
+        avg_mtree_unoptim = time_mtree_unoptim / runs
+        avgs_mtree_unoptim.append(avg_mtree_unoptim)
+        print(f"Avg time for ncc unoptim: {avg_mtree_unoptim}")
+
+    print(avgs_mtree_unoptim)
+
+    with open("/home/jovyan/evaluation/results/test_mtree_unoptim_query_sample_sizes.txt", "w") as file:
+        file.write(f"sample_sizes = {sample_sizes}\n")
+        file.write(f"avgs_ncc_unoptim = {avgs_mtree_unoptim}")
 
 if __name__ == "__main__":
     list_data = "/home/jovyan/data/ATRNet-STAR_annotations/list_data_all.npz"
     split_path = "/home/jovyan/data/ATRNet-STAR_annotations/all_filepaths.npz"
     sample_sizes = [1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]
-    image_sizes= [32, 64, 128]
+    image_sizes= [140, 160, 180, 200]
     max_node_sizes = list(np.arange(41))[5:]
     k = 7
     image_size = 128
     max_node_size = 25
 
-    mtree_ncc_query_times_sample_size(image_size=image_size, k=k, runs=100, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
-    ncc_unoptim_query_times_sample_size(image_size=image_size, k=k, runs=1, max_node_size=max_node_sizes, list_data=list_data, sample_sizes = sample_sizes)
+    # mtree_unoptim_query_times_sample_size(image_size=image_size, k=k, runs=2, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
 
-    mtree_init_times_sample_sizes(image_size=image_size, k=k, runs=2, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
-    mtree_init_times_max_node_size(image_size=image_size, k=k, runs=2, max_node_sizes=max_node_sizes, list_data=list_data, sample_size = 1000)
+    # mtree_ncc_query_times_sample_size(image_size=image_size, k=k, runs=100, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
+    # ncc_unoptim_query_times_sample_size(image_size=image_size, k=k, runs=1, max_node_size=max_node_sizes, list_data=list_data, sample_sizes = sample_sizes)
 
-    mtree_ncc_query_times_image_size(image_sizes=image_sizes, k=k, runs=100, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)
-    mtree_init_times_image_size(image_sizes=image_sizes, k=7, runs=2, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)
+    # mtree_init_times_sample_sizes(image_size=image_size, k=k, runs=2, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
+    # mtree_init_times_max_node_size(image_size=image_size, k=k, runs=2, max_node_sizes=max_node_sizes, list_data=list_data, sample_size = 1000)
+
+    mtree_ncc_query_times_image_size(image_sizes=image_sizes, k=7, runs=30, max_node_size=25, split_path=split_path, sample_size = 1000)
+    mtree_init_times_image_size(image_sizes=image_sizes, k=7, runs=30, max_node_size=25, split_path=split_path, sample_size = 1000)
+
+    # mtree_ncc_query_times_image_size(image_sizes=image_sizes, k=k, runs=100, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)
+    # mtree_init_times_image_size(image_sizes=image_sizes, k=7, runs=2, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)
