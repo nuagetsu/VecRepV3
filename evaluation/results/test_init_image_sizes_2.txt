@@ -1,0 +1,2 @@
+image_sizes = [140]
+avgs_mtree_fft = [48.16948829362324]

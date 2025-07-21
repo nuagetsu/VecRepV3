@@ -504,11 +504,11 @@ if __name__ == "__main__":
     # mtree_ncc_query_times_sample_size(image_size=image_size, k=k, runs=100, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
     # ncc_unoptim_query_times_sample_size(image_size=image_size, k=k, runs=1, max_node_size=max_node_sizes, list_data=list_data, sample_sizes = sample_sizes)
 
-    # mtree_init_times_sample_sizes(image_size=image_size, k=k, runs=2, max_node_size=max_node_size, list_data=list_data, sample_sizes = sample_sizes)
+    mtree_init_times_sample_sizes(image_size=image_size, k=k, runs=1, max_node_size=max_node_size, list_data=list_data, sample_sizes = [80000])
     # mtree_init_times_max_node_size(image_size=image_size, k=k, runs=2, max_node_sizes=max_node_sizes, list_data=list_data, sample_size = 1000)
 
     # mtree_ncc_query_times_image_size(image_sizes=image_sizes, k=7, runs=30, max_node_size=25, split_path=split_path, sample_size = 1000)
-    mtree_init_times_image_size(image_sizes=[140], k=7, runs=30, max_node_size=25, split_path=split_path, sample_size = 1000)
+    # mtree_init_times_image_size(image_sizes=[128], k=7, runs=30, max_node_size=25, split_path=split_path, sample_size = 1000)
 
     # mtree_ncc_query_times_image_size(image_sizes=image_sizes, k=k, runs=100, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)
     # mtree_init_times_image_size(image_sizes=image_sizes, k=7, runs=2, max_node_size=max_node_sizes, split_path=split_path, sample_size = 1000)

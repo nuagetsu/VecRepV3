@@ -241,8 +241,9 @@ def calc_packings_imdb(r1, r2, epsilon):
     sampled_test_data = Subset(IMDB_WIKI_data, sample_indices)
 
     testSample = np.array(sampled_test_data)
-
-    return packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    d_pack = packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    print(f"IMDB: {d_pack}")
+    return d_pack
 
 def calc_packings_MSTAR(r1,r2,epsilon):
     data = get_data_MStar(128)
@@ -251,22 +252,30 @@ def calc_packings_MSTAR(r1,r2,epsilon):
 
     testSample = np.array([item[0] for item in sampled_test_data])
 
-    return packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    d_pack = packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    print(f"MSTAR: {d_pack}")
+
+    return d_pack
 
 def calc_packings_SARDET(r1,r2,epsilon):
     data = get_data_SARDet_100k(128)
     sample_indices = random.sample(range(len(data)), 100)
     sampled_test_data = Subset(data, sample_indices)
-
     testSample = np.array([item[0] for item in sampled_test_data])
     
-    return packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    d_pack = packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    print(f"SARDET: {d_pack}")
+
+    return d_pack
 
 def calc_packings_ATRNET(r1,r2,epsilon, all_data=[]):
     sample_indices = np.array(random.sample(range(len(all_data)), 100))
     testSample = all_data[sample_indices]
     
-    return packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    d_pack = packing_dim(r1, r2, epsilon, testSample, metrics.dist_fft_numba)
+    print(f"ATRNET: {d_pack}")
+
+    return d_pack
 
 def calc_packings(r=[], epsilon=0.01, runs=5, filename=""):
     avgs_ATRNET = []
@@ -277,13 +286,16 @@ def calc_packings(r=[], epsilon=0.01, runs=5, filename=""):
     list_data = "/home/jovyan/data/ATRNet-STAR_annotations/list_data_all.npz"
     data = np.load(list_data)
     all_data = data["testSample"]
+    print("done loading all data")
 
     for i in range(2, len(r)):
         avg_ATRNET = 0
         avg_IMDB = 0
         avg_MSTAR = 0
         avg_SARDET = 0
+        print(f"For {r[i-1]} to {r[i]}")
         for j in range(runs):
+            
             avg_ATRNET += calc_packings_ATRNET(r[i-1],r[i],epsilon, all_data)
             avg_IMDB += calc_packings_imdb(r[i-1],r[i],epsilon)
             avg_MSTAR += calc_packings_MSTAR(r[i-1],r[i],epsilon)
@@ -322,8 +334,9 @@ if __name__ == "__main__":
     # test_sample_size(2000)
     # test_sample_size(5000)
     # test_sample_size(9000)
-    r = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+    # r = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+    r = [0.05, 0.25, 0.3]
 
-    calc_packings(r=r, epsilon=0.01, runs=20, filename="/home/jovyan/evaluation/results/ID_estimator_r_comparisons.txt")
+    calc_packings(r=r, epsilon=0.01, runs=5, filename="/home/jovyan/evaluation/results/ID_estimator_r_comparisons_2.txt")
 
 

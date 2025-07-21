@@ -69,6 +69,41 @@ def linear_ncc_search(testSample, unseen_image, arr):
 
     return arr
 
+class CustomDataset(Dataset):
+    def __init__(self, transform=None):
+        self.transform = transform
+
+        self.imgs_path = "/home/jovyan/data/imdb_wiki/"
+        file_list = glob.glob(self.imgs_path + "*")
+        self.images = []
+        for class_path in file_list:
+            for dir_path in glob.glob(class_path + "/*"):
+                for img_path in glob.glob(dir_path + "/*.jpg"):
+                    self.images.append(img_path)
+
+    # Defining the length of the dataset
+    def __len__(self):
+        return len(self.images)
+
+    # Defining the method to get an item from the dataset
+    def __getitem__(self, index):
+        image_path = self.images[index]
+        image = Image.open(image_path)
+        image = transforms.functional.to_grayscale(image)
+
+        # Applying the transform
+        if self.transform:
+            image = self.transform(image)
+        
+        return image.squeeze().to('cpu').numpy()
+
+def get_data(size):
+    transform = transforms.Compose([
+    transforms.Resize((size, size)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+    ])
+    return CustomDataset(transform)
 
 
 # TODO look at train/val/test.json format and extract out the category id and the id to class mapping at the v end.
@@ -162,7 +197,7 @@ def mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=100, max_n
 
     # data_list = np.load(list_data)
     # data = data_list["testSample"]
-    data = get_data_MStar(image_size)
+    data = get_data(image_size)
 
             
     avgs_ncc_pfft = []
@@ -181,7 +216,7 @@ def mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=100, max_n
 
         sample_indices = random.sample(range(len(data)), sample_sizes[i])
         sampled_test_data = Subset(data, sample_indices)
-        testSample = np.array([item[0] for item in sampled_test_data])
+        testSample = np.array([item for item in sampled_test_data])
         print("done with testSample")
         # tree = getMTree(testSample, max_node_size)
         tree_fft = getMTreeFFTNumba(testSample, max_node_size)
@@ -191,7 +226,7 @@ def mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=100, max_n
         for j in range(runs):
 
             index1 = np.random.randint(len(data))
-            unseen_image = data[index1][0]
+            unseen_image = data[index1]
 
             start_time = time.perf_counter()
             arr = np.ones(len(testSample))
@@ -366,6 +401,7 @@ def mtree_ncc_query_times_sample_size_SARDET(image_size=128, k=7, runs=100, max_
         file.write(f"avgs_mtree_fft = {avgs_mtree_fft}")
 
 if __name__ == "__main__":
-    sample_sizes = [100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000]
-    mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=30, max_node_size=39, list_data="path", sample_sizes = sample_sizes, filename="/home/jovyan/evaluation/results/MSTAR_test_query_sample_sizes_2.txt")
-    mtree_ncc_query_times_sample_size_SARDET(image_size=128, k=7, runs=30, max_node_size=39, list_data="path", sample_sizes = sample_sizes, filename="/home/jovyan/evaluation/results/SARDET_test_query_sample_sizes.txt")
+    sample_sizes = [6000, 7000, 8000, 9000]
+    # mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=30, max_node_size=15, list_data="path", sample_sizes = sample_sizes, filename="/home/jovyan/evaluation/results/MSTAR_test_query_sample_sizes_3.txt")
+    # mtree_ncc_query_times_sample_size_SARDET(image_size=128, k=7, runs=30, max_node_size=39, list_data="path", sample_sizes = sample_sizes, filename="/home/jovyan/evaluation/results/SARDET_test_query_sample_sizes.txt")
+    mtree_ncc_query_times_sample_size_MSTAR(image_size=128, k=7, runs=100, max_node_size=12, list_data="path", sample_sizes = sample_sizes, filename="")
