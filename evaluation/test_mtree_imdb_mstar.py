@@ -1,144 +1,18 @@
-import sys
-import os
-path = os.path.abspath("../")
-sys.path.append(path)
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torchvision
-from torch.utils.data import DataLoader, TensorDataset, Sampler, random_split, Dataset, Subset
-from torchvision import datasets, transforms
-
+'''
+Experiments to test on the IMDB_WIKI and MSTAR dataset.
+'''
+from torch.utils.data import Subset
 import matplotlib.pyplot as plt
 import numpy as np
-import math
-import pandas as pd
 import random
 
-from collections import defaultdict, Counter
-from line_profiler import profile
-from scipy.linalg import orthogonal_procrustes
-
 import src.data_processing.ImageCalculations as imgcalc
-import src.visualization.ImagePlots as imgplt
-import src.helpers.ModelUtilities as models
-import src.helpers.TCNNModelUtilities as tcnnmodels
-import src.data_processing.Utilities as utils
-import src.helpers.FilepathUtils as Futils
-import src.data_processing.EmbeddingFunctions as embedfunc
+from src.helpers.MTreeUtilities import getKNearestNeighbours, getMTree, getMTreeFFT, getMTreeFFTNumba
+from src.data_processing.DatasetGetter import get_data, get_data_MStar, get_data_SARDet_100k, get_data_ATRNetSTARAll
 import src.data_processing.ImageProducts as ImageProducts
-import src.helpers.MetricUtilities as metrics
 
-from src.visualization import BFmethod
-from functools import partial
-from learnable_polyphase_sampling.learn_poly_sampling.layers import get_logits_model, PolyphaseInvariantDown2D, LPS
-from learnable_polyphase_sampling.learn_poly_sampling.layers.polydown import set_pool
-
-from mtree.mtree import MTree
-import mtree.mtree as mtree
-
-import glob
-from PIL import Image
 
 import time
-
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# TODO: Put these in a separate file for MTreeUtils...
-def getKNearestNeighbours(tree, point, k):
-    l = tree.search(point, k)
-    imgs = list(l)
-    return imgs
-
-def getMTree(data, k):
-    # k: desired number of nearest neighbours
-    tree = MTree(metrics.distance, max_node_size=k)
-    tree.add_all(data)
-    return tree
-
-transform = transforms.Compose([
-    transforms.Resize((32, 32)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])   
-
-class CustomDataset(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
-
-        self.imgs_path = "/home/jovyan/data/imdb_wiki/"
-        file_list = glob.glob(self.imgs_path + "*")
-        #print(file_list)
-        self.images = []
-        for class_path in file_list:
-            for dir_path in glob.glob(class_path + "/*"):
-                for img_path in glob.glob(dir_path + "/*.jpg"):
-                    self.images.append(img_path)
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.images)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        image_path = self.images[index]
-        image = Image.open(image_path)
-        image = transforms.functional.to_grayscale(image)
-
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy()
-
-class CustomDatasetMStar(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
-
-        self.imgs_path = "/home/jovyan/data/mstar/Padded_imgs/"
-        file_list = glob.glob(self.imgs_path + "*")
-        self.data = []
-        for class_path in file_list:
-            class_name = class_path.split("/")[-1]
-            for img_path in glob.glob(class_path + "/*.JPG"):
-                self.data.append([img_path, class_name])
-        #print(self.data)
-        self.class_map = {"2S1" : 0, "BRDM_2": 1, "BTR_60": 2, "D7": 3, "SLICY": 4, "T62": 5, "ZIL131": 6, "ZSU_23_4": 7}
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.data)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        data_path = self.data[index]
-        image = Image.open(data_path[0])
-        image = transforms.functional.to_grayscale(image)
-        class_id = self.class_map[data_path[1]]
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy(), class_id
-
-def get_data(size):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDataset(transform)
-
-def get_data_MStar(size):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDatasetMStar(transform)
 
 
 def plot_data_mtree_ncc(x_axis="", title="", filename="", varied_arr=[], data1=[], data2=[], max_node_size=12):

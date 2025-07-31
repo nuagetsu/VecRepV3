@@ -1,3 +1,20 @@
+'''
+Implementation of the CirclesFilter, CircleOneLayer, KleinFilter, KleinOneLayer from the paper https://jmlr.org/papers/volume24/21-0073/21-0073.pdf with custom pruning.
+
+
+@article{JMLR:v24:21-0073,
+  author  = {Ephy R. Love and Benjamin Filippenko and Vasileios Maroulas and Gunnar Carlsson},
+  title   = {Topological Convolutional Layers for Deep Learning},
+  journal = {Journal of Machine Learning Research},
+  year    = {2023},
+  volume  = {24},
+  number  = {59},
+  pages   = {1--35},
+  url     = {http://jmlr.org/papers/v24/21-0073.html}
+}
+'''
+
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

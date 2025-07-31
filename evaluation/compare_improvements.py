@@ -8,7 +8,7 @@ import random
 
 
 from src.helpers.MTreeUtilities import getKNearestNeighbours, getMTree, getMTreeFFT, getMTreeFFTNumba
-from src.data_processing.DatasetGetter import get_data, get_data_MStar, get_data_SARDet_100k 
+from src.data_processing.DatasetGetter import get_data, get_data_MStar, get_data_SARDet_100k, get_data_ATRNetSTARAll
 import src.data_processing.ImageProducts as ImageProducts
 
 import time

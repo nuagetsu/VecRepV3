@@ -2,12 +2,6 @@
 Functions to extract data from the ATRNet-STAR dataset .xml files and .tif files. We save the .xml metadata in a json for annotations. After mapping images to grayscale and 
 normalising them, we save this as numpy arrays in a .npz file for easy access. We also split the data by classes in a dictionary for reference / test splitting.
 '''
-import sys
-import os
-path = os.path.abspath("../")
-sys.path.append(path)
-print(path)
-
 from torch.utils.data import Dataset
 from torchvision import transforms
 
