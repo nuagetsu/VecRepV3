@@ -553,3 +553,71 @@ Currently, our list of implemented images types are:
 
 
 [^3]: This means the NCC score between every image is less than 1. This filter is also how we find the 7 translationally unique squares for the brute force approach 
+
+
+
+
+# NCC kNN search
+We implemented tools to conduct NCC kNN search, including a parallelised linear search and M-trees. Code was also written to test on ATRNet-STAR, IMDB-WIKI, MSTAR, SARDet-100k datasets.
+
+### Where to find 
+src/helpers/MTreeUtilities.py contains functions to initialise M-trees and query them.
+
+src/data_processing/ImageProducts.py contains functions for ncc optimised with fft and numba, as well as parallel linear kNN search and linear kNN search with NCC
+
+src/data_processing/DatasetGetter.py contains functions for processing and getting data from various datasets (IMDB-WIKI, MSTAR, SARDet-100k)
+
+id_estimator/PackingDimension.py for packing dimension estimator
+
+
+@inproceedings{li2024sardet100k,
+	title={SARDet-100K: Towards Open-Source Benchmark and ToolKit for Large-Scale SAR Object Detection}, 
+	author={Yuxuan Li and Xiang Li and Weijie Li and Qibin Hou and Li Liu and Ming-Ming Cheng and Jian Yang},
+	year={2024},
+	booktitle={The Thirty-eighth Annual Conference on Neural Information Processing Systems (NeurIPS)},
+}
+
+@article{zhang2025rsar,
+  title={RSAR: Restricted State Angle Resolver and Rotated SAR Benchmark},
+  author={Zhang, Xin and Yang, Xue and Li, Yuxuan and Yang, Jian and Cheng, Ming-Ming and Li, Xiang},
+  journal={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+  year={2025}
+}
+
+@article{dai2024denodet,
+	title={DenoDet: Attention as Deformable Multi-Subspace Feature Denoising for Target Detection in SAR Images},
+	author={Dai, Yimian and Zou, Minrui and Li, Yuxuan and Li, Xiang and Ni, Kang and Yang, Jian},
+	journal={arXiv preprint arXiv:2406.02833},
+	year={2024}
+}
+
+misc{liu2025atrnet,
+    title={{ATRNet-STAR}: A Large Dataset and Benchmark Towards Remote Sensing Object Recognition in the Wild}, 
+    author={Yongxiang Liu and Weijie Li and Li Liu and Jie Zhou and Bowen Peng and Yafei Song and Xuying Xiong and Wei Yang and Tianpeng Liu and Zhen Liu and Xiang Li},
+    year={2025},
+    eprint={2501.13354},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://arxiv.org/abs/2501.13354},
+}
+
+@ARTICLE{li2025saratr,
+  author={Li, Weijie and Yang, Wei and Hou, Yuenan and Liu, Li and Liu, Yongxiang and Li, Xiang},
+  journal={IEEE Transactions on Image Processing}, 
+  title={SARATR-X: Toward Building a Foundation Model for SAR Target Recognition}, 
+  year={2025},
+  volume={34},
+  number={},
+  pages={869-884},
+  doi={10.1109/TIP.2025.3531988}}
+
+@ARTICLE{li2024predicting,
+  title = {Predicting gradient is better: Exploring self-supervised learning for SAR ATR with a joint-embedding predictive architecture},
+  journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
+  volume = {218},
+  pages = {326-338},
+  year = {2024},
+  issn = {0924-2716},
+  doi = {https://doi.org/10.1016/j.isprsjprs.2024.09.013},
+  url = {https://www.sciencedirect.com/science/article/pii/S0924271624003514},
+  author = {Li, Weijie and Yang, Wei and Liu, Tianpeng and Hou, Yuenan and Li, Yuxuan and Liu, Zhen and Liu, Yongxiang and Liu, Li}}
