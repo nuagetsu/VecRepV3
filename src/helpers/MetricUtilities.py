@@ -1,19 +1,14 @@
-import matplotlib.pyplot as plt
+'''
+Distance functions to use as metrics for M-trees.
+'''
 import numpy as np
 import math
-import cmath
-import pandas as pd
 
 
 import src.data_processing.ImageProducts as ImageProducts
 
 def distance(img1, img2):
-    #print(img1)
-    #print(img2)
-    #print(min(ImageProducts.ncc(img1, img2), 1))
     ncc = min(ImageProducts.ncc(img1, img2), 1)
-    # ncc = max(ncc, 0)
-    #print(math.acos(ImageProducts.ncc(img1, img2)))
     return (math.acos(ncc) / (math.pi))
 
 def getDistance(ncc_vector):
@@ -26,15 +21,12 @@ def getDistanceMatrix(matrixG):
     matrixG[matrixG < 0] = 1
     return ((np.arccos(matrixG)) / (math.pi / 2))
 
-# OMG ITS CAUSE OF NCC MAX NCC, 0... CAUSE THE FFT IS SCALED AAA
 def dist_fft_numba(img1, img2):
     ncc = min(ImageProducts.ncc_fft_numba(img1, img2), 1)
-    #ncc = max(ncc, 0)
     return (math.acos(ncc) / (math.pi))
 
 def dist_fft(img1, img2):
     ncc = min(ImageProducts.ncc_fft(img1, img2), 1)
-    #ncc = max(ncc, 0)
     return (math.acos(ncc) / (math.pi))
 
 def dist_indexed(item1, item2):

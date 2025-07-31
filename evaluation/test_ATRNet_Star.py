@@ -1,86 +1,17 @@
-import sys
-import os
-path = os.path.abspath("../")
-sys.path.append(path)
-print(path)
+'''
+Tests on the ATRNet-STAR dataset
+'''
 
-import torch
-from torch.utils.data import DataLoader, TensorDataset, Sampler, random_split, Dataset, Subset
-from torchvision import datasets, transforms
-
-import matplotlib.pyplot as plt
 import numpy as np
-import math
-import pandas as pd
 import random
 
 
 import src.helpers.MetricUtilities as metrics
+from src.helpers.MTreeUtilities import getKNearestNeighbours, getMTree, getMTreeFFT, getMTreeFFTNumba
+from src.data_processing.DatasetGetter import get_data, get_data_MStar, get_data_SARDet_100k, get_data_ATRNetSTARAll
 import src.data_processing.ImageProducts as ImageProducts
 
-from mtree.mtree import MTree
-import mtree.mtree as mtree
-
-import glob
-from PIL import Image
-
 import time
-import json
-import xml.etree.ElementTree as ET
-
-
-class CustomDatasetATRNetSTARAll(Dataset):
-    def __init__(self, filename, transform=None):
-        data_list = np.load(filename)
-        self.data = data_list["data"]
-        self.transform = transform
-        
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.data)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        data_path = str(self.data[index])
-        image = Image.open(data_path)
-        image = transforms.functional.to_grayscale(image)
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy()
-
-def get_data_ATRNetSTARAll(size, filename):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDatasetATRNetSTARAll(filename, transform)
-
-def getKNearestNeighbours(tree, point, k):
-    l = tree.search(point, k)
-    imgs = list(l)
-    return imgs
-
-def getMTree(data, k, promote=mtree.M_LB_DIST_confirmed, partition=mtree.generalized_hyperplane, d=metrics.distance):
-    # k: desired number of nearest neighbours
-    tree = MTree(d, max_node_size=k, promote=promote, partition=partition)
-    tree.add_all(data)
-    return tree
-
-def getMTreeFFT(data, k):
-    # k: desired number of nearest neighbours
-    tree = MTree(metrics.dist_fft, max_node_size=k)
-    tree.add_all(data)
-    return tree
-
-def getMTreeFFTNumba(data, k, promote=mtree.M_LB_DIST_confirmed, partition=mtree.generalized_hyperplane):
-    # k: desired number of nearest neighbours
-    tree = MTree(metrics.dist_fft_numba, max_node_size=k, promote=promote, partition=partition)
-    tree.add_all(data)
-    return tree
 
 
 def mtree_ncc_query_times_sample_size(image_size=128, k=7, runs=100, max_node_size=12, list_data="path", sample_sizes = []):

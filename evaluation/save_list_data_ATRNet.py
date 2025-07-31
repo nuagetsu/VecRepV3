@@ -1,32 +1,14 @@
-import sys
-import os
-path = os.path.abspath("../")
-sys.path.append(path)
-print(path)
+'''
+Saving dataset splits for future testing.
+'''
+from torch.utils.data import Dataset
+from torchvision import transforms
 
-import torch
-from torch.utils.data import DataLoader, TensorDataset, Sampler, random_split, Dataset, Subset
-from torchvision import datasets, transforms
-
-import matplotlib.pyplot as plt
 import numpy as np
-import math
-import pandas as pd
-import random
 
-
-import src.helpers.MetricUtilities as metrics
-import src.data_processing.ImageProducts as ImageProducts
-
-from mtree.mtree import MTree
-import mtree.mtree as mtree
-
-import glob
 from PIL import Image
 
-import time
 import json
-import xml.etree.ElementTree as ET
 
 
 

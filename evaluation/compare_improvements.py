@@ -1,175 +1,17 @@
-import sys
-import os
-path = os.path.abspath("../")
-sys.path.append(path)
-print(path)
+'''
+Testing for improvements of M-tree search over optimised NCC linear search
+'''
+from torch.utils.data import Subset
 
-import torch
-from torch.utils.data import DataLoader, TensorDataset, Sampler, random_split, Dataset, Subset
-from torchvision import datasets, transforms
-
-import matplotlib.pyplot as plt
 import numpy as np
-import math
-import pandas as pd
 import random
 
 
-import src.helpers.MetricUtilities as metrics
+from src.helpers.MTreeUtilities import getKNearestNeighbours, getMTree, getMTreeFFT, getMTreeFFTNumba
+from src.data_processing.DatasetGetter import get_data, get_data_MStar, get_data_SARDet_100k 
 import src.data_processing.ImageProducts as ImageProducts
 
-from mtree.mtree import MTree
-import mtree.mtree as mtree
-
-import glob
-from PIL import Image
-
 import time
-import json
-import xml.etree.ElementTree as ET
-
-def getKNearestNeighbours(tree, point, k):
-    l = tree.search(point, k)
-    imgs = list(l)
-    return imgs
-
-def getMTree(data, k, promote=mtree.M_LB_DIST_confirmed, partition=mtree.generalized_hyperplane, d=metrics.distance):
-    # k: desired number of nearest neighbours
-    tree = MTree(d, max_node_size=k, promote=promote, partition=partition)
-    tree.add_all(data)
-    return tree
-
-def getMTreeFFT(data, k):
-    # k: desired number of nearest neighbours
-    tree = MTree(metrics.dist_fft, max_node_size=k)
-    tree.add_all(data)
-    return tree
-
-def getMTreeFFTNumba(data, k, promote=mtree.M_LB_DIST_confirmed, partition=mtree.generalized_hyperplane):
-    # k: desired number of nearest neighbours
-    tree = MTree(metrics.dist_fft_numba, max_node_size=k, promote=promote, partition=partition)
-    tree.add_all(data)
-    return tree
-
-class CustomDataset(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
-
-        self.imgs_path = "/home/jovyan/data/imdb_wiki/"
-        file_list = glob.glob(self.imgs_path + "*")
-        self.images = []
-        for class_path in file_list:
-            for dir_path in glob.glob(class_path + "/*"):
-                for img_path in glob.glob(dir_path + "/*.jpg"):
-                    self.images.append(img_path)
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.images)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        image_path = self.images[index]
-        image = Image.open(image_path)
-        image = transforms.functional.to_grayscale(image)
-
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy()
-
-def get_data(size):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDataset(transform)
-
-
-class CustomDatasetMStar(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
-
-        self.imgs_path = "/home/jovyan/data/mstar/Padded_imgs/"
-        file_list = glob.glob(self.imgs_path + "*")
-        self.data = []
-        for class_path in file_list:
-            class_name = class_path.split("/")[-1]
-            for img_path in glob.glob(class_path + "/*.JPG"):
-                self.data.append([img_path, class_name])
-        #print(self.data)
-        self.class_map = {"2S1" : 0, "BRDM_2": 1, "BTR_60": 2, "D7": 3, "SLICY": 4, "T62": 5, "ZIL131": 6, "ZSU_23_4": 7}
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.data)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        data_path = self.data[index]
-        image = Image.open(data_path[0])
-        image = transforms.functional.to_grayscale(image)
-        class_id = self.class_map[data_path[1]]
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy(), class_id
-    
-def get_data_MStar(size):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDatasetMStar(transform)
-
-class CustomDatasetSARDet_100k(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
-
-        self.imgs_path = "/home/jovyan/data/SARDet_100k/SARDet_100K/JPEGImages/"
-        file_list = glob.glob(self.imgs_path + "*")
-        self.data = []
-
-        # with open("../data/SARDet_100k/SARDet_100K/mapping.json") as annotations:
-        #     mappings = json.load(annotations)
-
-        for dir_path in file_list:
-            for img_path in glob.glob(dir_path + "/*.png"):
-                # self.data.append([img_path, mappings[img_path.split("/")[-1]]])
-                self.data.append([img_path, "yippee"])
-            for img_path in glob.glob(dir_path + "/*.jpg"):
-                # self.data.append([img_path, mappings[img_path.split("/")[-1]]])
-                self.data.append([img_path, "yippee"])
-        
-
-    # Defining the length of the dataset
-    def __len__(self):
-        return len(self.data)
-
-    # Defining the method to get an item from the dataset
-    def __getitem__(self, index):
-        data_path = self.data[index]
-        image = Image.open(data_path[0])
-        image = transforms.functional.to_grayscale(image)
-        # class_id = self.class_map[data_path[1]]
-        class_id = data_path[1]
-        # Applying the transform
-        if self.transform:
-            image = self.transform(image)
-        
-        return image.squeeze().to('cpu').numpy(), class_id
-
-def get_data_SARDet_100k(size):
-    transform = transforms.Compose([
-    transforms.Resize((size, size)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-    ])
-    return CustomDatasetSARDet_100k(transform)
 
 def ncc_pfft_query_time(image_size=128, k=7, runs=100, sample_size=1000, testSample=[], unseen_image=[]):
     avg_ncc_pfft = 0
@@ -217,8 +59,6 @@ def mtree_fft_query_time(image_size=128, k=7, runs=100, max_node_size=25, sample
     
     avg_mtree_fft = time_mtree_fft / runs
     return avg_mtree_fft
-
-
 
 def query_percentage_improvements_mtree_ncc(sample_sizes=[], runs=10, k=7):
     print(f"Measuring percentage improvement of mtree over ncc for IMDB, MSTAR, SARDET, ATRNET over {runs} runs for {k} neighbours over variable sample sizes and image size 128")
@@ -303,8 +143,6 @@ def query_percentage_improvements_mtree_ncc(sample_sizes=[], runs=10, k=7):
         file.write(f"p_incs_MSTAR = {p_incs_MSTAR}\n")
         file.write(f"p_incs_SARDET = {p_incs_SARDET}\n")
         file.write(f"p_incs_ATRNET = {p_incs_ATRNET}")
-
-
 
 def mtree_ncc_query_times_sample_size(image_size=128, k=7, runs=100, max_node_size=12, list_data="path", sample_sizes = [], filename=""):
 
@@ -410,7 +248,6 @@ def mtree_ncc_query_times_sample_size(image_size=128, k=7, runs=100, max_node_si
         # file.write(f"avgs_mtree = {avgs_mtree}\n")
         file.write(f"avgs_mtree_fft = {avgs_mtree_fft}")
 
-
 def save_list_data_imdb(image_size):
 
     data = get_data(image_size)
@@ -422,7 +259,6 @@ def save_list_data_imdb(image_size):
 
     filename = "/home/jovyan/data/annotations/imdb_list_data_all_128.npz"
     np.savez(filename, testSample=testSample)
-
 
 def save_list_data_sardet(image_size):
 
@@ -438,10 +274,18 @@ def save_list_data_sardet(image_size):
 
 
 if __name__ == "__main__":
-    sample_sizes = [100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000]
-    save_list_data_imdb(128)
-    save_list_data_sardet(128)
-    query_percentage_improvements_mtree_ncc(sample_sizes=sample_sizes, runs=30, k=7)
+    # sample_sizes = [100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000]
+    # save_list_data_imdb(128)
+    # save_list_data_sardet(128)
+    # query_percentage_improvements_mtree_ncc(sample_sizes=sample_sizes, runs=30, k=7)
+
+    list_path = "/home/jovyan/data/ATRNet-STAR_annotations/list_data_all.npz"
+    ATRNET_data = np.load(list_path)
+    all_data = ATRNET_data["testSample"]
+    avg_ncc_fft_time_ATRNET = ncc_fft_query_time(image_size=128, k=1, runs=30, sample_size=100, data=all_data)
+    avg_mtree_fft_time_ATRNET = mtree_fft_query_time(image_size=128, k=1, runs=30, max_node_size=25, sample_size=100, data=all_data)
+    print(f"ncc: {avg_ncc_fft_time_ATRNET}")
+    print(f"mtree: {avg_mtree_fft_time_ATRNET}")
 
     # sample_sizes = [1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]
     # mtree_ncc_query_times_sample_size(image_size=128, k=7, runs=30, max_node_size=39, list_data="path", sample_sizes = sample_sizes, filename="/home/jovyan/evaluation/results/IMDB_test_query_sample_sizes.txt")
