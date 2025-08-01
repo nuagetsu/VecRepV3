@@ -166,8 +166,10 @@ def ncc(mainImg: NDArray, tempImg: NDArray) -> float:
 
     return max_val
 
-
 def ncc_fft(mainImg, tempImg):
+    '''
+    Compute NCC with fast fourier transform.
+    '''
     A = scipy.fft.fft2(mainImg)
     B = scipy.fft.fft2(tempImg)
 
@@ -186,6 +188,9 @@ def ncc_fft(mainImg, tempImg):
 
 @nb.njit(cache=True)
 def ncc_fft_numba(mainImg, tempImg):
+    '''
+    Compute NCC with fast fourier transform and rocket fft
+    '''
     A = scipy.fft.fft2(mainImg)
     B = scipy.fft.fft2(tempImg)
 
@@ -202,11 +207,14 @@ def ncc_fft_numba(mainImg, tempImg):
     return np.divide(Z, denom).max()
 
 
-# TODO: find more appropriate place to put this
 
 @nb.njit(parallel=True)
 def linear_ncc_psearch(testSample, unseen_image, arr):
-    nb.set_num_threads(4)
+    '''
+    Parallel linear search over the testSample array comparing with unseen image with multithreading over CPU cores.
+    Can use nb.set_num_threads to set the number of threads, with default being the systems number of available CPU cores.
+    '''
+    #nb.set_num_threads(4)
     for i in prange(len(testSample)):
         arr[i] = ncc_fft_numba(testSample[i], unseen_image)
 
@@ -214,6 +222,9 @@ def linear_ncc_psearch(testSample, unseen_image, arr):
 
 @nb.njit()
 def linear_ncc_search(testSample, unseen_image, arr):
+    '''
+    Linear ncc search over testSample array comparing with unseen image.
+    '''
     for i in range(len(testSample)):
         arr[i] = ncc_fft_numba(testSample[i], unseen_image)
 
