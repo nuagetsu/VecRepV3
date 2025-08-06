@@ -561,6 +561,8 @@ Currently, our list of implemented images types are:
 We implemented tools to conduct NCC kNN search, including a parallelised linear search and M-trees. Code was also written to test on ATRNet-STAR, IMDB-WIKI, MSTAR, SARDet-100k datasets.
 
 ### Where to find 
+Dependencies can be downloaded through the requirements.txt and environment.yml files with pip and conda.
+
 src/helpers/MTreeUtilities.py contains functions to initialise M-trees and query them.
 
 src/data_processing/ImageProducts.py contains functions for ncc optimised with fft and numba, as well as parallel linear kNN search and linear kNN search with NCC
